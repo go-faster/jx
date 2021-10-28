@@ -4,6 +4,10 @@ package json
 
 import (
 	"bytes"
+	hexe "encoding/hex"
+	"fmt"
+	"io"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -60,18 +64,54 @@ func Test_iterDown(t *testing.T) {
 }
 
 func Test_parseVal(t *testing.T) {
-	var v Value
-	const input = `{"foo":{"bar":1,"baz":[1,2,3.14],"200":null}}`
-	i := ParseString(Default, input)
-	parseVal(i, &v)
-	assert.NoError(t, i.Error)
-	assert.Equal(t, `{foo: {bar: 1, baz: [1, 2, 3.14], 200: null}}`, v.String())
+	t.Run("Object", func(t *testing.T) {
+		var v Value
+		const input = `{"foo":{"bar":1,"baz":[1,2,3.14],"200":null}}`
+		i := ParseString(Default, input)
+		parseVal(i, &v)
+		assert.NoError(t, i.Error)
+		assert.Equal(t, `{foo: {bar: 1, baz: [1, 2, f3.14], 200: null}}`, v.String())
 
-	buf := new(bytes.Buffer)
-	s := NewStream(Default, buf, 1024)
-	v.Write(s)
-	require.NoError(t, s.Flush())
-	require.Equal(t, input, buf.String(), "encoded value should equal to input")
+		buf := new(bytes.Buffer)
+		s := NewStream(Default, buf, 1024)
+		v.Write(s)
+		require.NoError(t, s.Flush())
+		require.Equal(t, input, buf.String(), "encoded value should equal to input")
+
+	})
+	t.Run("Inputs", func(t *testing.T) {
+		for _, tt := range []struct {
+			Input string
+		}{
+			{Input: "1"},
+			{Input: "0.0"},
+		} {
+			t.Run(tt.Input, func(t *testing.T) {
+				var v Value
+				input := []byte(tt.Input)
+				i := ParseBytes(Default, input)
+				parseVal(i, &v)
+				if i.Error != nil && i.Error != io.EOF {
+					t.Fatal(i.Error)
+				}
+
+				buf := new(bytes.Buffer)
+				s := NewStream(Default, buf, 1024)
+				v.Write(s)
+				require.NoError(t, s.Flush())
+				require.Equal(t, tt.Input, buf.String(), "encoded value should equal to input")
+
+				var otherValue Value
+				i.ResetBytes(buf.Bytes())
+				parseVal(i, &otherValue)
+				if i.Error != nil && i.Error != io.EOF {
+					t.Log(hexe.Dump(input))
+					t.Log(hexe.Dump(buf.Bytes()))
+				}
+			})
+
+		}
+	})
 }
 
 func FuzzIter(f *testing.F) {
@@ -88,10 +128,66 @@ func FuzzIter(f *testing.F) {
 	})
 }
 
+func FuzzDecEnc(f *testing.F) {
+	f.Add([]byte("{}"))
+	f.Add([]byte(`"foo"`))
+	f.Add([]byte(`123"`))
+	f.Add([]byte(`null`))
+	f.Add([]byte(`{"foo": {"bar": 1, "baz": [1, 2, 3]}}`))
+	f.Fuzz(func(t *testing.T, data []byte) {
+		i := Default.Iterator(nil)
+		i.ResetBytes(data)
+		defer Default.PutIterator(i)
+
+		// Parsing to v.
+		var v Value
+		if !parseVal(i, &v) {
+			t.Skip()
+		}
+		if v.Type == ValInvalid {
+			t.Skip()
+		}
+		if i.Error != nil && i.Error != io.EOF {
+			t.Skip()
+		}
+		// Writing v to buf.
+		var buf bytes.Buffer
+		s := Default.Stream(&buf)
+		v.Write(s)
+		if err := s.Flush(); err != nil {
+			t.Fatal(err)
+		}
+
+		// Parsing from buf to new value.
+		i.ResetBytes(buf.Bytes())
+		var parsed Value
+		parseVal(i, &parsed)
+		if i.Error != nil && i.Error != io.EOF {
+			t.Fatalf("%v:\nBuf:   %s\nValue: %s\nData:  %s",
+				i.Error, buf.Bytes(), v, data)
+		}
+		if !reflect.DeepEqual(parsed, v) {
+			t.Fatalf("%v:\nBuf:   %s\nValue: %s != %s \nData:  %s",
+				i.Error, buf.Bytes(), parsed, v, data)
+		}
+		// Writing parsed value to newBuf.
+		var newBuf bytes.Buffer
+		s.Reset(&newBuf)
+		parsed.Write(s)
+		if err := s.Flush(); err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(newBuf.Bytes(), buf.Bytes()) {
+			t.Fatalf("%s != %s", &newBuf, &buf)
+		}
+	})
+}
+
 type ValType byte
 
 const (
-	ValStr ValType = iota
+	ValInvalid ValType = iota
+	ValStr
 	ValInt
 	ValFloat
 	ValNull
@@ -102,18 +198,19 @@ const (
 
 // Value represents any json value as sum type.
 type Value struct {
-	Type  ValType
-	Str   string
-	Int   int64
-	Float float64
-	Key   string
-	Bool  bool
-	Child []Value
+	Type   ValType
+	Str    string
+	Int    int64
+	Float  float64
+	Key    string
+	KeySet bool // Key can be ""
+	Bool   bool
+	Child  []Value
 }
 
 // Write json representation of Value to Stream.
 func (v Value) Write(s *Stream) {
-	if v.Key != "" {
+	if v.KeySet {
 		s.WriteObjectField(v.Key)
 	}
 	switch v.Type {
@@ -152,7 +249,10 @@ func (v Value) Write(s *Stream) {
 
 func (v Value) String() string {
 	var b strings.Builder
-	if v.Key != "" {
+	if v.KeySet {
+		if v.Key == "" {
+			b.WriteString("<blank>")
+		}
 		b.WriteString(v.Key)
 		b.WriteString(": ")
 	}
@@ -160,7 +260,8 @@ func (v Value) String() string {
 	case ValStr:
 		b.WriteString(`"` + v.Str + `"'`)
 	case ValFloat:
-		b.WriteString(strconv.FormatFloat(v.Float, 'f', -1, 64))
+		b.WriteRune('f')
+		b.WriteString(fmt.Sprintf("%v", v.Float))
 	case ValInt:
 		b.WriteString(strconv.FormatInt(v.Int, 10))
 	case ValBool:
@@ -198,7 +299,8 @@ func parseVal(i *Iterator, v *Value) bool {
 		return false
 	case Number:
 		n := i.ReadNumber()
-		if strings.Contains(n.String(), ".") {
+		idx := strings.Index(n.String(), ".")
+		if idx > 0 && idx != len(n.String())-1 {
 			f, err := n.Float64()
 			if err != nil {
 				i.ReportError("ReadNumber", err.Error())
@@ -232,8 +334,9 @@ func parseVal(i *Iterator, v *Value) bool {
 				return false
 			}
 			elem.Key = s
+			elem.KeySet = true
 			v.Child = append(v.Child, elem)
-			return i.Error == nil
+			return true
 		})
 	case Array:
 		v.Type = ValArr
@@ -243,10 +346,10 @@ func parseVal(i *Iterator, v *Value) bool {
 				return false
 			}
 			v.Child = append(v.Child, elem)
-			return i.Error == nil
+			return true
 		})
 	default:
 		panic(i.WhatIsNext())
 	}
-	return i.Error == nil
+	return true
 }

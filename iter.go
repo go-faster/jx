@@ -153,6 +153,7 @@ func (iter *Iterator) Reset(reader io.Reader) *Iterator {
 	iter.head = 0
 	iter.tail = 0
 	iter.depth = 0
+	iter.Error = nil
 	return iter
 }
 
@@ -163,6 +164,7 @@ func (iter *Iterator) ResetBytes(input []byte) *Iterator {
 	iter.head = 0
 	iter.tail = len(input)
 	iter.depth = 0
+	iter.Error = nil
 	return iter
 }
 

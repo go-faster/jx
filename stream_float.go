@@ -68,14 +68,27 @@ func (stream *Stream) WriteFloat64(val float64) {
 		return
 	}
 	abs := math.Abs(val)
-	fmt := byte('f')
+	f := byte('f')
 	// Note: Must use float32 comparisons for underlying float32 value to get precise cutoffs right.
 	if abs != 0 {
 		if abs < 1e-6 || abs >= 1e21 {
-			fmt = 'e'
+			f = 'e'
 		}
 	}
-	stream.buf = strconv.AppendFloat(stream.buf, float64(val), fmt, -1, 64)
+	start := len(stream.buf)
+	stream.buf = strconv.AppendFloat(stream.buf, val, f, -1, 64)
+	if f == 'e' {
+		return
+	}
+
+	// Ensure that we are still float.
+	for _, c := range stream.buf[start:] {
+		if c == '.' {
+			return
+		}
+	}
+	stream.buf = appendRune(stream.buf, '.')
+	stream.buf = appendRune(stream.buf, '0')
 }
 
 // WriteFloat64Lossy write float64 to stream with ONLY 6 digits precision although much much faster

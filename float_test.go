@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -132,10 +133,14 @@ func Test_write_float64(t *testing.T) {
 			should := require.New(t)
 			buf := &bytes.Buffer{}
 			stream := NewStream(Default, buf, 4096)
-			stream.WriteFloat64Lossy(val)
+			stream.WriteFloat64(val)
 			_ = stream.Flush()
 			should.Nil(stream.Error)
-			should.Equal(strconv.FormatFloat(val, 'f', -1, 64), buf.String())
+			s := strconv.FormatFloat(val, 'f', -1, 64)
+			if !strings.Contains(s, ".") {
+				s = s + ".0"
+			}
+			should.Equal(s, buf.String())
 		})
 	}
 	should := require.New(t)

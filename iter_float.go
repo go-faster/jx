@@ -159,7 +159,7 @@ non_decimal_loop:
 func (iter *Iterator) readNumberAsString() (ret string) {
 	strBuf := [16]byte{}
 	str := strBuf[0:0]
-load_loop:
+Load:
 	for {
 		for i := iter.head; i < iter.tail; i++ {
 			c := iter.buf[i]
@@ -169,7 +169,7 @@ load_loop:
 				continue
 			default:
 				iter.head = i
-				break load_loop
+				break Load
 			}
 		}
 		if !iter.loadMore() {
