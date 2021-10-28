@@ -1,4 +1,5 @@
-//+build go1.8
+//go:build go1.8
+// +build go1.8
 
 package test
 
@@ -8,7 +9,7 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	"github.com/json-iterator/go"
+	"github.com/ogen-go/json"
 	"github.com/stretchr/testify/require"
 )
 

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/json-iterator/go"
+	"github.com/ogen-go/json"
 	"github.com/stretchr/testify/require"
 )
 

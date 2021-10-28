@@ -1,7 +1,7 @@
 package extra
 
 import (
-	"github.com/json-iterator/go"
+	"github.com/ogen-go/json"
 	"strings"
 	"unicode"
 )
@@ -18,7 +18,7 @@ type namingStrategyExtension struct {
 
 func (extension *namingStrategyExtension) UpdateStructDescriptor(structDescriptor *jsoniter.StructDescriptor) {
 	for _, binding := range structDescriptor.Fields {
-		if unicode.IsLower(rune(binding.Field.Name()[0])) || binding.Field.Name()[0] == '_'{
+		if unicode.IsLower(rune(binding.Field.Name()[0])) || binding.Field.Name()[0] == '_' {
 			continue
 		}
 		tag, hastag := binding.Field.Tag().Lookup("json")

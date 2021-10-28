@@ -1,6 +1,6 @@
-module github.com/json-iterator/go
+module github.com/ogen-go/json
 
-go 1.12
+go 1.17
 
 require (
 	github.com/davecgh/go-spew v1.1.1
@@ -9,3 +9,5 @@ require (
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/stretchr/testify v1.3.0
 )
+
+require github.com/pmezard/go-difflib v1.0.0 // indirect
