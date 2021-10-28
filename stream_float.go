@@ -6,11 +6,7 @@ import (
 	"strconv"
 )
 
-var pow10 []uint64
-
-func init() {
-	pow10 = []uint64{1, 10, 100, 1000, 10000, 100000, 1000000}
-}
+var pow10 = []uint64{1, 10, 100, 1000, 10000, 100000, 1000000}
 
 // WriteFloat32 write float32 to stream
 func (s *Stream) WriteFloat32(val float32) {
@@ -36,7 +32,7 @@ func (s *Stream) WriteFloat32Lossy(val float32) {
 		return
 	}
 	if val < 0 {
-		s.writeByte('-')
+		s.writeByte(tMinus)
 		val = -val
 	}
 	if val > 0x4ffffff {
@@ -51,12 +47,12 @@ func (s *Stream) WriteFloat32Lossy(val float32) {
 	if fval == 0 {
 		return
 	}
-	s.writeByte('.')
+	s.writeByte(tDot)
 	for p := precision - 1; p > 0 && fval < pow10[p]; p-- {
-		s.writeByte('0')
+		s.writeByte(tZero)
 	}
 	s.WriteUint64(fval)
-	for s.buf[len(s.buf)-1] == '0' {
+	for s.buf[len(s.buf)-1] == tZero {
 		s.buf = s.buf[:len(s.buf)-1]
 	}
 }
@@ -83,12 +79,12 @@ func (s *Stream) WriteFloat64(val float64) {
 
 	// Ensure that we are still float.
 	for _, c := range s.buf[start:] {
-		if c == '.' {
+		if c == tDot {
 			return
 		}
 	}
-	s.buf = appendRune(s.buf, '.')
-	s.buf = appendRune(s.buf, '0')
+	s.buf = appendRune(s.buf, tDot)
+	s.buf = appendRune(s.buf, tZero)
 }
 
 // WriteFloat64Lossy write float64 to stream with ONLY 6 digits precision although much much faster
@@ -98,7 +94,7 @@ func (s *Stream) WriteFloat64Lossy(val float64) {
 		return
 	}
 	if val < 0 {
-		s.writeByte('-')
+		s.writeByte(tMinus)
 		val = -val
 	}
 	if val > 0x4ffffff {
@@ -113,12 +109,12 @@ func (s *Stream) WriteFloat64Lossy(val float64) {
 	if fval == 0 {
 		return
 	}
-	s.writeByte('.')
+	s.writeByte(tDot)
 	for p := precision - 1; p > 0 && fval < pow10[p]; p-- {
-		s.writeByte('0')
+		s.writeByte(tZero)
 	}
 	s.WriteUint64(fval)
-	for s.buf[len(s.buf)-1] == '0' {
+	for s.buf[len(s.buf)-1] == tZero {
 		s.buf = s.buf[:len(s.buf)-1]
 	}
 }

@@ -340,7 +340,7 @@ func (it *Iterator) readUint64(c byte) (ret uint64) {
 }
 
 func (it *Iterator) assertInteger() {
-	if it.head < it.tail && it.buf[it.head] == '.' {
+	if it.head < it.tail && it.buf[it.head] == tDot {
 		it.ReportError("assertInteger", "can not decode float as int")
 	}
 }

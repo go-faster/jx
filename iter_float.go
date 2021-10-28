@@ -29,7 +29,7 @@ func init() {
 	floatDigits[' '] = endOfNumber
 	floatDigits['\t'] = endOfNumber
 	floatDigits['\n'] = endOfNumber
-	floatDigits['.'] = dotInNumber
+	floatDigits[tDot] = dotInNumber
 }
 
 // ReadBigFloat read big.Float
@@ -126,7 +126,7 @@ NonDecimalLoop:
 		value = (value << 3) + (value << 1) + uint64(ind) // value = value * 10 + ind;
 	}
 	// chars after dot
-	if c == '.' {
+	if c == tDot {
 		i++
 		decimalPlaces := 0
 		if i == it.tail {
@@ -322,7 +322,7 @@ func validateFloat(str string) string {
 	if str[0] == '-' {
 		return "-- is not valid"
 	}
-	dotPos := strings.IndexByte(str, '.')
+	dotPos := strings.IndexByte(str, tDot)
 	if dotPos != -1 {
 		if dotPos == len(str)-1 {
 			return "dot can not be last character"

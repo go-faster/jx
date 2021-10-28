@@ -25,7 +25,7 @@ func (it *Iterator) trySkipNumber() bool {
 		c := it.buf[i]
 		switch c {
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-		case '.':
+		case tDot:
 			if dotFound {
 				it.ReportError("validateNumber", `more than one dot found in number`)
 				return true // already failed
