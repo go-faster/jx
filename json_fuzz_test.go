@@ -4,6 +4,8 @@ package json
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func FuzzValid(f *testing.F) {
@@ -18,7 +20,8 @@ func FuzzValid(f *testing.F) {
 	})
 }
 
-func goRecursive(i *Iterator) bool {
+func iterDown(i *Iterator, count *int) bool {
+	*count++
 	switch i.WhatIsNext() {
 	case Invalid:
 		return false
@@ -32,16 +35,24 @@ func goRecursive(i *Iterator) bool {
 		i.ReadBool()
 	case Object:
 		return i.ReadObjectCB(func(i *Iterator, s string) bool {
-			return goRecursive(i)
+			return iterDown(i, count)
 		})
 	case Array:
 		return i.ReadArrayCB(func(i *Iterator) bool {
-			return goRecursive(i)
+			return iterDown(i, count)
 		})
 	default:
 		panic(i.WhatIsNext())
 	}
 	return i.Error == nil
+}
+
+func Test_iterDown(t *testing.T) {
+	var count int
+	i := ParseString(Default, `{"foo": {"bar": 1, "baz": [1, 2, 3]}}`)
+	iterDown(i, &count)
+	assert.NoError(t, i.Error)
+	assert.Equal(t, 7, count)
 }
 
 func FuzzIter(f *testing.F) {
@@ -53,6 +64,7 @@ func FuzzIter(f *testing.F) {
 	f.Fuzz(func(t *testing.T, data []byte) {
 		i := Default.Iterator(data)
 		defer Default.PutIterator(i)
-		goRecursive(i)
+		var count int
+		iterDown(i, &count)
 	})
 }
