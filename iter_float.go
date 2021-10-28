@@ -158,7 +158,7 @@ NonDecimalLoop:
 
 func (it *Iterator) readNumberAsString() (ret string) {
 	strBuf := [16]byte{}
-	str := strBuf[:]
+	str := strBuf[0:0]
 Load:
 	for {
 		for i := it.head; i < it.tail; i++ {
