@@ -10,13 +10,13 @@ import (
 func Test_true(t *testing.T) {
 	should := require.New(t)
 	iter := ParseString(Default, `true`)
-	should.True(iter.ReadBool())
+	should.True(iter.Bool())
 }
 
 func Test_false(t *testing.T) {
 	should := require.New(t)
 	iter := ParseString(Default, `false`)
-	should.False(iter.ReadBool())
+	should.False(iter.Bool())
 }
 
 func Test_write_true_false(t *testing.T) {

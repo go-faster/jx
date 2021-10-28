@@ -20,7 +20,7 @@ func Test_write_null(t *testing.T) {
 func Test_decode_null_object_field(t *testing.T) {
 	iter := ParseString(Default, `[null,"a"]`)
 	iter.Elem()
-	if iter.ReadField() != "" {
+	if iter.Field() != "" {
 		t.FailNow()
 	}
 	iter.Elem()
@@ -33,7 +33,7 @@ func Test_decode_null_array_element(t *testing.T) {
 	should := require.New(t)
 	iter := ParseString(Default, `[null,"a"]`)
 	should.True(iter.Elem())
-	should.True(iter.ReadNil())
+	should.True(iter.Null())
 	should.True(iter.Elem())
 	should.Equal("a", iter.String())
 }

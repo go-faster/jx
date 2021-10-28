@@ -21,20 +21,6 @@ func FuzzValid(f *testing.F) {
 	})
 }
 
-func FuzzIter(f *testing.F) {
-	f.Add([]byte("{}"))
-	f.Add([]byte(`"foo"`))
-	f.Add([]byte(`123"`))
-	f.Add([]byte(`null`))
-	f.Add([]byte(`{"foo": {"bar": 1, "baz": [1, 2, 3]}}`))
-	f.Fuzz(func(t *testing.T, data []byte) {
-		i := Default.Iterator(data)
-		defer Default.PutIterator(i)
-		var count int
-		iterDown(i, &count)
-	})
-}
-
 func FuzzDecEnc(f *testing.F) {
 	f.Add([]byte("{}"))
 	f.Add([]byte(`"foo"`))

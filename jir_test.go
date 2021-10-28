@@ -2,7 +2,7 @@ package jir
 
 import (
 	"bytes"
-	hexe "encoding/hex"
+	hexEnc "encoding/hex"
 	"fmt"
 	"io"
 	"strconv"
@@ -16,41 +16,6 @@ import (
 func TestJSON(t *testing.T) {
 	_ = Default
 	_ = Fastest
-}
-
-func iterDown(i *Iterator, count *int) bool {
-	*count++
-	switch i.WhatIsNext() {
-	case Invalid:
-		return false
-	case Number:
-		_ = i.ReadNumber()
-	case String:
-		_ = i.String()
-	case Nil:
-		i.ReadNil()
-	case Bool:
-		i.ReadBool()
-	case Object:
-		return i.ReadObject(func(i *Iterator, s string) bool {
-			return iterDown(i, count)
-		})
-	case Array:
-		return i.Array(func(i *Iterator) bool {
-			return iterDown(i, count)
-		})
-	default:
-		panic(i.WhatIsNext())
-	}
-	return i.Error == nil
-}
-
-func Test_iterDown(t *testing.T) {
-	var count int
-	i := ParseString(Default, `{"foo": {"bar": 1, "baz": [1, 2, 3]}}`)
-	iterDown(i, &count)
-	assert.NoError(t, i.Error)
-	assert.Equal(t, 7, count)
 }
 
 func Test_parseVal(t *testing.T) {
@@ -95,8 +60,8 @@ func Test_parseVal(t *testing.T) {
 				i.ResetBytes(buf.Bytes())
 				parseVal(i, &otherValue)
 				if i.Error != nil && i.Error != io.EOF {
-					t.Log(hexe.Dump(input))
-					t.Log(hexe.Dump(buf.Bytes()))
+					t.Log(hexEnc.Dump(input))
+					t.Log(hexEnc.Dump(buf.Bytes()))
 				}
 			})
 
@@ -242,14 +207,14 @@ func parseVal(i *Iterator, v *Value) bool {
 		v.Str = i.String()
 		v.Type = ValStr
 	case Nil:
-		i.ReadNil()
+		i.Null()
 		v.Type = ValNull
 	case Bool:
-		v.Bool = i.ReadBool()
+		v.Bool = i.Bool()
 		v.Type = ValBool
 	case Object:
 		v.Type = ValObj
-		return i.ReadObject(func(i *Iterator, s string) bool {
+		return i.Object(func(i *Iterator, s string) bool {
 			var elem Value
 			if !parseVal(i, &elem) {
 				return false

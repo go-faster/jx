@@ -4,10 +4,10 @@ import (
 	"fmt"
 )
 
-// ReadField read one field from object.
+// Field read one field from object.
 // If object ended, returns empty string.
 // Otherwise, returns the field name.
-func (it *Iterator) ReadField() (ret string) {
+func (it *Iterator) Field() (ret string) {
 	c := it.nextToken()
 	switch c {
 	case 'n':
@@ -20,32 +20,32 @@ func (it *Iterator) ReadField() (ret string) {
 			field := it.String()
 			c = it.nextToken()
 			if c != ':' {
-				it.ReportError("ReadField", "expect : after object field, but found "+string([]byte{c}))
+				it.ReportError("Field", "expect : after object field, but found "+string([]byte{c}))
 			}
 			return field
 		}
 		if c == '}' {
 			return "" // end of object
 		}
-		it.ReportError("ReadField", `expect " after {, but found `+string([]byte{c}))
+		it.ReportError("Field", `expect " after {, but found `+string([]byte{c}))
 		return
 	case ',':
 		field := it.String()
 		c = it.nextToken()
 		if c != ':' {
-			it.ReportError("ReadField", "expect : after object field, but found "+string([]byte{c}))
+			it.ReportError("Field", "expect : after object field, but found "+string([]byte{c}))
 		}
 		return field
 	case '}':
 		return "" // end of object
 	default:
-		it.ReportError("ReadField", fmt.Sprintf(`expect { or , or } or n, but found %s`, string([]byte{c})))
+		it.ReportError("Field", fmt.Sprintf(`expect { or , or } or n, but found %s`, string([]byte{c})))
 		return
 	}
 }
 
-// ReadObject read object, calling f on each field.
-func (it *Iterator) ReadObject(f func(i *Iterator, key string) bool) bool {
+// Object read object, calling f on each field.
+func (it *Iterator) Object(f func(i *Iterator, key string) bool) bool {
 	c := it.nextToken()
 	if c == '{' {
 		if !it.incrementDepth() {
@@ -57,7 +57,7 @@ func (it *Iterator) ReadObject(f func(i *Iterator, key string) bool) bool {
 			key := it.String()
 			c = it.nextToken()
 			if c != ':' {
-				it.ReportError("ReadField", "expect : after object field, but found "+string([]byte{c}))
+				it.ReportError("Field", "expect : after object field, but found "+string([]byte{c}))
 			}
 			if !f(it, key) {
 				it.decrementDepth()
@@ -68,7 +68,7 @@ func (it *Iterator) ReadObject(f func(i *Iterator, key string) bool) bool {
 				key = it.String()
 				c = it.nextToken()
 				if c != ':' {
-					it.ReportError("ReadField", "expect : after object field, but found "+string([]byte{c}))
+					it.ReportError("Field", "expect : after object field, but found "+string([]byte{c}))
 				}
 				if !f(it, key) {
 					it.decrementDepth()
@@ -77,7 +77,7 @@ func (it *Iterator) ReadObject(f func(i *Iterator, key string) bool) bool {
 				c = it.nextToken()
 			}
 			if c != '}' {
-				it.ReportError("ReadObject", `object not ended with }`)
+				it.ReportError("Object", `object not ended with }`)
 				it.decrementDepth()
 				return false
 			}
@@ -86,7 +86,7 @@ func (it *Iterator) ReadObject(f func(i *Iterator, key string) bool) bool {
 		if c == '}' {
 			return it.decrementDepth()
 		}
-		it.ReportError("ReadObject", `expect " after {, but found `+string([]byte{c}))
+		it.ReportError("Object", `expect " after {, but found `+string([]byte{c}))
 		it.decrementDepth()
 		return false
 	}
@@ -94,6 +94,6 @@ func (it *Iterator) ReadObject(f func(i *Iterator, key string) bool) bool {
 		it.skipThreeBytes('u', 'l', 'l')
 		return true // null
 	}
-	it.ReportError("ReadObject", `expect { or n, but found `+string([]byte{c}))
+	it.ReportError("Object", `expect { or n, but found `+string([]byte{c}))
 	return false
 }

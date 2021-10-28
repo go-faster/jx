@@ -32,8 +32,8 @@ func init() {
 	floatDigits[tDot] = dotInNumber
 }
 
-// ReadBigFloat read big.Float
-func (it *Iterator) ReadBigFloat() (ret *big.Float) {
+// BigFloat read big.Float
+func (it *Iterator) BigFloat() (ret *big.Float) {
 	str := it.readNumberAsString()
 	if it.Error != nil && it.Error != io.EOF {
 		return nil
@@ -50,8 +50,8 @@ func (it *Iterator) ReadBigFloat() (ret *big.Float) {
 	return val
 }
 
-// ReadBigInt read big.Int
-func (it *Iterator) ReadBigInt() (ret *big.Int) {
+// BigInt read big.Int
+func (it *Iterator) BigInt() (ret *big.Int) {
 	str := it.readNumberAsString()
 	if it.Error != nil && it.Error != io.EOF {
 		return nil
@@ -60,14 +60,14 @@ func (it *Iterator) ReadBigInt() (ret *big.Int) {
 	var success bool
 	ret, success = ret.SetString(str, 10)
 	if !success {
-		it.ReportError("ReadBigInt", "invalid big int")
+		it.ReportError("BigInt", "invalid big int")
 		return nil
 	}
 	return ret
 }
 
-//ReadFloat32 read float32
-func (it *Iterator) ReadFloat32() (ret float32) {
+//Float32 read float32
+func (it *Iterator) Float32() float32 {
 	c := it.nextToken()
 	if c == '-' {
 		return -it.readPositiveFloat32()
@@ -203,8 +203,8 @@ func (it *Iterator) readFloat32SlowPath() (ret float32) {
 	return float32(val)
 }
 
-// ReadFloat64 read float64
-func (it *Iterator) ReadFloat64() (ret float64) {
+// Float64 read float64
+func (it *Iterator) Float64() float64 {
 	c := it.nextToken()
 	if c == '-' {
 		return -it.readPositiveFloat64()

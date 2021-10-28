@@ -15,7 +15,7 @@ import (
 func Test_read_big_float(t *testing.T) {
 	should := require.New(t)
 	iter := ParseString(Default, `12.3`)
-	val := iter.ReadBigFloat()
+	val := iter.BigFloat()
 	val64, _ := val.Float64()
 	should.Equal(12.3, val64)
 }
@@ -23,7 +23,7 @@ func Test_read_big_float(t *testing.T) {
 func Test_read_big_int(t *testing.T) {
 	should := require.New(t)
 	iter := ParseString(Default, `92233720368547758079223372036854775807`)
-	val := iter.ReadBigInt()
+	val := iter.BigInt()
 	should.NotNil(val)
 	should.Equal(`92233720368547758079223372036854775807`, val.String())
 }
@@ -67,14 +67,14 @@ func Test_read_float(t *testing.T) {
 			iter := ParseString(Default, input+",")
 			expected, err := strconv.ParseFloat(input, 32)
 			should.Nil(err)
-			should.Equal(float32(expected), iter.ReadFloat32())
+			should.Equal(float32(expected), iter.Float32())
 		})
 		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
 			should := require.New(t)
 			iter := ParseString(Default, input+",")
 			expected, err := strconv.ParseFloat(input, 64)
 			should.Nil(err)
-			should.Equal(expected, iter.ReadFloat64())
+			should.Equal(expected, iter.Float64())
 		})
 		// streaming
 		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
@@ -82,7 +82,7 @@ func Test_read_float(t *testing.T) {
 			iter := Parse(Default, bytes.NewBufferString(input+","), 2)
 			expected, err := strconv.ParseFloat(input, 32)
 			should.Nil(err)
-			should.Equal(float32(expected), iter.ReadFloat32())
+			should.Equal(float32(expected), iter.Float32())
 		})
 		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
 			should := require.New(t)
@@ -90,7 +90,7 @@ func Test_read_float(t *testing.T) {
 			val := float64(0)
 			err := json.Unmarshal([]byte(input), &val)
 			should.Nil(err)
-			should.Equal(val, iter.ReadFloat64())
+			should.Equal(val, iter.Float64())
 		})
 	}
 }

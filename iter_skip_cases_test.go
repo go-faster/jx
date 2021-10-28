@@ -81,7 +81,7 @@ func Test_skip(t *testing.T) {
 				stdErr := json.Unmarshal([]byte(input), ptrVal.Interface())
 				iter := ParseString(Default, input)
 				iter.Skip()
-				iter.ReadNil() // trigger looking forward
+				iter.Null() // trigger looking forward
 				err := iter.Error
 				if err == io.EOF {
 					err = nil

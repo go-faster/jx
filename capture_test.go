@@ -21,12 +21,12 @@ func TestIterator_Capture(t *testing.T) {
 	]
 }`
 	i := Default.Iterator([]byte(input))
-	i.ReadObject(func(i *Iterator, key string) bool {
+	i.Object(func(i *Iterator, key string) bool {
 		return i.Array(func(i *Iterator) bool {
 			// Reading "type" field value first.
 			var typ string
 			i.Capture(func(i *Iterator) {
-				i.ReadObject(func(i *Iterator, key string) bool {
+				i.Object(func(i *Iterator, key string) bool {
 					switch key {
 					case "type":
 						typ = i.String()
@@ -37,7 +37,7 @@ func TestIterator_Capture(t *testing.T) {
 				})
 			})
 			// Reading objects depending on type.
-			return i.ReadObject(func(i *Iterator, key string) bool {
+			return i.Object(func(i *Iterator, key string) bool {
 				if key == "type" {
 					assert.Equal(t, typ, i.String())
 					return true

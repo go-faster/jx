@@ -2,9 +2,9 @@ package jir
 
 import "fmt"
 
-// ReadNil reads a json object as nil and
-// returns whether it's a nil or not
-func (it *Iterator) ReadNil() (ret bool) {
+// Null reads a json object as null and
+// returns whether it's a null or not.
+func (it *Iterator) Null() (ok bool) {
 	c := it.nextToken()
 	if c == 'n' {
 		it.skipThreeBytes('u', 'l', 'l') // null
@@ -14,8 +14,8 @@ func (it *Iterator) ReadNil() (ret bool) {
 	return false
 }
 
-// ReadBool reads a json object as Bool
-func (it *Iterator) ReadBool() (ret bool) {
+// Bool reads a json object as Bool
+func (it *Iterator) Bool() bool {
 	c := it.nextToken()
 	if c == 't' {
 		it.skipThreeBytes('r', 'u', 'e')
@@ -25,8 +25,8 @@ func (it *Iterator) ReadBool() (ret bool) {
 		it.skipFourBytes('a', 'l', 's', 'e')
 		return false
 	}
-	it.ReportError("ReadBool", "expect t or f, but found "+string([]byte{c}))
-	return
+	it.ReportError("Bool", "expect t or f, but found "+string([]byte{c}))
+	return false
 }
 
 // Skip skips a json object and positions to relatively the next json object.
@@ -43,7 +43,7 @@ func (it *Iterator) Skip() {
 		it.skipFourBytes('a', 'l', 's', 'e') // false
 	case '0':
 		it.unreadByte()
-		it.ReadFloat32()
+		it.Float32()
 	case '-', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		it.skipNumber()
 	case '[':

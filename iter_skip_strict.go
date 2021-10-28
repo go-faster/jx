@@ -11,10 +11,10 @@ func (it *Iterator) skipNumber() {
 		if it.Error != nil && it.Error != io.EOF {
 			return
 		}
-		it.ReadFloat64()
+		it.Float64()
 		if it.Error != nil && it.Error != io.EOF {
 			it.Error = nil
-			it.ReadBigFloat()
+			it.BigFloat()
 		}
 	}
 }
@@ -82,7 +82,7 @@ func (it *Iterator) trySkipString() bool {
 
 func (it *Iterator) skipObject() {
 	it.unreadByte()
-	it.ReadObject(func(iter *Iterator, field string) bool {
+	it.Object(func(iter *Iterator, field string) bool {
 		iter.Skip()
 		return true
 	})
