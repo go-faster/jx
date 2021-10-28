@@ -215,7 +215,7 @@ var safeSet = [utf8.RuneSelf]bool{
 	'\u007f': true,
 }
 
-var hex = "0123456789abcdef"
+const hex = "0123456789abcdef"
 
 // WriteStringWithHTMLEscaped write string to stream with html special characters escaped
 func (s *Stream) WriteStringWithHTMLEscaped(v string) {
