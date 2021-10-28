@@ -34,7 +34,7 @@ func (it *Iterator) Int() int {
 	if strconv.IntSize == 32 {
 		return int(it.ReadInt32())
 	}
-	return int(it.ReadInt64())
+	return int(it.Int64())
 }
 
 // ReadInt8 read int8
@@ -217,20 +217,20 @@ func (it *Iterator) readUint32(c byte) (ret uint32) {
 	}
 }
 
-// ReadInt64 read int64
-func (it *Iterator) ReadInt64() (ret int64) {
+// Int64 read int64
+func (it *Iterator) Int64() (ret int64) {
 	c := it.nextToken()
 	if c == '-' {
 		val := it.readUint64(it.readByte())
 		if val > math.MaxInt64+1 {
-			it.ReportError("ReadInt64", "overflow: "+strconv.FormatUint(uint64(val), 10))
+			it.ReportError("Int64", "overflow: "+strconv.FormatUint(uint64(val), 10))
 			return
 		}
 		return -int64(val)
 	}
 	val := it.readUint64(c)
 	if val > math.MaxInt64 {
-		it.ReportError("ReadInt64", "overflow: "+strconv.FormatUint(uint64(val), 10))
+		it.ReportError("Int64", "overflow: "+strconv.FormatUint(uint64(val), 10))
 		return
 	}
 	return int64(val)

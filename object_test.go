@@ -56,7 +56,7 @@ func Test_two_field(t *testing.T) {
 		case "field1":
 			iter.Str()
 		case "field2":
-			iter.ReadInt64()
+			iter.Int64()
 		default:
 			iter.ReportError("bind object", "unexpected field")
 		}

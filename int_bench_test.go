@@ -26,7 +26,7 @@ func Benchmark_int(b *testing.B) {
 	input := []byte(`100`)
 	for n := 0; n < b.N; n++ {
 		iter.ResetBytes(input)
-		iter.ReadInt64()
+		iter.Int64()
 	}
 }
 

@@ -101,7 +101,7 @@ func Test_read_int_overflow(t *testing.T) {
 	inputArr = []string{"9223372036854775811", "-9523372036854775807", "1234232323232323235678912", "-1234567892323232323212"}
 	for _, s := range inputArr {
 		iter := ParseString(Default, s)
-		iter.ReadInt64()
+		iter.Int64()
 		should.NotNil(iter.Error)
 
 		iterUint := ParseString(Default, s)
@@ -118,14 +118,14 @@ func Test_read_int64(t *testing.T) {
 			iter := ParseString(Default, input)
 			expected, err := strconv.ParseInt(input, 10, 64)
 			should.Nil(err)
-			should.Equal(expected, iter.ReadInt64())
+			should.Equal(expected, iter.Int64())
 		})
 		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
 			should := require.New(t)
 			iter := Parse(Default, bytes.NewBufferString(input), 2)
 			expected, err := strconv.ParseInt(input, 10, 64)
 			should.Nil(err)
-			should.Equal(expected, iter.ReadInt64())
+			should.Equal(expected, iter.Int64())
 		})
 	}
 }
