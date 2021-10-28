@@ -42,7 +42,7 @@ func Test_decode_null_string(t *testing.T) {
 	should := require.New(t)
 	iter := ParseString(Default, `[null,"a"]`)
 	should.True(iter.Elem())
-	should.Equal("", iter.Str())
+	should.True(iter.Null())
 	should.True(iter.Elem())
 	should.Equal("a", iter.Str())
 }

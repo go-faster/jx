@@ -92,10 +92,19 @@ func init() {
 type Iterator struct {
 	cfg    *frozenConfig
 	reader io.Reader
-	buf    []byte
-	head   int
-	tail   int
-	depth  int
+
+	// val is buffer for reading current value.
+	val []byte
+
+	// buf is current buffer.
+	//
+	// Contains full json if reader is nil or used as a read buffer
+	// otherwise.
+	buf  []byte
+	head int // offset in buf to start of current json stream
+	tail int // offset in buf to end of current json stream
+
+	depth int
 
 	Error error
 }

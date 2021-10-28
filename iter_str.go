@@ -11,22 +11,20 @@ func (it *Iterator) Str() (s string) {
 	if c == '"' {
 		for i := it.head; i < it.tail; i++ {
 			c := it.buf[i]
+			if c == '\\' {
+				break
+			}
 			if c == '"' {
 				s = string(it.buf[it.head:i])
 				it.head = i + 1
 				return s
-			} else if c == '\\' {
-				break
-			} else if c < ' ' {
-				it.ReportError("Str",
-					fmt.Sprintf(`invalid control character found: %d`, c))
-				return
+			}
+			if c < ' ' {
+				it.ReportError("Str", fmt.Sprintf(`invalid control character found: %d`, c))
+				return ""
 			}
 		}
 		return it.readStringSlowPath()
-	} else if c == 'n' {
-		it.skipThreeBytes('u', 'l', 'l')
-		return ""
 	}
 	it.ReportError("Str", `expects " or n, but found `+string([]byte{c}))
 	return ""
