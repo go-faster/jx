@@ -30,160 +30,160 @@ func writeBuf(buf []byte, v uint32) []byte {
 }
 
 // WriteUint8 write uint8 to stream
-func (stream *Stream) WriteUint8(val uint8) {
-	stream.buf = writeFirstBuf(stream.buf, digits[val])
+func (s *Stream) WriteUint8(val uint8) {
+	s.buf = writeFirstBuf(s.buf, digits[val])
 }
 
 // WriteInt8 write int8 to stream
-func (stream *Stream) WriteInt8(nval int8) {
+func (s *Stream) WriteInt8(nval int8) {
 	var val uint8
 	if nval < 0 {
 		val = uint8(-nval)
-		stream.buf = append(stream.buf, '-')
+		s.buf = append(s.buf, '-')
 	} else {
 		val = uint8(nval)
 	}
-	stream.buf = writeFirstBuf(stream.buf, digits[val])
+	s.buf = writeFirstBuf(s.buf, digits[val])
 }
 
 // WriteUint16 write uint16 to stream
-func (stream *Stream) WriteUint16(val uint16) {
+func (s *Stream) WriteUint16(val uint16) {
 	q1 := val / 1000
 	if q1 == 0 {
-		stream.buf = writeFirstBuf(stream.buf, digits[val])
+		s.buf = writeFirstBuf(s.buf, digits[val])
 		return
 	}
 	r1 := val - q1*1000
-	stream.buf = writeFirstBuf(stream.buf, digits[q1])
-	stream.buf = writeBuf(stream.buf, digits[r1])
+	s.buf = writeFirstBuf(s.buf, digits[q1])
+	s.buf = writeBuf(s.buf, digits[r1])
 }
 
 // WriteInt16 write int16 to stream
-func (stream *Stream) WriteInt16(nval int16) {
+func (s *Stream) WriteInt16(nval int16) {
 	var val uint16
 	if nval < 0 {
 		val = uint16(-nval)
-		stream.buf = append(stream.buf, '-')
+		s.buf = append(s.buf, '-')
 	} else {
 		val = uint16(nval)
 	}
-	stream.WriteUint16(val)
+	s.WriteUint16(val)
 }
 
 // WriteUint32 write uint32 to stream
-func (stream *Stream) WriteUint32(val uint32) {
+func (s *Stream) WriteUint32(val uint32) {
 	q1 := val / 1000
 	if q1 == 0 {
-		stream.buf = writeFirstBuf(stream.buf, digits[val])
+		s.buf = writeFirstBuf(s.buf, digits[val])
 		return
 	}
 	r1 := val - q1*1000
 	q2 := q1 / 1000
 	if q2 == 0 {
-		stream.buf = writeFirstBuf(stream.buf, digits[q1])
-		stream.buf = writeBuf(stream.buf, digits[r1])
+		s.buf = writeFirstBuf(s.buf, digits[q1])
+		s.buf = writeBuf(s.buf, digits[r1])
 		return
 	}
 	r2 := q1 - q2*1000
 	q3 := q2 / 1000
 	if q3 == 0 {
-		stream.buf = writeFirstBuf(stream.buf, digits[q2])
+		s.buf = writeFirstBuf(s.buf, digits[q2])
 	} else {
 		r3 := q2 - q3*1000
-		stream.buf = append(stream.buf, byte(q3+'0'))
-		stream.buf = writeBuf(stream.buf, digits[r3])
+		s.buf = append(s.buf, byte(q3+'0'))
+		s.buf = writeBuf(s.buf, digits[r3])
 	}
-	stream.buf = writeBuf(stream.buf, digits[r2])
-	stream.buf = writeBuf(stream.buf, digits[r1])
+	s.buf = writeBuf(s.buf, digits[r2])
+	s.buf = writeBuf(s.buf, digits[r1])
 }
 
 // WriteInt32 write int32 to stream
-func (stream *Stream) WriteInt32(nval int32) {
+func (s *Stream) WriteInt32(nval int32) {
 	var val uint32
 	if nval < 0 {
 		val = uint32(-nval)
-		stream.buf = append(stream.buf, '-')
+		s.buf = append(s.buf, '-')
 	} else {
 		val = uint32(nval)
 	}
-	stream.WriteUint32(val)
+	s.WriteUint32(val)
 }
 
 // WriteUint64 write uint64 to stream
-func (stream *Stream) WriteUint64(val uint64) {
+func (s *Stream) WriteUint64(val uint64) {
 	q1 := val / 1000
 	if q1 == 0 {
-		stream.buf = writeFirstBuf(stream.buf, digits[val])
+		s.buf = writeFirstBuf(s.buf, digits[val])
 		return
 	}
 	r1 := val - q1*1000
 	q2 := q1 / 1000
 	if q2 == 0 {
-		stream.buf = writeFirstBuf(stream.buf, digits[q1])
-		stream.buf = writeBuf(stream.buf, digits[r1])
+		s.buf = writeFirstBuf(s.buf, digits[q1])
+		s.buf = writeBuf(s.buf, digits[r1])
 		return
 	}
 	r2 := q1 - q2*1000
 	q3 := q2 / 1000
 	if q3 == 0 {
-		stream.buf = writeFirstBuf(stream.buf, digits[q2])
-		stream.buf = writeBuf(stream.buf, digits[r2])
-		stream.buf = writeBuf(stream.buf, digits[r1])
+		s.buf = writeFirstBuf(s.buf, digits[q2])
+		s.buf = writeBuf(s.buf, digits[r2])
+		s.buf = writeBuf(s.buf, digits[r1])
 		return
 	}
 	r3 := q2 - q3*1000
 	q4 := q3 / 1000
 	if q4 == 0 {
-		stream.buf = writeFirstBuf(stream.buf, digits[q3])
-		stream.buf = writeBuf(stream.buf, digits[r3])
-		stream.buf = writeBuf(stream.buf, digits[r2])
-		stream.buf = writeBuf(stream.buf, digits[r1])
+		s.buf = writeFirstBuf(s.buf, digits[q3])
+		s.buf = writeBuf(s.buf, digits[r3])
+		s.buf = writeBuf(s.buf, digits[r2])
+		s.buf = writeBuf(s.buf, digits[r1])
 		return
 	}
 	r4 := q3 - q4*1000
 	q5 := q4 / 1000
 	if q5 == 0 {
-		stream.buf = writeFirstBuf(stream.buf, digits[q4])
-		stream.buf = writeBuf(stream.buf, digits[r4])
-		stream.buf = writeBuf(stream.buf, digits[r3])
-		stream.buf = writeBuf(stream.buf, digits[r2])
-		stream.buf = writeBuf(stream.buf, digits[r1])
+		s.buf = writeFirstBuf(s.buf, digits[q4])
+		s.buf = writeBuf(s.buf, digits[r4])
+		s.buf = writeBuf(s.buf, digits[r3])
+		s.buf = writeBuf(s.buf, digits[r2])
+		s.buf = writeBuf(s.buf, digits[r1])
 		return
 	}
 	r5 := q4 - q5*1000
 	q6 := q5 / 1000
 	if q6 == 0 {
-		stream.buf = writeFirstBuf(stream.buf, digits[q5])
+		s.buf = writeFirstBuf(s.buf, digits[q5])
 	} else {
-		stream.buf = writeFirstBuf(stream.buf, digits[q6])
+		s.buf = writeFirstBuf(s.buf, digits[q6])
 		r6 := q5 - q6*1000
-		stream.buf = writeBuf(stream.buf, digits[r6])
+		s.buf = writeBuf(s.buf, digits[r6])
 	}
-	stream.buf = writeBuf(stream.buf, digits[r5])
-	stream.buf = writeBuf(stream.buf, digits[r4])
-	stream.buf = writeBuf(stream.buf, digits[r3])
-	stream.buf = writeBuf(stream.buf, digits[r2])
-	stream.buf = writeBuf(stream.buf, digits[r1])
+	s.buf = writeBuf(s.buf, digits[r5])
+	s.buf = writeBuf(s.buf, digits[r4])
+	s.buf = writeBuf(s.buf, digits[r3])
+	s.buf = writeBuf(s.buf, digits[r2])
+	s.buf = writeBuf(s.buf, digits[r1])
 }
 
 // WriteInt64 write int64 to stream
-func (stream *Stream) WriteInt64(nval int64) {
+func (s *Stream) WriteInt64(nval int64) {
 	var val uint64
 	if nval < 0 {
 		val = uint64(-nval)
-		stream.buf = append(stream.buf, '-')
+		s.buf = append(s.buf, '-')
 	} else {
 		val = uint64(nval)
 	}
-	stream.WriteUint64(val)
+	s.WriteUint64(val)
 }
 
 // WriteInt write int to stream
-func (stream *Stream) WriteInt(val int) {
-	stream.WriteInt64(int64(val))
+func (s *Stream) WriteInt(val int) {
+	s.WriteInt64(int64(val))
 }
 
 // WriteUint write uint to stream
-func (stream *Stream) WriteUint(val uint) {
-	stream.WriteUint64(uint64(val))
+func (s *Stream) WriteUint(val uint) {
+	s.WriteUint64(uint64(val))
 }

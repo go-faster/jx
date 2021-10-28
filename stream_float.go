@@ -13,58 +13,58 @@ func init() {
 }
 
 // WriteFloat32 write float32 to stream
-func (stream *Stream) WriteFloat32(val float32) {
+func (s *Stream) WriteFloat32(val float32) {
 	if math.IsInf(float64(val), 0) || math.IsNaN(float64(val)) {
-		stream.Error = fmt.Errorf("unsupported value: %f", val)
+		s.Error = fmt.Errorf("unsupported value: %f", val)
 		return
 	}
 	abs := math.Abs(float64(val))
-	fmt := byte('f')
+	f := byte('f')
 	// Note: Must use float32 comparisons for underlying float32 value to get precise cutoffs right.
 	if abs != 0 {
 		if float32(abs) < 1e-6 || float32(abs) >= 1e21 {
-			fmt = 'e'
+			f = 'e'
 		}
 	}
-	stream.buf = strconv.AppendFloat(stream.buf, float64(val), fmt, -1, 32)
+	s.buf = strconv.AppendFloat(s.buf, float64(val), f, -1, 32)
 }
 
 // WriteFloat32Lossy write float32 to stream with ONLY 6 digits precision although much much faster
-func (stream *Stream) WriteFloat32Lossy(val float32) {
+func (s *Stream) WriteFloat32Lossy(val float32) {
 	if math.IsInf(float64(val), 0) || math.IsNaN(float64(val)) {
-		stream.Error = fmt.Errorf("unsupported value: %f", val)
+		s.Error = fmt.Errorf("unsupported value: %f", val)
 		return
 	}
 	if val < 0 {
-		stream.writeByte('-')
+		s.writeByte('-')
 		val = -val
 	}
 	if val > 0x4ffffff {
-		stream.WriteFloat32(val)
+		s.WriteFloat32(val)
 		return
 	}
 	precision := 6
 	exp := uint64(1000000) // 6
 	lval := uint64(float64(val)*float64(exp) + 0.5)
-	stream.WriteUint64(lval / exp)
+	s.WriteUint64(lval / exp)
 	fval := lval % exp
 	if fval == 0 {
 		return
 	}
-	stream.writeByte('.')
+	s.writeByte('.')
 	for p := precision - 1; p > 0 && fval < pow10[p]; p-- {
-		stream.writeByte('0')
+		s.writeByte('0')
 	}
-	stream.WriteUint64(fval)
-	for stream.buf[len(stream.buf)-1] == '0' {
-		stream.buf = stream.buf[:len(stream.buf)-1]
+	s.WriteUint64(fval)
+	for s.buf[len(s.buf)-1] == '0' {
+		s.buf = s.buf[:len(s.buf)-1]
 	}
 }
 
 // WriteFloat64 write float64 to stream
-func (stream *Stream) WriteFloat64(val float64) {
+func (s *Stream) WriteFloat64(val float64) {
 	if math.IsInf(val, 0) || math.IsNaN(val) {
-		stream.Error = fmt.Errorf("unsupported value: %f", val)
+		s.Error = fmt.Errorf("unsupported value: %f", val)
 		return
 	}
 	abs := math.Abs(val)
@@ -75,50 +75,50 @@ func (stream *Stream) WriteFloat64(val float64) {
 			f = 'e'
 		}
 	}
-	start := len(stream.buf)
-	stream.buf = strconv.AppendFloat(stream.buf, val, f, -1, 64)
+	start := len(s.buf)
+	s.buf = strconv.AppendFloat(s.buf, val, f, -1, 64)
 	if f == 'e' {
 		return
 	}
 
 	// Ensure that we are still float.
-	for _, c := range stream.buf[start:] {
+	for _, c := range s.buf[start:] {
 		if c == '.' {
 			return
 		}
 	}
-	stream.buf = appendRune(stream.buf, '.')
-	stream.buf = appendRune(stream.buf, '0')
+	s.buf = appendRune(s.buf, '.')
+	s.buf = appendRune(s.buf, '0')
 }
 
 // WriteFloat64Lossy write float64 to stream with ONLY 6 digits precision although much much faster
-func (stream *Stream) WriteFloat64Lossy(val float64) {
+func (s *Stream) WriteFloat64Lossy(val float64) {
 	if math.IsInf(val, 0) || math.IsNaN(val) {
-		stream.Error = fmt.Errorf("unsupported value: %f", val)
+		s.Error = fmt.Errorf("unsupported value: %f", val)
 		return
 	}
 	if val < 0 {
-		stream.writeByte('-')
+		s.writeByte('-')
 		val = -val
 	}
 	if val > 0x4ffffff {
-		stream.WriteFloat64(val)
+		s.WriteFloat64(val)
 		return
 	}
 	precision := 6
 	exp := uint64(1000000) // 6
 	lval := uint64(val*float64(exp) + 0.5)
-	stream.WriteUint64(lval / exp)
+	s.WriteUint64(lval / exp)
 	fval := lval % exp
 	if fval == 0 {
 		return
 	}
-	stream.writeByte('.')
+	s.writeByte('.')
 	for p := precision - 1; p > 0 && fval < pow10[p]; p-- {
-		stream.writeByte('0')
+		s.writeByte('0')
 	}
-	stream.WriteUint64(fval)
-	for stream.buf[len(stream.buf)-1] == '0' {
-		stream.buf = stream.buf[:len(stream.buf)-1]
+	s.WriteUint64(fval)
+	for s.buf[len(s.buf)-1] == '0' {
+		s.buf = s.buf[:len(s.buf)-1]
 	}
 }
