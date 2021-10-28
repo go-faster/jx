@@ -25,12 +25,12 @@ func Test_read_string(t *testing.T) {
 	for _, input := range badInputs {
 		testReadString(t, input, "", true, "json.Unmarshal", json.Unmarshal)
 
-		i := Compat.BorrowIterator([]byte(input))
+		i := Compat.Iterator([]byte(input))
 		i.ReadString()
 		assert.Error(t, i.Error)
 		assert.False(t, Compat.Valid([]byte(input)))
 
-		Compat.ReturnIterator(i)
+		Compat.PutIterator(i)
 	}
 
 	goodInputs := []struct {
@@ -64,11 +64,11 @@ func Test_read_string(t *testing.T) {
 	for _, tc := range goodInputs {
 		testReadString(t, tc.input, tc.expectValue, false, "json.Unmarshal", json.Unmarshal)
 
-		i := Compat.BorrowIterator([]byte(tc.input))
+		i := Compat.Iterator([]byte(tc.input))
 		s := i.ReadString()
 		assert.NoError(t, i.Error)
 		assert.Equal(t, tc.expectValue, s)
-		Compat.ReturnIterator(i)
+		Compat.PutIterator(i)
 	}
 }
 
