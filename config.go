@@ -6,7 +6,7 @@ import (
 	"github.com/modern-go/concurrent"
 )
 
-// Valid
+// Valid reports whether json in data is valid.
 func Valid(data []byte) bool {
 	return ConfigDefault.Valid(data)
 }
