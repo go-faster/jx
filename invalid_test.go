@@ -1,12 +1,10 @@
-package test
+package json
 
 import (
 	"io"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	j "github.com/ogen-go/json"
 )
 
 func Test_invalid_float(t *testing.T) {
@@ -22,15 +20,15 @@ func Test_invalid_float(t *testing.T) {
 	for _, input := range inputs {
 		t.Run(input, func(t *testing.T) {
 			should := require.New(t)
-			iter := j.ParseString(j.ConfigDefault, input+",")
+			iter := ParseString(ConfigDefault, input+",")
 			iter.Skip()
 			should.NotEqual(io.EOF, iter.Error)
 			should.NotNil(iter.Error)
-			iter = j.ParseString(j.ConfigDefault, input+",")
+			iter = ParseString(ConfigDefault, input+",")
 			iter.ReadFloat64()
 			should.NotEqual(io.EOF, iter.Error)
 			should.NotNil(iter.Error)
-			iter = j.ParseString(j.ConfigDefault, input+",")
+			iter = ParseString(ConfigDefault, input+",")
 			iter.ReadFloat32()
 			should.NotEqual(io.EOF, iter.Error)
 			should.NotNil(iter.Error)
@@ -40,6 +38,6 @@ func Test_invalid_float(t *testing.T) {
 
 func Test_valid(t *testing.T) {
 	should := require.New(t)
-	should.True(j.Valid([]byte(`{}`)))
-	should.False(j.Valid([]byte(`{`)))
+	should.True(Valid([]byte(`{}`)))
+	should.False(Valid([]byte(`{`)))
 }

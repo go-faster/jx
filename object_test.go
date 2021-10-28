@@ -1,21 +1,19 @@
-package misc_tests
+package json
 
 import (
 	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	"github.com/ogen-go/json"
 )
 
 func Test_empty_object(t *testing.T) {
 	should := require.New(t)
-	iter := json.ParseString(json.ConfigDefault, `{}`)
+	iter := ParseString(ConfigDefault, `{}`)
 	field := iter.ReadObject()
 	should.Equal("", field)
-	iter = json.ParseString(json.ConfigDefault, `{}`)
-	iter.ReadObjectCB(func(iter *json.Iterator, field string) bool {
+	iter = ParseString(ConfigDefault, `{}`)
+	iter.ReadObjectCB(func(iter *Iterator, field string) bool {
 		should.FailNow("should not call")
 		return true
 	})
@@ -23,15 +21,15 @@ func Test_empty_object(t *testing.T) {
 
 func Test_one_field(t *testing.T) {
 	should := require.New(t)
-	iter := json.ParseString(json.ConfigDefault, `{"a": "stream"}`)
+	iter := ParseString(ConfigDefault, `{"a": "stream"}`)
 	field := iter.ReadObject()
 	should.Equal("a", field)
 	value := iter.ReadString()
 	should.Equal("stream", value)
 	field = iter.ReadObject()
 	should.Equal("", field)
-	iter = json.ParseString(json.ConfigDefault, `{"a": "stream"}`)
-	should.True(iter.ReadObjectCB(func(iter *json.Iterator, field string) bool {
+	iter = ParseString(ConfigDefault, `{"a": "stream"}`)
+	should.True(iter.ReadObjectCB(func(iter *Iterator, field string) bool {
 		should.Equal("a", field)
 		iter.Skip()
 		return true
@@ -41,7 +39,7 @@ func Test_one_field(t *testing.T) {
 
 func Test_two_field(t *testing.T) {
 	should := require.New(t)
-	iter := json.ParseString(json.ConfigDefault, `{ "a": "stream" , "c": "d" }`)
+	iter := ParseString(ConfigDefault, `{ "a": "stream" , "c": "d" }`)
 	field := iter.ReadObject()
 	should.Equal("a", field)
 	value := iter.ReadString()
@@ -52,7 +50,7 @@ func Test_two_field(t *testing.T) {
 	should.Equal("d", value)
 	field = iter.ReadObject()
 	should.Equal("", field)
-	iter = json.ParseString(json.ConfigDefault, `{"field1": "1", "field2": 2}`)
+	iter = ParseString(ConfigDefault, `{"field1": "1", "field2": 2}`)
 	for field := iter.ReadObject(); field != ""; field = iter.ReadObject() {
 		switch field {
 		case "field1":
@@ -68,7 +66,7 @@ func Test_two_field(t *testing.T) {
 func Test_write_object(t *testing.T) {
 	should := require.New(t)
 	buf := &bytes.Buffer{}
-	stream := json.NewStream(json.Config{IndentionStep: 2}.Froze(), buf, 4096)
+	stream := NewStream(Config{IndentionStep: 2}.Froze(), buf, 4096)
 	stream.WriteObjectStart()
 	stream.WriteObjectField("hello")
 	stream.WriteInt(1)

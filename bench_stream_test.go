@@ -1,16 +1,14 @@
-package test
+package json
 
 import (
 	"bytes"
 	"strconv"
 	"testing"
-
-	jsoniter "github.com/ogen-go/json"
 )
 
 func Benchmark_stream_encode_big_object(b *testing.B) {
 	var buf bytes.Buffer
-	var stream = jsoniter.NewStream(jsoniter.ConfigDefault, &buf, 100)
+	var stream = NewStream(ConfigDefault, &buf, 100)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		stream.Reset(&buf)
@@ -21,7 +19,7 @@ func Benchmark_stream_encode_big_object(b *testing.B) {
 	}
 }
 
-func encodeObject(stream *jsoniter.Stream) {
+func encodeObject(stream *Stream) {
 	stream.WriteObjectStart()
 
 	stream.WriteObjectField("objectId")
