@@ -300,7 +300,7 @@ func parseVal(i *Iterator, v *Value) bool {
 	case Number:
 		n := i.ReadNumber()
 		idx := strings.Index(n.String(), ".")
-		if idx > 0 && idx != len(n.String())-1 {
+		if (idx > 0 && idx != len(n.String())-1) || strings.Contains(n.String(), "e") {
 			f, err := n.Float64()
 			if err != nil {
 				i.ReportError("ReadNumber", err.Error())
