@@ -3,11 +3,13 @@
 package json
 
 import (
+	"bytes"
 	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func FuzzValid(f *testing.F) {
@@ -59,10 +61,17 @@ func Test_iterDown(t *testing.T) {
 
 func Test_parseVal(t *testing.T) {
 	var v Value
-	i := ParseString(Default, `{"foo": {"bar": 1, "baz": [1, 2, 3]}}`)
+	const input = `{"foo":{"bar":1,"baz":[1,2,3.14],"200":null}}`
+	i := ParseString(Default, input)
 	parseVal(i, &v)
 	assert.NoError(t, i.Error)
-	assert.Equal(t, `{foo: {bar: 1, baz: [1, 2, 3]}}`, v.String())
+	assert.Equal(t, `{foo: {bar: 1, baz: [1, 2, 3.14], 200: null}}`, v.String())
+
+	buf := new(bytes.Buffer)
+	s := NewStream(Default, buf, 1024)
+	v.Write(s)
+	require.NoError(t, s.Flush())
+	require.Equal(t, input, buf.String(), "encoded value should equal to input")
 }
 
 func FuzzIter(f *testing.F) {
@@ -91,6 +100,7 @@ const (
 	ValBool
 )
 
+// Value represents any json value as sum type.
 type Value struct {
 	Type  ValType
 	Str   string
@@ -99,6 +109,45 @@ type Value struct {
 	Key   string
 	Bool  bool
 	Child []Value
+}
+
+// Write json representation of Value to Stream.
+func (v Value) Write(s *Stream) {
+	if v.Key != "" {
+		s.WriteObjectField(v.Key)
+	}
+	switch v.Type {
+	case ValStr:
+		s.WriteString(v.Str)
+	case ValFloat:
+		s.WriteFloat64(v.Float)
+	case ValInt:
+		s.WriteInt64(v.Int)
+	case ValBool:
+		s.WriteBool(v.Bool)
+	case ValNull:
+		s.WriteNil()
+	case ValArr:
+		s.WriteArrayStart()
+		for i, c := range v.Child {
+			if i != 0 {
+				s.WriteMore()
+			}
+			c.Write(s)
+		}
+		s.WriteArrayEnd()
+	case ValObj:
+		s.WriteObjectStart()
+		for i, c := range v.Child {
+			if i != 0 {
+				s.WriteMore()
+			}
+			c.Write(s)
+		}
+		s.WriteObjectEnd()
+	default:
+		panic(v.Type)
+	}
 }
 
 func (v Value) String() string {
