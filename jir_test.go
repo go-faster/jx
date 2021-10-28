@@ -3,6 +3,7 @@ package jir
 import (
 	"bytes"
 	hexEnc "encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"strconv"
@@ -238,4 +239,12 @@ func parseVal(i *Iterator, v *Value) bool {
 		panic(i.WhatIsNext())
 	}
 	return true
+}
+
+// requireCompat fails if `encoding/json` will encode v differently than exp.
+func requireCompat(t testing.TB, exp []byte, v interface{}) {
+	t.Helper()
+	buf, err := json.Marshal(v)
+	require.NoError(t, err)
+	require.Equal(t, exp, buf)
 }
