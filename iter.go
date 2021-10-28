@@ -8,6 +8,27 @@ import (
 // Type the type for JSON element
 type Type int
 
+func (t Type) String() string {
+	switch t {
+	case Invalid:
+		return "invalid"
+	case String:
+		return "string"
+	case Number:
+		return "number"
+	case Nil:
+		return "nil"
+	case Bool:
+		return "bool"
+	case Array:
+		return "array"
+	case Object:
+		return "object"
+	default:
+		return "unknown"
+	}
+}
+
 const (
 	// Invalid invalid JSON element
 	Invalid Type = iota
