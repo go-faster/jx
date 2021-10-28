@@ -1,4 +1,4 @@
-package jsoniter
+package json
 
 import (
 	"io"
@@ -25,7 +25,6 @@ func (cfg *frozenConfig) BorrowStream(writer io.Writer) *Stream {
 func (cfg *frozenConfig) ReturnStream(stream *Stream) {
 	stream.out = nil
 	stream.Error = nil
-	stream.Attachment = nil
 	cfg.streamPool.Put(stream)
 }
 

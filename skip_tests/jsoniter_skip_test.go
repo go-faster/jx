@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/ogen-go/json"
 	"github.com/stretchr/testify/require"
+
+	j "github.com/ogen-go/json"
 )
 
 func Test_skip_number_in_array(t *testing.T) {
 	should := require.New(t)
-	iter := jsoniter.ParseString(jsoniter.ConfigDefault, `[-0.12, "stream"]`)
+	iter := j.ParseString(j.ConfigDefault, `[-0.12, "stream"]`)
 	iter.ReadArray()
 	iter.Skip()
 	iter.ReadArray()
@@ -21,7 +22,7 @@ func Test_skip_number_in_array(t *testing.T) {
 
 func Test_skip_string_in_array(t *testing.T) {
 	should := require.New(t)
-	iter := jsoniter.ParseString(jsoniter.ConfigDefault, `["hello", "stream"]`)
+	iter := j.ParseString(j.ConfigDefault, `["hello", "stream"]`)
 	iter.ReadArray()
 	iter.Skip()
 	iter.ReadArray()
@@ -30,7 +31,7 @@ func Test_skip_string_in_array(t *testing.T) {
 }
 
 func Test_skip_null(t *testing.T) {
-	iter := jsoniter.ParseString(jsoniter.ConfigDefault, `[null , "stream"]`)
+	iter := j.ParseString(j.ConfigDefault, `[null , "stream"]`)
 	iter.ReadArray()
 	iter.Skip()
 	iter.ReadArray()
@@ -40,7 +41,7 @@ func Test_skip_null(t *testing.T) {
 }
 
 func Test_skip_true(t *testing.T) {
-	iter := jsoniter.ParseString(jsoniter.ConfigDefault, `[true , "stream"]`)
+	iter := j.ParseString(j.ConfigDefault, `[true , "stream"]`)
 	iter.ReadArray()
 	iter.Skip()
 	iter.ReadArray()
@@ -50,7 +51,7 @@ func Test_skip_true(t *testing.T) {
 }
 
 func Test_skip_false(t *testing.T) {
-	iter := jsoniter.ParseString(jsoniter.ConfigDefault, `[false , "stream"]`)
+	iter := j.ParseString(j.ConfigDefault, `[false , "stream"]`)
 	iter.ReadArray()
 	iter.Skip()
 	iter.ReadArray()
@@ -60,7 +61,7 @@ func Test_skip_false(t *testing.T) {
 }
 
 func Test_skip_array(t *testing.T) {
-	iter := jsoniter.ParseString(jsoniter.ConfigDefault, `[[1, [2, [3], 4]], "stream"]`)
+	iter := j.ParseString(j.ConfigDefault, `[[1, [2, [3], 4]], "stream"]`)
 	iter.ReadArray()
 	iter.Skip()
 	iter.ReadArray()
@@ -70,7 +71,7 @@ func Test_skip_array(t *testing.T) {
 }
 
 func Test_skip_empty_array(t *testing.T) {
-	iter := jsoniter.ParseString(jsoniter.ConfigDefault, `[ [ ], "stream"]`)
+	iter := j.ParseString(j.ConfigDefault, `[ [ ], "stream"]`)
 	iter.ReadArray()
 	iter.Skip()
 	iter.ReadArray()
@@ -80,7 +81,7 @@ func Test_skip_empty_array(t *testing.T) {
 }
 
 func Test_skip_nested(t *testing.T) {
-	iter := jsoniter.ParseString(jsoniter.ConfigDefault, `[ {"a" : [{"stream": "c"}], "d": 102 }, "stream"]`)
+	iter := j.ParseString(j.ConfigDefault, `[ {"a" : [{"stream": "c"}], "d": 102 }, "stream"]`)
 	iter.ReadArray()
 	iter.Skip()
 	iter.ReadArray()
@@ -91,7 +92,7 @@ func Test_skip_nested(t *testing.T) {
 
 func Test_skip_and_return_bytes(t *testing.T) {
 	should := require.New(t)
-	iter := jsoniter.ParseString(jsoniter.ConfigDefault, `[ {"a" : [{"stream": "c"}], "d": 102 }, "stream"]`)
+	iter := j.ParseString(j.ConfigDefault, `[ {"a" : [{"stream": "c"}], "d": 102 }, "stream"]`)
 	iter.ReadArray()
 	skipped := iter.SkipAndReturnBytes()
 	should.Equal(`{"a" : [{"stream": "c"}], "d": 102 }`, string(skipped))
@@ -99,7 +100,7 @@ func Test_skip_and_return_bytes(t *testing.T) {
 
 func Test_skip_and_return_bytes_with_reader(t *testing.T) {
 	should := require.New(t)
-	iter := jsoniter.Parse(jsoniter.ConfigDefault, bytes.NewBufferString(`[ {"a" : [{"stream": "c"}], "d": 102 }, "stream"]`), 4)
+	iter := j.Parse(j.ConfigDefault, bytes.NewBufferString(`[ {"a" : [{"stream": "c"}], "d": 102 }, "stream"]`), 4)
 	iter.ReadArray()
 	skipped := iter.SkipAndReturnBytes()
 	should.Equal(`{"a" : [{"stream": "c"}], "d": 102 }`, string(skipped))
@@ -107,16 +108,11 @@ func Test_skip_and_return_bytes_with_reader(t *testing.T) {
 
 func Test_append_skip_and_return_bytes_with_reader(t *testing.T) {
 	should := require.New(t)
-	iter := jsoniter.Parse(jsoniter.ConfigDefault, bytes.NewBufferString(`[ {"a" : [{"stream": "c"}], "d": 102 }, "stream"]`), 4)
+	iter := j.Parse(j.ConfigDefault, bytes.NewBufferString(`[ {"a" : [{"stream": "c"}], "d": 102 }, "stream"]`), 4)
 	iter.ReadArray()
 	buf := make([]byte, 0, 1024)
 	buf = iter.SkipAndAppendBytes(buf)
 	should.Equal(`{"a" : [{"stream": "c"}], "d": 102 }`, string(buf))
-}
-
-func Test_skip_empty(t *testing.T) {
-	should := require.New(t)
-	should.NotNil(jsoniter.Get([]byte("")).LastError())
 }
 
 type TestResp struct {
@@ -150,7 +146,7 @@ func Benchmark_jsoniter_skip(b *testing.B) {
 }`)
 	for n := 0; n < b.N; n++ {
 		result := TestResp{}
-		iter := jsoniter.ParseBytes(jsoniter.ConfigDefault, input)
+		iter := j.ParseBytes(j.ConfigDefault, input)
 		for field := iter.ReadObject(); field != ""; field = iter.ReadObject() {
 			switch field {
 			case "code":
@@ -189,6 +185,6 @@ func Benchmark_json_skip(b *testing.B) {
 }`)
 	for n := 0; n < b.N; n++ {
 		result := TestResp{}
-		json.Unmarshal(input, &result)
+		_ = json.Unmarshal(input, &result)
 	}
 }

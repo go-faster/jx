@@ -1,11 +1,13 @@
-//+build jsoniter_sloppy
+//go:build jsoniter_sloppy
+// +build jsoniter_sloppy
 
-package jsoniter
+package json
 
 import (
-	"github.com/stretchr/testify/require"
 	"io"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func Test_string_end(t *testing.T) {

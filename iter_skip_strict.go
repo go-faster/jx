@@ -1,6 +1,7 @@
-//+build !jsoniter_sloppy
+//go:build !jsoniter_sloppy
+// +build !jsoniter_sloppy
 
-package jsoniter
+package json
 
 import (
 	"fmt"

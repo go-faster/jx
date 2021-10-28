@@ -2,21 +2,12 @@ package test
 
 import (
 	"encoding/json"
-	"github.com/ogen-go/json"
 	"testing"
-	"unicode/utf8"
-)
 
-func init() {
-	marshalCases = append(marshalCases,
-		`>`,
-		`"数字山谷"`,
-		"he\u2029\u2028he",
-	)
-	for i := 0; i < utf8.RuneSelf; i++ {
-		marshalCases = append(marshalCases, string([]byte{byte(i)}))
-	}
-}
+	"github.com/stretchr/testify/assert"
+
+	j "github.com/ogen-go/json"
+)
 
 func Test_read_string(t *testing.T) {
 	badInputs := []string{
@@ -35,8 +26,14 @@ func Test_read_string(t *testing.T) {
 
 	for _, input := range badInputs {
 		testReadString(t, input, "", true, "json.Unmarshal", json.Unmarshal)
-		testReadString(t, input, "", true, "jsoniter.Unmarshal", jsoniter.Unmarshal)
-		testReadString(t, input, "", true, "jsoniter.ConfigCompatibleWithStandardLibrary.Unmarshal", jsoniter.ConfigCompatibleWithStandardLibrary.Unmarshal)
+		testReadString(t, input, "", true, "jsoniter.Unmarshal", json.Unmarshal)
+
+		i := j.ConfigCompat.BorrowIterator([]byte(input))
+		i.ReadString()
+		assert.Error(t, i.Error)
+		assert.False(t, j.ConfigCompat.Valid([]byte(input)))
+
+		j.ConfigCompat.ReturnIterator(i)
 	}
 
 	goodInputs := []struct {
@@ -69,8 +66,13 @@ func Test_read_string(t *testing.T) {
 
 	for _, tc := range goodInputs {
 		testReadString(t, tc.input, tc.expectValue, false, "json.Unmarshal", json.Unmarshal)
-		testReadString(t, tc.input, tc.expectValue, false, "jsoniter.Unmarshal", jsoniter.Unmarshal)
-		testReadString(t, tc.input, tc.expectValue, false, "jsoniter.ConfigCompatibleWithStandardLibrary.Unmarshal", jsoniter.ConfigCompatibleWithStandardLibrary.Unmarshal)
+		testReadString(t, tc.input, tc.expectValue, false, "jsoniter.Unmarshal", json.Unmarshal)
+
+		i := j.ConfigCompat.BorrowIterator([]byte(tc.input))
+		s := i.ReadString()
+		assert.NoError(t, i.Error)
+		assert.Equal(t, tc.expectValue, s)
+		j.ConfigCompat.ReturnIterator(i)
 	}
 }
 

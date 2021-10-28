@@ -2,31 +2,17 @@ package misc_tests
 
 import (
 	"bytes"
-	"io"
 	"testing"
 
-	"github.com/ogen-go/json"
 	"github.com/stretchr/testify/require"
-)
 
-func Test_read_null(t *testing.T) {
-	should := require.New(t)
-	iter := jsoniter.ParseString(jsoniter.ConfigDefault, `null`)
-	should.True(iter.ReadNil())
-	iter = jsoniter.ParseString(jsoniter.ConfigDefault, `null`)
-	should.Nil(iter.Read())
-	iter = jsoniter.ParseString(jsoniter.ConfigDefault, `navy`)
-	iter.Read()
-	should.True(iter.Error != nil && iter.Error != io.EOF)
-	iter = jsoniter.ParseString(jsoniter.ConfigDefault, `navy`)
-	iter.ReadNil()
-	should.True(iter.Error != nil && iter.Error != io.EOF)
-}
+	j "github.com/ogen-go/json"
+)
 
 func Test_write_null(t *testing.T) {
 	should := require.New(t)
 	buf := &bytes.Buffer{}
-	stream := jsoniter.NewStream(jsoniter.ConfigDefault, buf, 4096)
+	stream := j.NewStream(j.ConfigDefault, buf, 4096)
 	stream.WriteNil()
 	stream.Flush()
 	should.Nil(stream.Error)
@@ -34,8 +20,7 @@ func Test_write_null(t *testing.T) {
 }
 
 func Test_decode_null_object_field(t *testing.T) {
-	should := require.New(t)
-	iter := jsoniter.ParseString(jsoniter.ConfigDefault, `[null,"a"]`)
+	iter := j.ParseString(j.ConfigDefault, `[null,"a"]`)
 	iter.ReadArray()
 	if iter.ReadObject() != "" {
 		t.FailNow()
@@ -44,17 +29,11 @@ func Test_decode_null_object_field(t *testing.T) {
 	if iter.ReadString() != "a" {
 		t.FailNow()
 	}
-	type TestObject struct {
-		Field string
-	}
-	objs := []TestObject{}
-	should.Nil(jsoniter.UnmarshalFromString("[null]", &objs))
-	should.Len(objs, 1)
 }
 
 func Test_decode_null_array_element(t *testing.T) {
 	should := require.New(t)
-	iter := jsoniter.ParseString(jsoniter.ConfigDefault, `[null,"a"]`)
+	iter := j.ParseString(j.ConfigDefault, `[null,"a"]`)
 	should.True(iter.ReadArray())
 	should.True(iter.ReadNil())
 	should.True(iter.ReadArray())
@@ -63,7 +42,7 @@ func Test_decode_null_array_element(t *testing.T) {
 
 func Test_decode_null_string(t *testing.T) {
 	should := require.New(t)
-	iter := jsoniter.ParseString(jsoniter.ConfigDefault, `[null,"a"]`)
+	iter := j.ParseString(j.ConfigDefault, `[null,"a"]`)
 	should.True(iter.ReadArray())
 	should.Equal("", iter.ReadString())
 	should.True(iter.ReadArray())
@@ -71,7 +50,7 @@ func Test_decode_null_string(t *testing.T) {
 }
 
 func Test_decode_null_skip(t *testing.T) {
-	iter := jsoniter.ParseString(jsoniter.ConfigDefault, `[null,"a"]`)
+	iter := j.ParseString(j.ConfigDefault, `[null,"a"]`)
 	iter.ReadArray()
 	iter.Skip()
 	iter.ReadArray()

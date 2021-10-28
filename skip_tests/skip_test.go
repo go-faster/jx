@@ -3,11 +3,13 @@ package skip_tests
 import (
 	"encoding/json"
 	"errors"
-	"github.com/ogen-go/json"
-	"github.com/stretchr/testify/require"
 	"io"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	j "github.com/ogen-go/json"
 )
 
 type testCase struct {
@@ -25,7 +27,7 @@ func Test_skip(t *testing.T) {
 				should := require.New(t)
 				ptrVal := reflect.New(valType)
 				stdErr := json.Unmarshal([]byte(input), ptrVal.Interface())
-				iter := jsoniter.ParseString(jsoniter.ConfigDefault, input)
+				iter := j.ParseString(j.ConfigDefault, input)
 				iter.Skip()
 				iter.ReadNil() // trigger looking forward
 				err := iter.Error

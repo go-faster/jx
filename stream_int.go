@@ -1,4 +1,4 @@
-package jsoniter
+package json
 
 var digits []uint32
 
@@ -56,7 +56,6 @@ func (stream *Stream) WriteUint16(val uint16) {
 	r1 := val - q1*1000
 	stream.buf = writeFirstBuf(stream.buf, digits[q1])
 	stream.buf = writeBuf(stream.buf, digits[r1])
-	return
 }
 
 // WriteInt16 write int16 to stream

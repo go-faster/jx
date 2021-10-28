@@ -1,4 +1,4 @@
-package jsoniter
+package json
 
 import (
 	"testing"
@@ -22,19 +22,12 @@ func Test_writeByte_should_grow_buffer(t *testing.T) {
 func Test_writeBytes_should_grow_buffer(t *testing.T) {
 	should := require.New(t)
 	stream := NewStream(ConfigDefault, nil, 1)
-	stream.Write([]byte{'1', '2'})
+	_, _ = stream.Write([]byte{'1', '2'})
 	should.Equal("12", string(stream.Buffer()))
 	should.Equal(2, len(stream.buf))
-	stream.Write([]byte{'3', '4', '5', '6', '7'})
+	_, _ = stream.Write([]byte{'3', '4', '5', '6', '7'})
 	should.Equal("1234567", string(stream.Buffer()))
 	should.Equal(7, len(stream.buf))
-}
-
-func Test_writeIndention_should_grow_buffer(t *testing.T) {
-	should := require.New(t)
-	stream := NewStream(Config{IndentionStep: 2}.Froze(), nil, 1)
-	stream.WriteVal([]int{1, 2, 3})
-	should.Equal("[\n  1,\n  2,\n  3\n]", string(stream.Buffer()))
 }
 
 func Test_writeRaw_should_grow_buffer(t *testing.T) {
@@ -70,7 +63,7 @@ func Test_flush_buffer_should_stop_grow_buffer(t *testing.T) {
 	for i := 0; i < 10000000; i++ {
 		stream.WriteInt(0)
 		stream.WriteMore()
-		stream.Flush()
+		_ = stream.Flush()
 	}
 	stream.WriteInt(0)
 	stream.WriteArrayEnd()

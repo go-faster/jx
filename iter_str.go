@@ -1,4 +1,4 @@
-package jsoniter
+package json
 
 import (
 	"fmt"
@@ -163,6 +163,7 @@ func (iter *Iterator) readU4() (ret rune) {
 	return ret
 }
 
+//nolint:unused,deadcode,varcheck
 const (
 	t1 = 0x00 // 0000 0000
 	tx = 0x80 // 1000 0000

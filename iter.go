@@ -1,7 +1,6 @@
-package jsoniter
+package json
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 )
@@ -153,31 +152,6 @@ func (iter *Iterator) WhatIsNext() ValueType {
 	return valueType
 }
 
-func (iter *Iterator) skipWhitespacesWithoutLoadMore() bool {
-	for i := iter.head; i < iter.tail; i++ {
-		c := iter.buf[i]
-		switch c {
-		case ' ', '\n', '\t', '\r':
-			continue
-		}
-		iter.head = i
-		return false
-	}
-	return true
-}
-
-func (iter *Iterator) isObjectEnd() bool {
-	c := iter.nextToken()
-	if c == ',' {
-		return false
-	}
-	if c == '}' {
-		return true
-	}
-	iter.ReportError("isObjectEnd", "object ended prematurely, unexpected char "+string([]byte{c}))
-	return true
-}
-
 func (iter *Iterator) nextToken() byte {
 	// a variation of skip whitespaces, returning the next non-whitespace token
 	for {
@@ -284,47 +258,6 @@ func (iter *Iterator) unreadByte() {
 		return
 	}
 	iter.head--
-	return
-}
-
-// Read read the next JSON element as generic interface{}.
-func (iter *Iterator) Read() interface{} {
-	valueType := iter.WhatIsNext()
-	switch valueType {
-	case StringValue:
-		return iter.ReadString()
-	case NumberValue:
-		if iter.cfg.configBeforeFrozen.UseNumber {
-			return json.Number(iter.readNumberAsString())
-		}
-		return iter.ReadFloat64()
-	case NilValue:
-		iter.skipFourBytes('n', 'u', 'l', 'l')
-		return nil
-	case BoolValue:
-		return iter.ReadBool()
-	case ArrayValue:
-		arr := []interface{}{}
-		iter.ReadArrayCB(func(iter *Iterator) bool {
-			var elem interface{}
-			iter.ReadVal(&elem)
-			arr = append(arr, elem)
-			return true
-		})
-		return arr
-	case ObjectValue:
-		obj := map[string]interface{}{}
-		iter.ReadMapCB(func(Iter *Iterator, field string) bool {
-			var elem interface{}
-			iter.ReadVal(&elem)
-			obj[field] = elem
-			return true
-		})
-		return obj
-	default:
-		iter.ReportError("Read", fmt.Sprintf("unexpected value type: %v", valueType))
-		return nil
-	}
 }
 
 // limit maximum depth of nesting, as allowed by https://tools.ietf.org/html/rfc7159#section-9

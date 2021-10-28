@@ -1,18 +1,19 @@
-package jsoniter
+package json
 
 import (
 	"io"
 )
 
-// stream is a io.Writer like object, with JSON specific write functions.
+// Stream writes json to io.Writer.
+//
 // Error is not returned as return value, but stored as Error member on this stream instance.
 type Stream struct {
-	cfg        *frozenConfig
-	out        io.Writer
-	buf        []byte
-	Error      error
-	indention  int
-	Attachment interface{} // open for customized encoder
+	cfg       *frozenConfig
+	out       io.Writer
+	buf       []byte
+	indention int
+
+	Error error
 }
 
 // NewStream create new stream instance.
