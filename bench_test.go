@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-//go:embed _testdata/file.json
+//go:embed testdata/file.json
 var data []byte
 
 /*
