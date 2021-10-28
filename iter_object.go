@@ -17,7 +17,7 @@ func (it *Iterator) Field() (ret string) {
 		c = it.nextToken()
 		if c == '"' {
 			it.unreadByte()
-			field := it.String()
+			field := it.Str()
 			c = it.nextToken()
 			if c != ':' {
 				it.ReportError("Field", "expect : after object field, but found "+string([]byte{c}))
@@ -30,7 +30,7 @@ func (it *Iterator) Field() (ret string) {
 		it.ReportError("Field", `expect " after {, but found `+string([]byte{c}))
 		return
 	case ',':
-		field := it.String()
+		field := it.Str()
 		c = it.nextToken()
 		if c != ':' {
 			it.ReportError("Field", "expect : after object field, but found "+string([]byte{c}))
@@ -54,7 +54,7 @@ func (it *Iterator) Object(f func(i *Iterator, key string) bool) bool {
 		c = it.nextToken()
 		if c == '"' {
 			it.unreadByte()
-			key := it.String()
+			key := it.Str()
 			c = it.nextToken()
 			if c != ':' {
 				it.ReportError("Field", "expect : after object field, but found "+string([]byte{c}))
@@ -65,7 +65,7 @@ func (it *Iterator) Object(f func(i *Iterator, key string) bool) bool {
 			}
 			c = it.nextToken()
 			for c == ',' {
-				key = it.String()
+				key = it.Str()
 				c = it.nextToken()
 				if c != ':' {
 					it.ReportError("Field", "expect : after object field, but found "+string([]byte{c}))

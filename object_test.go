@@ -24,7 +24,7 @@ func Test_one_field(t *testing.T) {
 	iter := ParseString(Default, `{"a": "stream"}`)
 	field := iter.Field()
 	should.Equal("a", field)
-	value := iter.String()
+	value := iter.Str()
 	should.Equal("stream", value)
 	field = iter.Field()
 	should.Equal("", field)
@@ -42,11 +42,11 @@ func Test_two_field(t *testing.T) {
 	iter := ParseString(Default, `{ "a": "stream" , "c": "d" }`)
 	field := iter.Field()
 	should.Equal("a", field)
-	value := iter.String()
+	value := iter.Str()
 	should.Equal("stream", value)
 	field = iter.Field()
 	should.Equal("c", field)
-	value = iter.String()
+	value = iter.Str()
 	should.Equal("d", value)
 	field = iter.Field()
 	should.Equal("", field)
@@ -54,7 +54,7 @@ func Test_two_field(t *testing.T) {
 	for field := iter.Field(); field != ""; field = iter.Field() {
 		switch field {
 		case "field1":
-			iter.String()
+			iter.Str()
 		case "field2":
 			iter.ReadInt64()
 		default:

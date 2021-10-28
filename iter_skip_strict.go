@@ -59,7 +59,7 @@ func (it *Iterator) trySkipNumber() bool {
 func (it *Iterator) skipString() {
 	if !it.trySkipString() {
 		it.unreadByte()
-		it.String()
+		_ = it.Str()
 	}
 }
 

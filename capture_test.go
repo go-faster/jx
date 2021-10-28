@@ -29,7 +29,7 @@ func TestIterator_Capture(t *testing.T) {
 				i.Object(func(i *Iterator, key string) bool {
 					switch key {
 					case "type":
-						typ = i.String()
+						typ = i.Str()
 					default:
 						i.Skip()
 					}
@@ -39,12 +39,12 @@ func TestIterator_Capture(t *testing.T) {
 			// Reading objects depending on type.
 			return i.Object(func(i *Iterator, key string) bool {
 				if key == "type" {
-					assert.Equal(t, typ, i.String())
+					assert.Equal(t, typ, i.Str())
 					return true
 				}
 				switch typ {
 				case "foo":
-					i.String()
+					_ = i.Str()
 				case "bar":
 					i.Int()
 				}

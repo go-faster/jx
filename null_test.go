@@ -24,7 +24,7 @@ func Test_decode_null_object_field(t *testing.T) {
 		t.FailNow()
 	}
 	iter.Elem()
-	if iter.String() != "a" {
+	if iter.Str() != "a" {
 		t.FailNow()
 	}
 }
@@ -35,16 +35,16 @@ func Test_decode_null_array_element(t *testing.T) {
 	should.True(iter.Elem())
 	should.True(iter.Null())
 	should.True(iter.Elem())
-	should.Equal("a", iter.String())
+	should.Equal("a", iter.Str())
 }
 
 func Test_decode_null_string(t *testing.T) {
 	should := require.New(t)
 	iter := ParseString(Default, `[null,"a"]`)
 	should.True(iter.Elem())
-	should.Equal("", iter.String())
+	should.Equal("", iter.Str())
 	should.True(iter.Elem())
-	should.Equal("a", iter.String())
+	should.Equal("a", iter.Str())
 }
 
 func Test_decode_null_skip(t *testing.T) {
@@ -52,7 +52,7 @@ func Test_decode_null_skip(t *testing.T) {
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
-	if iter.String() != "a" {
+	if iter.Str() != "a" {
 		t.FailNow()
 	}
 }

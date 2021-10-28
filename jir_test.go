@@ -204,7 +204,7 @@ func parseVal(i *Iterator, v *Value) bool {
 			v.Type = ValInt
 		}
 	case String:
-		v.Str = i.String()
+		v.Str = i.Str()
 		v.Type = ValStr
 	case Nil:
 		i.Null()

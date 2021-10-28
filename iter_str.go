@@ -5,8 +5,8 @@ import (
 	"unicode/utf16"
 )
 
-// String reads string.
-func (it *Iterator) String() (s string) {
+// Str reads string.
+func (it *Iterator) Str() (s string) {
 	c := it.nextToken()
 	if c == '"' {
 		for i := it.head; i < it.tail; i++ {
@@ -18,7 +18,7 @@ func (it *Iterator) String() (s string) {
 			} else if c == '\\' {
 				break
 			} else if c < ' ' {
-				it.ReportError("String",
+				it.ReportError("Str",
 					fmt.Sprintf(`invalid control character found: %d`, c))
 				return
 			}
@@ -28,7 +28,7 @@ func (it *Iterator) String() (s string) {
 		it.skipThreeBytes('u', 'l', 'l')
 		return ""
 	}
-	it.ReportError("String", `expects " or n, but found `+string([]byte{c}))
+	it.ReportError("Str", `expects " or n, but found `+string([]byte{c}))
 	return ""
 }
 
@@ -111,9 +111,9 @@ func (it *Iterator) readEscapedChar(c byte, str []byte) []byte {
 	return str
 }
 
-// StringAsSlice read string from iterator without copying into string form.
+// StrAsSlice read string from iterator without copying into string form.
 // The []byte can not be kept, as it will change after next iterator call.
-func (it *Iterator) StringAsSlice() (ret []byte) {
+func (it *Iterator) StrAsSlice() (ret []byte) {
 	c := it.nextToken()
 	if c == '"' {
 		for i := it.head; i < it.tail; i++ {
@@ -139,7 +139,7 @@ func (it *Iterator) StringAsSlice() (ret []byte) {
 		}
 		return copied
 	}
-	it.ReportError("StringAsSlice", `expects " or n, but found `+string([]byte{c}))
+	it.ReportError("StrAsSlice", `expects " or n, but found `+string([]byte{c}))
 	return
 }
 
