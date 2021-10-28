@@ -1,16 +1,16 @@
 package jir
 
 // ReadArray read array element, tells if the array has more element to read.
-func (iter *Iterator) ReadArray() (ret bool) {
-	c := iter.nextToken()
+func (it *Iterator) ReadArray() (ret bool) {
+	c := it.nextToken()
 	switch c {
 	case 'n':
-		iter.skipThreeBytes('u', 'l', 'l')
+		it.skipThreeBytes('u', 'l', 'l')
 		return false // null
 	case '[':
-		c = iter.nextToken()
+		c = it.nextToken()
 		if c != ']' {
-			iter.unreadByte()
+			it.unreadByte()
 			return true
 		}
 		return false
@@ -19,46 +19,46 @@ func (iter *Iterator) ReadArray() (ret bool) {
 	case ',':
 		return true
 	default:
-		iter.ReportError("ReadArray", "expect [ or , or ] or n, but found "+string([]byte{c}))
+		it.ReportError("ReadArray", "expect [ or , or ] or n, but found "+string([]byte{c}))
 		return
 	}
 }
 
 // ReadArrayCB read array with callback
-func (iter *Iterator) ReadArrayCB(callback func(*Iterator) bool) (ret bool) {
-	c := iter.nextToken()
+func (it *Iterator) ReadArrayCB(callback func(*Iterator) bool) (ret bool) {
+	c := it.nextToken()
 	if c == '[' {
-		if !iter.incrementDepth() {
+		if !it.incrementDepth() {
 			return false
 		}
-		c = iter.nextToken()
+		c = it.nextToken()
 		if c != ']' {
-			iter.unreadByte()
-			if !callback(iter) {
-				iter.decrementDepth()
+			it.unreadByte()
+			if !callback(it) {
+				it.decrementDepth()
 				return false
 			}
-			c = iter.nextToken()
+			c = it.nextToken()
 			for c == ',' {
-				if !callback(iter) {
-					iter.decrementDepth()
+				if !callback(it) {
+					it.decrementDepth()
 					return false
 				}
-				c = iter.nextToken()
+				c = it.nextToken()
 			}
 			if c != ']' {
-				iter.ReportError("ReadArrayCB", "expect ] in the end, but found "+string([]byte{c}))
-				iter.decrementDepth()
+				it.ReportError("ReadArrayCB", "expect ] in the end, but found "+string([]byte{c}))
+				it.decrementDepth()
 				return false
 			}
-			return iter.decrementDepth()
+			return it.decrementDepth()
 		}
-		return iter.decrementDepth()
+		return it.decrementDepth()
 	}
 	if c == 'n' {
-		iter.skipThreeBytes('u', 'l', 'l')
+		it.skipThreeBytes('u', 'l', 'l')
 		return true // null
 	}
-	iter.ReportError("ReadArrayCB", "expect [ or n, but found "+string([]byte{c}))
+	it.ReportError("ReadArrayCB", "expect [ or n, but found "+string([]byte{c}))
 	return false
 }

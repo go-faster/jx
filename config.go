@@ -59,7 +59,6 @@ type frozenConfig struct {
 
 func (cfg *frozenConfig) private() {}
 
-
 // API creates new API from config
 func (cfg Config) API() API {
 	api := &frozenConfig{

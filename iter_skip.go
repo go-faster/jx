@@ -4,127 +4,128 @@ import "fmt"
 
 // ReadNil reads a json object as nil and
 // returns whether it's a nil or not
-func (iter *Iterator) ReadNil() (ret bool) {
-	c := iter.nextToken()
+func (it *Iterator) ReadNil() (ret bool) {
+	c := it.nextToken()
 	if c == 'n' {
-		iter.skipThreeBytes('u', 'l', 'l') // null
+		it.skipThreeBytes('u', 'l', 'l') // null
 		return true
 	}
-	iter.unreadByte()
+	it.unreadByte()
 	return false
 }
 
 // ReadBool reads a json object as Bool
-func (iter *Iterator) ReadBool() (ret bool) {
-	c := iter.nextToken()
+func (it *Iterator) ReadBool() (ret bool) {
+	c := it.nextToken()
 	if c == 't' {
-		iter.skipThreeBytes('r', 'u', 'e')
+		it.skipThreeBytes('r', 'u', 'e')
 		return true
 	}
 	if c == 'f' {
-		iter.skipFourBytes('a', 'l', 's', 'e')
+		it.skipFourBytes('a', 'l', 's', 'e')
 		return false
 	}
-	iter.ReportError("ReadBool", "expect t or f, but found "+string([]byte{c}))
+	it.ReportError("ReadBool", "expect t or f, but found "+string([]byte{c}))
 	return
 }
 
-// SkipAndReturnBytes skip next JSON element, and return its content as []byte.
-// The []byte can be kept, it is a copy of data.
-func (iter *Iterator) SkipAndReturnBytes() []byte {
-	iter.startCapture(iter.head)
-	iter.Skip()
-	return iter.stopCapture()
+// SkipBytes skips next json element and returns its contents as []byte.
+//
+// The []byte can be retained.
+func (it *Iterator) SkipBytes() []byte {
+	it.startCapture(it.head)
+	it.Skip()
+	return it.stopCapture()
 }
 
-// SkipAndAppendBytes skips next JSON element and appends its content to
+// SkipAppend skips next JSON element and appends its content to
 // buffer, returning the result.
-func (iter *Iterator) SkipAndAppendBytes(buf []byte) []byte {
-	iter.startCaptureTo(buf, iter.head)
-	iter.Skip()
-	return iter.stopCapture()
+func (it *Iterator) SkipAppend(buf []byte) []byte {
+	it.startCaptureTo(buf, it.head)
+	it.Skip()
+	return it.stopCapture()
 }
 
-func (iter *Iterator) startCaptureTo(buf []byte, captureStartedAt int) {
-	if iter.captured != nil {
+func (it *Iterator) startCaptureTo(buf []byte, captureStartedAt int) {
+	if it.captured != nil {
 		panic("already in capture mode")
 	}
-	iter.captureStartedAt = captureStartedAt
-	iter.captured = buf
+	it.captureStartedAt = captureStartedAt
+	it.captured = buf
 }
 
-func (iter *Iterator) startCapture(captureStartedAt int) {
-	iter.startCaptureTo(make([]byte, 0, 32), captureStartedAt)
+func (it *Iterator) startCapture(captureStartedAt int) {
+	it.startCaptureTo(make([]byte, 0, 32), captureStartedAt)
 }
 
-func (iter *Iterator) stopCapture() []byte {
-	if iter.captured == nil {
+func (it *Iterator) stopCapture() []byte {
+	if it.captured == nil {
 		panic("not in capture mode")
 	}
-	captured := iter.captured
-	remaining := iter.buf[iter.captureStartedAt:iter.head]
-	iter.captureStartedAt = -1
-	iter.captured = nil
+	captured := it.captured
+	remaining := it.buf[it.captureStartedAt:it.head]
+	it.captureStartedAt = -1
+	it.captured = nil
 	return append(captured, remaining...)
 }
 
-// Skip skips a json object and positions to relatively the next json object
-func (iter *Iterator) Skip() {
-	c := iter.nextToken()
+// Skip skips a json object and positions to relatively the next json object.
+func (it *Iterator) Skip() {
+	c := it.nextToken()
 	switch c {
 	case '"':
-		iter.skipString()
+		it.skipString()
 	case 'n':
-		iter.skipThreeBytes('u', 'l', 'l') // null
+		it.skipThreeBytes('u', 'l', 'l') // null
 	case 't':
-		iter.skipThreeBytes('r', 'u', 'e') // true
+		it.skipThreeBytes('r', 'u', 'e') // true
 	case 'f':
-		iter.skipFourBytes('a', 'l', 's', 'e') // false
+		it.skipFourBytes('a', 'l', 's', 'e') // false
 	case '0':
-		iter.unreadByte()
-		iter.ReadFloat32()
+		it.unreadByte()
+		it.ReadFloat32()
 	case '-', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-		iter.skipNumber()
+		it.skipNumber()
 	case '[':
-		iter.skipArray()
+		it.skipArray()
 	case '{':
-		iter.skipObject()
+		it.skipObject()
 	default:
-		iter.ReportError("Skip", fmt.Sprintf("do not know how to skip: %v", c))
+		it.ReportError("Skip", fmt.Sprintf("do not know how to skip: %v", c))
 		return
 	}
 }
 
-func (iter *Iterator) skipFourBytes(b1, b2, b3, b4 byte) {
-	if iter.readByte() != b1 {
-		iter.ReportError("skipFourBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3, b4})))
+func (it *Iterator) skipFourBytes(b1, b2, b3, b4 byte) {
+	if it.readByte() != b1 {
+		it.ReportError("skipFourBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3, b4})))
 		return
 	}
-	if iter.readByte() != b2 {
-		iter.ReportError("skipFourBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3, b4})))
+	if it.readByte() != b2 {
+		it.ReportError("skipFourBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3, b4})))
 		return
 	}
-	if iter.readByte() != b3 {
-		iter.ReportError("skipFourBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3, b4})))
+	if it.readByte() != b3 {
+		it.ReportError("skipFourBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3, b4})))
 		return
 	}
-	if iter.readByte() != b4 {
-		iter.ReportError("skipFourBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3, b4})))
+	if it.readByte() != b4 {
+		it.ReportError("skipFourBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3, b4})))
 		return
 	}
 }
 
-func (iter *Iterator) skipThreeBytes(b1, b2, b3 byte) {
-	if iter.readByte() != b1 {
-		iter.ReportError("skipThreeBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3})))
+func (it *Iterator) skipThreeBytes(b1, b2, b3 byte) {
+	if it.readByte() != b1 {
+		it.ReportError("skipThreeBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3})))
 		return
 	}
-	if iter.readByte() != b2 {
-		iter.ReportError("skipThreeBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3})))
+	if it.readByte() != b2 {
+		it.ReportError("skipThreeBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3})))
 		return
 	}
-	if iter.readByte() != b3 {
-		iter.ReportError("skipThreeBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3})))
+	if it.readByte() != b3 {
+		it.ReportError("skipThreeBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3})))
 		return
 	}
 }

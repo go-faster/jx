@@ -86,8 +86,9 @@ func init() {
 	types['{'] = Object
 }
 
-// Iterator is a io.Reader like object, with JSON specific read functions.
-// Error is not returned as return value, but stored as Error member on this iterator instance.
+// Iterator is an io.Reader like object, with json specific read functions.
+//
+// Error is not returned as return value, but rather stored as Error field.
 type Iterator struct {
 	cfg              *frozenConfig
 	reader           io.Reader
@@ -143,163 +144,163 @@ func ParseString(cfg API, input string) *Iterator {
 }
 
 // Pool returns a pool can provide more iterator with same configuration
-func (iter *Iterator) Pool() IteratorPool {
-	return iter.cfg
+func (it *Iterator) Pool() IteratorPool {
+	return it.cfg
 }
 
 // Reset reuse iterator instance by specifying another reader
-func (iter *Iterator) Reset(reader io.Reader) *Iterator {
-	iter.reader = reader
-	iter.head = 0
-	iter.tail = 0
-	iter.depth = 0
-	iter.Error = nil
-	return iter
+func (it *Iterator) Reset(reader io.Reader) *Iterator {
+	it.reader = reader
+	it.head = 0
+	it.tail = 0
+	it.depth = 0
+	it.Error = nil
+	return it
 }
 
 // ResetBytes reuse iterator instance by specifying another byte array as input
-func (iter *Iterator) ResetBytes(input []byte) *Iterator {
-	iter.reader = nil
-	iter.buf = input
-	iter.head = 0
-	iter.tail = len(input)
-	iter.depth = 0
-	iter.Error = nil
-	return iter
+func (it *Iterator) ResetBytes(input []byte) *Iterator {
+	it.reader = nil
+	it.buf = input
+	it.head = 0
+	it.tail = len(input)
+	it.depth = 0
+	it.Error = nil
+	return it
 }
 
 // WhatIsNext gets Type of relatively next json element
-func (iter *Iterator) WhatIsNext() Type {
-	valueType := types[iter.nextToken()]
-	iter.unreadByte()
+func (it *Iterator) WhatIsNext() Type {
+	valueType := types[it.nextToken()]
+	it.unreadByte()
 	return valueType
 }
 
-func (iter *Iterator) nextToken() byte {
+func (it *Iterator) nextToken() byte {
 	// a variation of skip whitespaces, returning the next non-whitespace token
 	for {
-		for i := iter.head; i < iter.tail; i++ {
-			c := iter.buf[i]
+		for i := it.head; i < it.tail; i++ {
+			c := it.buf[i]
 			switch c {
 			case ' ', '\n', '\t', '\r':
 				continue
 			}
-			iter.head = i + 1
+			it.head = i + 1
 			return c
 		}
-		if !iter.loadMore() {
+		if !it.loadMore() {
 			return 0
 		}
 	}
 }
 
 // ReportError record a error in iterator instance with current position.
-func (iter *Iterator) ReportError(operation string, msg string) {
-	if iter.Error != nil {
-		if iter.Error != io.EOF {
+func (it *Iterator) ReportError(operation string, msg string) {
+	if it.Error != nil {
+		if it.Error != io.EOF {
 			return
 		}
 	}
-	peekStart := iter.head - 10
+	peekStart := it.head - 10
 	if peekStart < 0 {
 		peekStart = 0
 	}
-	peekEnd := iter.head + 10
-	if peekEnd > iter.tail {
-		peekEnd = iter.tail
+	peekEnd := it.head + 10
+	if peekEnd > it.tail {
+		peekEnd = it.tail
 	}
-	parsing := string(iter.buf[peekStart:peekEnd])
-	contextStart := iter.head - 50
+	parsing := string(it.buf[peekStart:peekEnd])
+	contextStart := it.head - 50
 	if contextStart < 0 {
 		contextStart = 0
 	}
-	contextEnd := iter.head + 50
-	if contextEnd > iter.tail {
-		contextEnd = iter.tail
+	contextEnd := it.head + 50
+	if contextEnd > it.tail {
+		contextEnd = it.tail
 	}
-	context := string(iter.buf[contextStart:contextEnd])
-	iter.Error = fmt.Errorf("%s: %s, error found in #%v byte of ...|%s|..., bigger context ...|%s|...",
-		operation, msg, iter.head-peekStart, parsing, context)
+	context := string(it.buf[contextStart:contextEnd])
+	it.Error = fmt.Errorf("%s: %s, error found in #%v byte of ...|%s|..., bigger context ...|%s|...",
+		operation, msg, it.head-peekStart, parsing, context)
 }
 
 // CurrentBuffer gets current buffer as string for debugging purpose
-func (iter *Iterator) CurrentBuffer() string {
-	peekStart := iter.head - 10
+func (it *Iterator) CurrentBuffer() string {
+	peekStart := it.head - 10
 	if peekStart < 0 {
 		peekStart = 0
 	}
-	return fmt.Sprintf("parsing #%v byte, around ...|%s|..., whole buffer ...|%s|...", iter.head,
-		string(iter.buf[peekStart:iter.head]), string(iter.buf[0:iter.tail]))
+	return fmt.Sprintf("parsing #%v byte, around ...|%s|..., whole buffer ...|%s|...", it.head,
+		string(it.buf[peekStart:it.head]), string(it.buf[0:it.tail]))
 }
 
-func (iter *Iterator) readByte() (ret byte) {
-	if iter.head == iter.tail {
-		if iter.loadMore() {
-			ret = iter.buf[iter.head]
-			iter.head++
+func (it *Iterator) readByte() (ret byte) {
+	if it.head == it.tail {
+		if it.loadMore() {
+			ret = it.buf[it.head]
+			it.head++
 			return ret
 		}
 		return 0
 	}
-	ret = iter.buf[iter.head]
-	iter.head++
+	ret = it.buf[it.head]
+	it.head++
 	return ret
 }
 
-func (iter *Iterator) loadMore() bool {
-	if iter.reader == nil {
-		if iter.Error == nil {
-			iter.head = iter.tail
-			iter.Error = io.EOF
+func (it *Iterator) loadMore() bool {
+	if it.reader == nil {
+		if it.Error == nil {
+			it.head = it.tail
+			it.Error = io.EOF
 		}
 		return false
 	}
-	if iter.captured != nil {
-		iter.captured = append(iter.captured,
-			iter.buf[iter.captureStartedAt:iter.tail]...)
-		iter.captureStartedAt = 0
+	if it.captured != nil {
+		it.captured = append(it.captured,
+			it.buf[it.captureStartedAt:it.tail]...)
+		it.captureStartedAt = 0
 	}
 	for {
-		n, err := iter.reader.Read(iter.buf)
+		n, err := it.reader.Read(it.buf)
 		if n == 0 {
 			if err != nil {
-				if iter.Error == nil {
-					iter.Error = err
+				if it.Error == nil {
+					it.Error = err
 				}
 				return false
 			}
 		} else {
-			iter.head = 0
-			iter.tail = n
+			it.head = 0
+			it.tail = n
 			return true
 		}
 	}
 }
 
-func (iter *Iterator) unreadByte() {
-	if iter.Error != nil {
+func (it *Iterator) unreadByte() {
+	if it.Error != nil {
 		return
 	}
-	iter.head--
+	it.head--
 }
 
 // limit maximum depth of nesting, as allowed by https://tools.ietf.org/html/rfc7159#section-9
 const maxDepth = 10000
 
-func (iter *Iterator) incrementDepth() (success bool) {
-	iter.depth++
-	if iter.depth <= maxDepth {
+func (it *Iterator) incrementDepth() (success bool) {
+	it.depth++
+	if it.depth <= maxDepth {
 		return true
 	}
-	iter.ReportError("incrementDepth", "exceeded max depth")
+	it.ReportError("incrementDepth", "exceeded max depth")
 	return false
 }
 
-func (iter *Iterator) decrementDepth() (success bool) {
-	iter.depth--
-	if iter.depth >= 0 {
+func (it *Iterator) decrementDepth() (success bool) {
+	it.depth--
+	if it.depth >= 0 {
 		return true
 	}
-	iter.ReportError("decrementDepth", "unexpected negative nesting")
+	it.ReportError("decrementDepth", "unexpected negative nesting")
 	return false
 }

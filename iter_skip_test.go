@@ -91,7 +91,7 @@ func Test_skip_and_return_bytes(t *testing.T) {
 	should := require.New(t)
 	iter := ParseString(Default, `[ {"a" : [{"stream": "c"}], "d": 102 }, "stream"]`)
 	iter.ReadArray()
-	skipped := iter.SkipAndReturnBytes()
+	skipped := iter.SkipBytes()
 	should.Equal(`{"a" : [{"stream": "c"}], "d": 102 }`, string(skipped))
 }
 
@@ -99,7 +99,7 @@ func Test_skip_and_return_bytes_with_reader(t *testing.T) {
 	should := require.New(t)
 	iter := Parse(Default, bytes.NewBufferString(`[ {"a" : [{"stream": "c"}], "d": 102 }, "stream"]`), 4)
 	iter.ReadArray()
-	skipped := iter.SkipAndReturnBytes()
+	skipped := iter.SkipBytes()
 	should.Equal(`{"a" : [{"stream": "c"}], "d": 102 }`, string(skipped))
 }
 
@@ -108,6 +108,6 @@ func Test_append_skip_and_return_bytes_with_reader(t *testing.T) {
 	iter := Parse(Default, bytes.NewBufferString(`[ {"a" : [{"stream": "c"}], "d": 102 }, "stream"]`), 4)
 	iter.ReadArray()
 	buf := make([]byte, 0, 1024)
-	buf = iter.SkipAndAppendBytes(buf)
+	buf = iter.SkipAppend(buf)
 	should.Equal(`{"a" : [{"stream": "c"}], "d": 102 }`, string(buf))
 }
