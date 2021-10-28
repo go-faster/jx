@@ -9,10 +9,10 @@ import (
 
 func Test_empty_object(t *testing.T) {
 	should := require.New(t)
-	iter := ParseString(ConfigDefault, `{}`)
+	iter := ParseString(Default, `{}`)
 	field := iter.ReadObject()
 	should.Equal("", field)
-	iter = ParseString(ConfigDefault, `{}`)
+	iter = ParseString(Default, `{}`)
 	iter.ReadObjectCB(func(iter *Iterator, field string) bool {
 		should.FailNow("should not call")
 		return true
@@ -21,14 +21,14 @@ func Test_empty_object(t *testing.T) {
 
 func Test_one_field(t *testing.T) {
 	should := require.New(t)
-	iter := ParseString(ConfigDefault, `{"a": "stream"}`)
+	iter := ParseString(Default, `{"a": "stream"}`)
 	field := iter.ReadObject()
 	should.Equal("a", field)
 	value := iter.ReadString()
 	should.Equal("stream", value)
 	field = iter.ReadObject()
 	should.Equal("", field)
-	iter = ParseString(ConfigDefault, `{"a": "stream"}`)
+	iter = ParseString(Default, `{"a": "stream"}`)
 	should.True(iter.ReadObjectCB(func(iter *Iterator, field string) bool {
 		should.Equal("a", field)
 		iter.Skip()
@@ -39,7 +39,7 @@ func Test_one_field(t *testing.T) {
 
 func Test_two_field(t *testing.T) {
 	should := require.New(t)
-	iter := ParseString(ConfigDefault, `{ "a": "stream" , "c": "d" }`)
+	iter := ParseString(Default, `{ "a": "stream" , "c": "d" }`)
 	field := iter.ReadObject()
 	should.Equal("a", field)
 	value := iter.ReadString()
@@ -50,7 +50,7 @@ func Test_two_field(t *testing.T) {
 	should.Equal("d", value)
 	field = iter.ReadObject()
 	should.Equal("", field)
-	iter = ParseString(ConfigDefault, `{"field1": "1", "field2": 2}`)
+	iter = ParseString(Default, `{"field1": "1", "field2": 2}`)
 	for field := iter.ReadObject(); field != ""; field = iter.ReadObject() {
 		switch field {
 		case "field1":
@@ -66,7 +66,7 @@ func Test_two_field(t *testing.T) {
 func Test_write_object(t *testing.T) {
 	should := require.New(t)
 	buf := &bytes.Buffer{}
-	stream := NewStream(Config{IndentionStep: 2}.Froze(), buf, 4096)
+	stream := NewStream(Config{IndentionStep: 2}.API(), buf, 4096)
 	stream.WriteObjectStart()
 	stream.WriteObjectField("hello")
 	stream.WriteInt(1)

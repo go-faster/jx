@@ -8,7 +8,7 @@ import (
 
 func Benchmark_stream_encode_big_object(b *testing.B) {
 	var buf bytes.Buffer
-	var stream = NewStream(ConfigDefault, &buf, 100)
+	var stream = NewStream(Default, &buf, 100)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		stream.Reset(&buf)

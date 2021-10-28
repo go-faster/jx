@@ -10,7 +10,7 @@ import (
 func Test_write_null(t *testing.T) {
 	should := require.New(t)
 	buf := &bytes.Buffer{}
-	stream := NewStream(ConfigDefault, buf, 4096)
+	stream := NewStream(Default, buf, 4096)
 	stream.WriteNil()
 	stream.Flush()
 	should.Nil(stream.Error)
@@ -18,7 +18,7 @@ func Test_write_null(t *testing.T) {
 }
 
 func Test_decode_null_object_field(t *testing.T) {
-	iter := ParseString(ConfigDefault, `[null,"a"]`)
+	iter := ParseString(Default, `[null,"a"]`)
 	iter.ReadArray()
 	if iter.ReadObject() != "" {
 		t.FailNow()
@@ -31,7 +31,7 @@ func Test_decode_null_object_field(t *testing.T) {
 
 func Test_decode_null_array_element(t *testing.T) {
 	should := require.New(t)
-	iter := ParseString(ConfigDefault, `[null,"a"]`)
+	iter := ParseString(Default, `[null,"a"]`)
 	should.True(iter.ReadArray())
 	should.True(iter.ReadNil())
 	should.True(iter.ReadArray())
@@ -40,7 +40,7 @@ func Test_decode_null_array_element(t *testing.T) {
 
 func Test_decode_null_string(t *testing.T) {
 	should := require.New(t)
-	iter := ParseString(ConfigDefault, `[null,"a"]`)
+	iter := ParseString(Default, `[null,"a"]`)
 	should.True(iter.ReadArray())
 	should.Equal("", iter.ReadString())
 	should.True(iter.ReadArray())
@@ -48,7 +48,7 @@ func Test_decode_null_string(t *testing.T) {
 }
 
 func Test_decode_null_skip(t *testing.T) {
-	iter := ParseString(ConfigDefault, `[null,"a"]`)
+	iter := ParseString(Default, `[null,"a"]`)
 	iter.ReadArray()
 	iter.Skip()
 	iter.ReadArray()

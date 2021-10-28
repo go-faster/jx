@@ -20,15 +20,15 @@ func Test_invalid_float(t *testing.T) {
 	for _, input := range inputs {
 		t.Run(input, func(t *testing.T) {
 			should := require.New(t)
-			iter := ParseString(ConfigDefault, input+",")
+			iter := ParseString(Default, input+",")
 			iter.Skip()
 			should.NotEqual(io.EOF, iter.Error)
 			should.NotNil(iter.Error)
-			iter = ParseString(ConfigDefault, input+",")
+			iter = ParseString(Default, input+",")
 			iter.ReadFloat64()
 			should.NotEqual(io.EOF, iter.Error)
 			should.NotNil(iter.Error)
-			iter = ParseString(ConfigDefault, input+",")
+			iter = ParseString(Default, input+",")
 			iter.ReadFloat32()
 			should.NotEqual(io.EOF, iter.Error)
 			should.NotNil(iter.Error)

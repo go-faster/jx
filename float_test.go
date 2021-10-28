@@ -13,7 +13,7 @@ import (
 
 func Test_read_big_float(t *testing.T) {
 	should := require.New(t)
-	iter := ParseString(ConfigDefault, `12.3`)
+	iter := ParseString(Default, `12.3`)
 	val := iter.ReadBigFloat()
 	val64, _ := val.Float64()
 	should.Equal(12.3, val64)
@@ -21,7 +21,7 @@ func Test_read_big_float(t *testing.T) {
 
 func Test_read_big_int(t *testing.T) {
 	should := require.New(t)
-	iter := ParseString(ConfigDefault, `92233720368547758079223372036854775807`)
+	iter := ParseString(Default, `92233720368547758079223372036854775807`)
 	val := iter.ReadBigInt()
 	should.NotNil(val)
 	should.Equal(`92233720368547758079223372036854775807`, val.String())
@@ -29,7 +29,7 @@ func Test_read_big_int(t *testing.T) {
 
 func Test_read_number(t *testing.T) {
 	should := require.New(t)
-	iter := ParseString(ConfigDefault, `92233720368547758079223372036854775807`)
+	iter := ParseString(Default, `92233720368547758079223372036854775807`)
 	val := iter.ReadNumber()
 	should.Equal(`92233720368547758079223372036854775807`, string(val))
 }
@@ -63,14 +63,14 @@ func Test_read_float(t *testing.T) {
 		// non-streaming
 		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
 			should := require.New(t)
-			iter := ParseString(ConfigDefault, input+",")
+			iter := ParseString(Default, input+",")
 			expected, err := strconv.ParseFloat(input, 32)
 			should.Nil(err)
 			should.Equal(float32(expected), iter.ReadFloat32())
 		})
 		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
 			should := require.New(t)
-			iter := ParseString(ConfigDefault, input+",")
+			iter := ParseString(Default, input+",")
 			expected, err := strconv.ParseFloat(input, 64)
 			should.Nil(err)
 			should.Equal(expected, iter.ReadFloat64())
@@ -78,14 +78,14 @@ func Test_read_float(t *testing.T) {
 		// streaming
 		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
 			should := require.New(t)
-			iter := Parse(ConfigDefault, bytes.NewBufferString(input+","), 2)
+			iter := Parse(Default, bytes.NewBufferString(input+","), 2)
 			expected, err := strconv.ParseFloat(input, 32)
 			should.Nil(err)
 			should.Equal(float32(expected), iter.ReadFloat32())
 		})
 		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
 			should := require.New(t)
-			iter := Parse(ConfigDefault, bytes.NewBufferString(input+","), 2)
+			iter := Parse(Default, bytes.NewBufferString(input+","), 2)
 			val := float64(0)
 			err := json.Unmarshal([]byte(input), &val)
 			should.Nil(err)
@@ -101,7 +101,7 @@ func Test_write_float32(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
 			buf := &bytes.Buffer{}
-			stream := NewStream(ConfigDefault, buf, 4096)
+			stream := NewStream(Default, buf, 4096)
 			stream.WriteFloat32Lossy(val)
 			_ = stream.Flush()
 			should.Nil(stream.Error)
@@ -112,14 +112,14 @@ func Test_write_float32(t *testing.T) {
 	}
 	should := require.New(t)
 	buf := &bytes.Buffer{}
-	stream := NewStream(ConfigDefault, buf, 10)
+	stream := NewStream(Default, buf, 10)
 	stream.WriteRaw("abcdefg")
 	stream.WriteFloat32Lossy(1.123456)
 	_ = stream.Flush()
 	should.Nil(stream.Error)
 	should.Equal("abcdefg1.123456", buf.String())
 
-	stream = NewStream(ConfigDefault, nil, 0)
+	stream = NewStream(Default, nil, 0)
 	stream.WriteFloat32(float32(0.0000001))
 	should.Equal("1e-07", string(stream.Buffer()))
 }
@@ -131,7 +131,7 @@ func Test_write_float64(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
 			buf := &bytes.Buffer{}
-			stream := NewStream(ConfigDefault, buf, 4096)
+			stream := NewStream(Default, buf, 4096)
 			stream.WriteFloat64Lossy(val)
 			_ = stream.Flush()
 			should.Nil(stream.Error)
@@ -140,14 +140,14 @@ func Test_write_float64(t *testing.T) {
 	}
 	should := require.New(t)
 	buf := &bytes.Buffer{}
-	stream := NewStream(ConfigDefault, buf, 10)
+	stream := NewStream(Default, buf, 10)
 	stream.WriteRaw("abcdefg")
 	stream.WriteFloat64Lossy(1.123456)
 	_ = stream.Flush()
 	should.Nil(stream.Error)
 	should.Equal("abcdefg1.123456", buf.String())
 
-	stream = NewStream(ConfigDefault, nil, 0)
+	stream = NewStream(Default, nil, 0)
 	stream.WriteFloat64(0.0000001)
 	should.Equal("1e-07", string(stream.Buffer()))
 }

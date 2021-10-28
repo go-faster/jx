@@ -79,7 +79,7 @@ func Test_skip(t *testing.T) {
 				should := require.New(t)
 				ptrVal := reflect.New(valType)
 				stdErr := json.Unmarshal([]byte(input), ptrVal.Interface())
-				iter := ParseString(ConfigDefault, input)
+				iter := ParseString(Default, input)
 				iter.Skip()
 				iter.ReadNil() // trigger looking forward
 				err := iter.Error

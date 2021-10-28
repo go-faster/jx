@@ -8,11 +8,11 @@ import (
 
 // Valid reports whether json in data is valid.
 func Valid(data []byte) bool {
-	return ConfigDefault.Valid(data)
+	return Default.Valid(data)
 }
 
 // Config customize how the API should behave.
-// The API is created from Config by Froze.
+// The API is created from Config by API.
 type Config struct {
 	IndentionStep                 int
 	MarshalFloatWith6Digits       bool
@@ -31,21 +31,23 @@ type API interface {
 	IteratorPool
 	StreamPool
 	Valid(data []byte) bool
+
+	private() // make interface private
 }
 
-// ConfigDefault the default API
-var ConfigDefault = Config{}.Froze()
+// Default API.
+var Default = Config{}.API()
 
-// ConfigCompat tries to be 100% compatible with standard library behavior
-var ConfigCompat = Config{
+// Compat tries to be compatible with standard library behavior.
+var Compat = Config{
 	SortMapKeys: true,
-}.Froze()
+}.API()
 
-// ConfigFastest marshals float with only 6 digits precision
-var ConfigFastest = Config{
+// Fastest marshals float with only 6 digits precision.
+var Fastest = Config{
 	MarshalFloatWith6Digits:       true, // will lose precession
 	ObjectFieldMustBeSimpleString: true, // do not unescape object field
-}.Froze()
+}.API()
 
 type frozenConfig struct {
 	configBeforeFrozen            Config
@@ -61,13 +63,15 @@ type frozenConfig struct {
 	caseSensitive                 bool
 }
 
+func (cfg *frozenConfig) private() {}
+
 func (cfg *frozenConfig) initCache() {
 	cfg.decoderCache = concurrent.NewMap()
 	cfg.encoderCache = concurrent.NewMap()
 }
 
-// Froze forge API from config
-func (cfg Config) Froze() API {
+// API creates new API from config
+func (cfg Config) API() API {
 	api := &frozenConfig{
 		sortMapKeys:                   cfg.SortMapKeys,
 		indentionStep:                 cfg.IndentionStep,

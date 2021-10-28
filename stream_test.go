@@ -8,7 +8,7 @@ import (
 
 func Test_writeByte_should_grow_buffer(t *testing.T) {
 	should := require.New(t)
-	stream := NewStream(ConfigDefault, nil, 1)
+	stream := NewStream(Default, nil, 1)
 	stream.writeByte('1')
 	should.Equal("1", string(stream.Buffer()))
 	should.Equal(1, len(stream.buf))
@@ -21,7 +21,7 @@ func Test_writeByte_should_grow_buffer(t *testing.T) {
 
 func Test_writeBytes_should_grow_buffer(t *testing.T) {
 	should := require.New(t)
-	stream := NewStream(ConfigDefault, nil, 1)
+	stream := NewStream(Default, nil, 1)
 	_, _ = stream.Write([]byte{'1', '2'})
 	should.Equal("12", string(stream.Buffer()))
 	should.Equal(2, len(stream.buf))
@@ -32,7 +32,7 @@ func Test_writeBytes_should_grow_buffer(t *testing.T) {
 
 func Test_writeRaw_should_grow_buffer(t *testing.T) {
 	should := require.New(t)
-	stream := NewStream(ConfigDefault, nil, 1)
+	stream := NewStream(Default, nil, 1)
 	stream.WriteRaw("123")
 	should.Nil(stream.Error)
 	should.Equal("123", string(stream.Buffer()))
@@ -40,7 +40,7 @@ func Test_writeRaw_should_grow_buffer(t *testing.T) {
 
 func Test_writeString_should_grow_buffer(t *testing.T) {
 	should := require.New(t)
-	stream := NewStream(ConfigDefault, nil, 0)
+	stream := NewStream(Default, nil, 0)
 	stream.WriteString("123")
 	should.Nil(stream.Error)
 	should.Equal(`"123"`, string(stream.Buffer()))
@@ -58,7 +58,7 @@ func (w *NopWriter) Write(p []byte) (n int, err error) {
 func Test_flush_buffer_should_stop_grow_buffer(t *testing.T) {
 	// Stream an array of a zillion zeros.
 	writer := new(NopWriter)
-	stream := NewStream(ConfigDefault, writer, 512)
+	stream := NewStream(Default, writer, 512)
 	stream.WriteArrayStart()
 	for i := 0; i < 10000000; i++ {
 		stream.WriteInt(0)

@@ -5,28 +5,28 @@ import (
 	"io"
 )
 
-// ValueType the type for JSON element
-type ValueType int
+// Type the type for JSON element
+type Type int
 
 const (
-	// InvalidValue invalid JSON element
-	InvalidValue ValueType = iota
-	// StringValue JSON element "string"
-	StringValue
-	// NumberValue JSON element 100 or 0.10
-	NumberValue
-	// NilValue JSON element null
-	NilValue
-	// BoolValue JSON element true or false
-	BoolValue
-	// ArrayValue JSON element []
-	ArrayValue
-	// ObjectValue JSON element {}
-	ObjectValue
+	// Invalid invalid JSON element
+	Invalid Type = iota
+	// String JSON element "string"
+	String
+	// Number JSON element 100 or 0.10
+	Number
+	// Nil JSON element null
+	Nil
+	// Bool JSON element true or false
+	Bool
+	// Array JSON element []
+	Array
+	// Object JSON element {}
+	Object
 )
 
 var hexDigits []byte
-var valueTypes []ValueType
+var types []Type
 
 func init() {
 	hexDigits = make([]byte, 256)
@@ -42,27 +42,27 @@ func init() {
 	for i := 'A'; i <= 'F'; i++ {
 		hexDigits[i] = byte((i - 'A') + 10)
 	}
-	valueTypes = make([]ValueType, 256)
-	for i := 0; i < len(valueTypes); i++ {
-		valueTypes[i] = InvalidValue
+	types = make([]Type, 256)
+	for i := 0; i < len(types); i++ {
+		types[i] = Invalid
 	}
-	valueTypes['"'] = StringValue
-	valueTypes['-'] = NumberValue
-	valueTypes['0'] = NumberValue
-	valueTypes['1'] = NumberValue
-	valueTypes['2'] = NumberValue
-	valueTypes['3'] = NumberValue
-	valueTypes['4'] = NumberValue
-	valueTypes['5'] = NumberValue
-	valueTypes['6'] = NumberValue
-	valueTypes['7'] = NumberValue
-	valueTypes['8'] = NumberValue
-	valueTypes['9'] = NumberValue
-	valueTypes['t'] = BoolValue
-	valueTypes['f'] = BoolValue
-	valueTypes['n'] = NilValue
-	valueTypes['['] = ArrayValue
-	valueTypes['{'] = ObjectValue
+	types['"'] = String
+	types['-'] = Number
+	types['0'] = Number
+	types['1'] = Number
+	types['2'] = Number
+	types['3'] = Number
+	types['4'] = Number
+	types['5'] = Number
+	types['6'] = Number
+	types['7'] = Number
+	types['8'] = Number
+	types['9'] = Number
+	types['t'] = Bool
+	types['f'] = Bool
+	types['n'] = Nil
+	types['['] = Array
+	types['{'] = Object
 }
 
 // Iterator is a io.Reader like object, with JSON specific read functions.
@@ -145,9 +145,9 @@ func (iter *Iterator) ResetBytes(input []byte) *Iterator {
 	return iter
 }
 
-// WhatIsNext gets ValueType of relatively next json element
-func (iter *Iterator) WhatIsNext() ValueType {
-	valueType := valueTypes[iter.nextToken()]
+// WhatIsNext gets Type of relatively next json element
+func (iter *Iterator) WhatIsNext() Type {
+	valueType := types[iter.nextToken()]
 	iter.unreadByte()
 	return valueType
 }

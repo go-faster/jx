@@ -15,7 +15,7 @@ var data []byte
 */
 func Benchmark_large_file(b *testing.B) {
 	b.ReportAllocs()
-	iter := Parse(ConfigDefault, nil, 4096)
+	iter := Parse(Default, nil, 4096)
 
 	for n := 0; n < b.N; n++ {
 		iter.ResetBytes(data)

@@ -11,7 +11,7 @@ import (
 
 func Test_read_uint64_invalid(t *testing.T) {
 	should := require.New(t)
-	iter := ParseString(ConfigDefault, ",")
+	iter := ParseString(Default, ",")
 	iter.ReadUint64()
 	should.NotNil(iter.Error)
 }
@@ -21,7 +21,7 @@ func Test_int8(t *testing.T) {
 	for _, input := range inputs {
 		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
 			should := require.New(t)
-			iter := ParseString(ConfigDefault, input)
+			iter := ParseString(Default, input)
 			expected, err := strconv.ParseInt(input, 10, 8)
 			should.Nil(err)
 			should.Equal(int8(expected), iter.ReadInt8())
@@ -34,7 +34,7 @@ func Test_read_int16(t *testing.T) {
 	for _, input := range inputs {
 		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
 			should := require.New(t)
-			iter := ParseString(ConfigDefault, input)
+			iter := ParseString(Default, input)
 			expected, err := strconv.ParseInt(input, 10, 16)
 			should.Nil(err)
 			should.Equal(int16(expected), iter.ReadInt16())
@@ -47,14 +47,14 @@ func Test_read_int32(t *testing.T) {
 	for _, input := range inputs {
 		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
 			should := require.New(t)
-			iter := ParseString(ConfigDefault, input)
+			iter := ParseString(Default, input)
 			expected, err := strconv.ParseInt(input, 10, 32)
 			should.Nil(err)
 			should.Equal(int32(expected), iter.ReadInt32())
 		})
 		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
 			should := require.New(t)
-			iter := Parse(ConfigDefault, bytes.NewBufferString(input), 2)
+			iter := Parse(Default, bytes.NewBufferString(input), 2)
 			expected, err := strconv.ParseInt(input, 10, 32)
 			should.Nil(err)
 			should.Equal(int32(expected), iter.ReadInt32())
@@ -66,11 +66,11 @@ func Test_read_int_overflow(t *testing.T) {
 	should := require.New(t)
 	inputArr := []string{"123451", "-123451"}
 	for _, s := range inputArr {
-		iter := ParseString(ConfigDefault, s)
+		iter := ParseString(Default, s)
 		iter.ReadInt8()
 		should.NotNil(iter.Error)
 
-		iterU := ParseString(ConfigDefault, s)
+		iterU := ParseString(Default, s)
 		iterU.ReadUint8()
 		should.NotNil(iterU.Error)
 
@@ -78,33 +78,33 @@ func Test_read_int_overflow(t *testing.T) {
 
 	inputArr = []string{"12345678912", "-12345678912"}
 	for _, s := range inputArr {
-		iter := ParseString(ConfigDefault, s)
+		iter := ParseString(Default, s)
 		iter.ReadInt16()
 		should.NotNil(iter.Error)
 
-		iterUint := ParseString(ConfigDefault, s)
+		iterUint := ParseString(Default, s)
 		iterUint.ReadUint16()
 		should.NotNil(iterUint.Error)
 	}
 
 	inputArr = []string{"3111111111", "-3111111111", "1234232323232323235678912", "-1234567892323232323212"}
 	for _, s := range inputArr {
-		iter := ParseString(ConfigDefault, s)
+		iter := ParseString(Default, s)
 		iter.ReadInt32()
 		should.NotNil(iter.Error)
 
-		iterUint := ParseString(ConfigDefault, s)
+		iterUint := ParseString(Default, s)
 		iterUint.ReadUint32()
 		should.NotNil(iterUint.Error)
 	}
 
 	inputArr = []string{"9223372036854775811", "-9523372036854775807", "1234232323232323235678912", "-1234567892323232323212"}
 	for _, s := range inputArr {
-		iter := ParseString(ConfigDefault, s)
+		iter := ParseString(Default, s)
 		iter.ReadInt64()
 		should.NotNil(iter.Error)
 
-		iterUint := ParseString(ConfigDefault, s)
+		iterUint := ParseString(Default, s)
 		iterUint.ReadUint64()
 		should.NotNil(iterUint.Error)
 	}
@@ -115,14 +115,14 @@ func Test_read_int64(t *testing.T) {
 	for _, input := range inputs {
 		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
 			should := require.New(t)
-			iter := ParseString(ConfigDefault, input)
+			iter := ParseString(Default, input)
 			expected, err := strconv.ParseInt(input, 10, 64)
 			should.Nil(err)
 			should.Equal(expected, iter.ReadInt64())
 		})
 		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
 			should := require.New(t)
-			iter := Parse(ConfigDefault, bytes.NewBufferString(input), 2)
+			iter := Parse(Default, bytes.NewBufferString(input), 2)
 			expected, err := strconv.ParseInt(input, 10, 64)
 			should.Nil(err)
 			should.Equal(expected, iter.ReadInt64())
@@ -136,7 +136,7 @@ func Test_write_uint8(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
 			buf := &bytes.Buffer{}
-			stream := NewStream(ConfigDefault, buf, 4096)
+			stream := NewStream(Default, buf, 4096)
 			stream.WriteUint8(val)
 			_ = stream.Flush()
 			should.Nil(stream.Error)
@@ -145,7 +145,7 @@ func Test_write_uint8(t *testing.T) {
 	}
 	should := require.New(t)
 	buf := &bytes.Buffer{}
-	stream := NewStream(ConfigDefault, buf, 3)
+	stream := NewStream(Default, buf, 3)
 	stream.WriteRaw("a")
 	stream.WriteUint8(100) // should clear buffer
 	_ = stream.Flush()
@@ -159,7 +159,7 @@ func Test_write_int8(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
 			buf := &bytes.Buffer{}
-			stream := NewStream(ConfigDefault, buf, 4096)
+			stream := NewStream(Default, buf, 4096)
 			stream.WriteInt8(val)
 			_ = stream.Flush()
 			should.Nil(stream.Error)
@@ -168,7 +168,7 @@ func Test_write_int8(t *testing.T) {
 	}
 	should := require.New(t)
 	buf := &bytes.Buffer{}
-	stream := NewStream(ConfigDefault, buf, 4)
+	stream := NewStream(Default, buf, 4)
 	stream.WriteRaw("a")
 	stream.WriteInt8(-100) // should clear buffer
 	_ = stream.Flush()
@@ -182,7 +182,7 @@ func Test_write_uint16(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
 			buf := &bytes.Buffer{}
-			stream := NewStream(ConfigDefault, buf, 4096)
+			stream := NewStream(Default, buf, 4096)
 			stream.WriteUint16(val)
 			_ = stream.Flush()
 			should.Nil(stream.Error)
@@ -191,7 +191,7 @@ func Test_write_uint16(t *testing.T) {
 	}
 	should := require.New(t)
 	buf := &bytes.Buffer{}
-	stream := NewStream(ConfigDefault, buf, 5)
+	stream := NewStream(Default, buf, 5)
 	stream.WriteRaw("a")
 	stream.WriteUint16(10000) // should clear buffer
 	_ = stream.Flush()
@@ -205,7 +205,7 @@ func Test_write_int16(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
 			buf := &bytes.Buffer{}
-			stream := NewStream(ConfigDefault, buf, 4096)
+			stream := NewStream(Default, buf, 4096)
 			stream.WriteInt16(val)
 			_ = stream.Flush()
 			should.Nil(stream.Error)
@@ -214,7 +214,7 @@ func Test_write_int16(t *testing.T) {
 	}
 	should := require.New(t)
 	buf := &bytes.Buffer{}
-	stream := NewStream(ConfigDefault, buf, 6)
+	stream := NewStream(Default, buf, 6)
 	stream.WriteRaw("a")
 	stream.WriteInt16(-10000) // should clear buffer
 	_ = stream.Flush()
@@ -228,7 +228,7 @@ func Test_write_uint32(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
 			buf := &bytes.Buffer{}
-			stream := NewStream(ConfigDefault, buf, 4096)
+			stream := NewStream(Default, buf, 4096)
 			stream.WriteUint32(val)
 			_ = stream.Flush()
 			should.Nil(stream.Error)
@@ -237,7 +237,7 @@ func Test_write_uint32(t *testing.T) {
 	}
 	should := require.New(t)
 	buf := &bytes.Buffer{}
-	stream := NewStream(ConfigDefault, buf, 10)
+	stream := NewStream(Default, buf, 10)
 	stream.WriteRaw("a")
 	stream.WriteUint32(0xffffffff) // should clear buffer
 	_ = stream.Flush()
@@ -251,7 +251,7 @@ func Test_write_int32(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
 			buf := &bytes.Buffer{}
-			stream := NewStream(ConfigDefault, buf, 4096)
+			stream := NewStream(Default, buf, 4096)
 			stream.WriteInt32(val)
 			_ = stream.Flush()
 			should.Nil(stream.Error)
@@ -260,7 +260,7 @@ func Test_write_int32(t *testing.T) {
 	}
 	should := require.New(t)
 	buf := &bytes.Buffer{}
-	stream := NewStream(ConfigDefault, buf, 11)
+	stream := NewStream(Default, buf, 11)
 	stream.WriteRaw("a")
 	stream.WriteInt32(-0x7fffffff) // should clear buffer
 	_ = stream.Flush()
@@ -276,7 +276,7 @@ func Test_write_uint64(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
 			buf := &bytes.Buffer{}
-			stream := NewStream(ConfigDefault, buf, 4096)
+			stream := NewStream(Default, buf, 4096)
 			stream.WriteUint64(val)
 			_ = stream.Flush()
 			should.Nil(stream.Error)
@@ -285,7 +285,7 @@ func Test_write_uint64(t *testing.T) {
 	}
 	should := require.New(t)
 	buf := &bytes.Buffer{}
-	stream := NewStream(ConfigDefault, buf, 10)
+	stream := NewStream(Default, buf, 10)
 	stream.WriteRaw("a")
 	stream.WriteUint64(0xffffffff) // should clear buffer
 	_ = stream.Flush()
@@ -301,7 +301,7 @@ func Test_write_int64(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
 			buf := &bytes.Buffer{}
-			stream := NewStream(ConfigDefault, buf, 4096)
+			stream := NewStream(Default, buf, 4096)
 			stream.WriteInt64(val)
 			_ = stream.Flush()
 			should.Nil(stream.Error)
@@ -310,7 +310,7 @@ func Test_write_int64(t *testing.T) {
 	}
 	should := require.New(t)
 	buf := &bytes.Buffer{}
-	stream := NewStream(ConfigDefault, buf, 10)
+	stream := NewStream(Default, buf, 10)
 	stream.WriteRaw("a")
 	stream.WriteInt64(0xffffffff) // should clear buffer
 	_ = stream.Flush()
