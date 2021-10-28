@@ -40,7 +40,7 @@ func Benchmark_skip(b *testing.B) {
 		for field := iter.Field(); field != ""; field = iter.Field() {
 			switch field {
 			case "code":
-				result.Code = iter.ReadUint64()
+				result.Code = iter.Uint64()
 			default:
 				iter.Skip()
 			}

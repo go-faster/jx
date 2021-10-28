@@ -21,101 +21,101 @@ func init() {
 	}
 }
 
-// ReadUint read uint.
-func (it *Iterator) ReadUint() uint {
+// Uint read uint.
+func (it *Iterator) Uint() uint {
 	if strconv.IntSize == 32 {
-		return uint(it.ReadUint32())
+		return uint(it.Uint32())
 	}
-	return uint(it.ReadUint64())
+	return uint(it.Uint64())
 }
 
 // Int reads integer.
 func (it *Iterator) Int() int {
 	if strconv.IntSize == 32 {
-		return int(it.ReadInt32())
+		return int(it.Int32())
 	}
 	return int(it.Int64())
 }
 
-// ReadInt8 read int8
-func (it *Iterator) ReadInt8() (ret int8) {
+// Int8 read int8
+func (it *Iterator) Int8() (ret int8) {
 	c := it.nextToken()
 	if c == '-' {
 		val := it.readUint32(it.readByte())
 		if val > math.MaxInt8+1 {
-			it.ReportError("ReadInt8", "overflow: "+strconv.FormatInt(int64(val), 10))
+			it.ReportError("Int8", "overflow: "+strconv.FormatInt(int64(val), 10))
 			return
 		}
 		return -int8(val)
 	}
 	val := it.readUint32(c)
 	if val > math.MaxInt8 {
-		it.ReportError("ReadInt8", "overflow: "+strconv.FormatInt(int64(val), 10))
+		it.ReportError("Int8", "overflow: "+strconv.FormatInt(int64(val), 10))
 		return
 	}
 	return int8(val)
 }
 
-// ReadUint8 read uint8
-func (it *Iterator) ReadUint8() (ret uint8) {
+// Uint8 read uint8
+func (it *Iterator) Uint8() (ret uint8) {
 	val := it.readUint32(it.nextToken())
 	if val > math.MaxUint8 {
-		it.ReportError("ReadUint8", "overflow: "+strconv.FormatInt(int64(val), 10))
+		it.ReportError("Uint8", "overflow: "+strconv.FormatInt(int64(val), 10))
 		return
 	}
 	return uint8(val)
 }
 
-// ReadInt16 read int16
-func (it *Iterator) ReadInt16() (ret int16) {
+// Int16 read int16
+func (it *Iterator) Int16() (ret int16) {
 	c := it.nextToken()
 	if c == '-' {
 		val := it.readUint32(it.readByte())
 		if val > math.MaxInt16+1 {
-			it.ReportError("ReadInt16", "overflow: "+strconv.FormatInt(int64(val), 10))
+			it.ReportError("Int16", "overflow: "+strconv.FormatInt(int64(val), 10))
 			return
 		}
 		return -int16(val)
 	}
 	val := it.readUint32(c)
 	if val > math.MaxInt16 {
-		it.ReportError("ReadInt16", "overflow: "+strconv.FormatInt(int64(val), 10))
+		it.ReportError("Int16", "overflow: "+strconv.FormatInt(int64(val), 10))
 		return
 	}
 	return int16(val)
 }
 
-// ReadUint16 read uint16
-func (it *Iterator) ReadUint16() (ret uint16) {
+// Uint16 read uint16
+func (it *Iterator) Uint16() (ret uint16) {
 	val := it.readUint32(it.nextToken())
 	if val > math.MaxUint16 {
-		it.ReportError("ReadUint16", "overflow: "+strconv.FormatInt(int64(val), 10))
+		it.ReportError("Uint16", "overflow: "+strconv.FormatInt(int64(val), 10))
 		return
 	}
 	return uint16(val)
 }
 
-// ReadInt32 read int32
-func (it *Iterator) ReadInt32() (ret int32) {
+// Int32 read int32
+func (it *Iterator) Int32() (ret int32) {
 	c := it.nextToken()
 	if c == '-' {
 		val := it.readUint32(it.readByte())
 		if val > math.MaxInt32+1 {
-			it.ReportError("ReadInt32", "overflow: "+strconv.FormatInt(int64(val), 10))
+			it.ReportError("Int32", "overflow: "+strconv.FormatInt(int64(val), 10))
 			return
 		}
 		return -int32(val)
 	}
 	val := it.readUint32(c)
 	if val > math.MaxInt32 {
-		it.ReportError("ReadInt32", "overflow: "+strconv.FormatInt(int64(val), 10))
+		it.ReportError("Int32", "overflow: "+strconv.FormatInt(int64(val), 10))
 		return
 	}
 	return int32(val)
 }
 
-// ReadUint32 read uint32
-func (it *Iterator) ReadUint32() (ret uint32) {
+// Uint32 read uint32
+func (it *Iterator) Uint32() (ret uint32) {
 	return it.readUint32(it.nextToken())
 }
 
@@ -236,8 +236,8 @@ func (it *Iterator) Int64() (ret int64) {
 	return int64(val)
 }
 
-// ReadUint64 read uint64
-func (it *Iterator) ReadUint64() uint64 {
+// Uint64 read uint64
+func (it *Iterator) Uint64() uint64 {
 	return it.readUint64(it.nextToken())
 }
 
