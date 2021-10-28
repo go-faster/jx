@@ -20,7 +20,7 @@ func Benchmark_large_file(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		iter.ResetBytes(data)
 		count := 0
-		iter.ReadArrayCB(func(iter *Iterator) bool {
+		iter.Array(func(iter *Iterator) bool {
 			iter.Skip()
 			count++
 			return true

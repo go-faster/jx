@@ -19,12 +19,12 @@ func Test_write_null(t *testing.T) {
 
 func Test_decode_null_object_field(t *testing.T) {
 	iter := ParseString(Default, `[null,"a"]`)
-	iter.ReadArray()
-	if iter.ReadObject() != "" {
+	iter.Elem()
+	if iter.ReadField() != "" {
 		t.FailNow()
 	}
-	iter.ReadArray()
-	if iter.ReadString() != "a" {
+	iter.Elem()
+	if iter.String() != "a" {
 		t.FailNow()
 	}
 }
@@ -32,27 +32,27 @@ func Test_decode_null_object_field(t *testing.T) {
 func Test_decode_null_array_element(t *testing.T) {
 	should := require.New(t)
 	iter := ParseString(Default, `[null,"a"]`)
-	should.True(iter.ReadArray())
+	should.True(iter.Elem())
 	should.True(iter.ReadNil())
-	should.True(iter.ReadArray())
-	should.Equal("a", iter.ReadString())
+	should.True(iter.Elem())
+	should.Equal("a", iter.String())
 }
 
 func Test_decode_null_string(t *testing.T) {
 	should := require.New(t)
 	iter := ParseString(Default, `[null,"a"]`)
-	should.True(iter.ReadArray())
-	should.Equal("", iter.ReadString())
-	should.True(iter.ReadArray())
-	should.Equal("a", iter.ReadString())
+	should.True(iter.Elem())
+	should.Equal("", iter.String())
+	should.True(iter.Elem())
+	should.Equal("a", iter.String())
 }
 
 func Test_decode_null_skip(t *testing.T) {
 	iter := ParseString(Default, `[null,"a"]`)
-	iter.ReadArray()
+	iter.Elem()
 	iter.Skip()
-	iter.ReadArray()
-	if iter.ReadString() != "a" {
+	iter.Elem()
+	if iter.String() != "a" {
 		t.FailNow()
 	}
 }

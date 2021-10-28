@@ -59,7 +59,7 @@ func (it *Iterator) trySkipNumber() bool {
 func (it *Iterator) skipString() {
 	if !it.trySkipString() {
 		it.unreadByte()
-		it.ReadString()
+		it.String()
 	}
 }
 
@@ -82,7 +82,7 @@ func (it *Iterator) trySkipString() bool {
 
 func (it *Iterator) skipObject() {
 	it.unreadByte()
-	it.ReadObjectCB(func(iter *Iterator, field string) bool {
+	it.ReadObject(func(iter *Iterator, field string) bool {
 		iter.Skip()
 		return true
 	})
@@ -90,7 +90,7 @@ func (it *Iterator) skipObject() {
 
 func (it *Iterator) skipArray() {
 	it.unreadByte()
-	it.ReadArrayCB(func(iter *Iterator) bool {
+	it.Array(func(iter *Iterator) bool {
 		iter.Skip()
 		return true
 	})

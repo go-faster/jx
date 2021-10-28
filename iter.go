@@ -90,27 +90,20 @@ func init() {
 //
 // Error is not returned as return value, but rather stored as Error field.
 type Iterator struct {
-	cfg              *frozenConfig
-	reader           io.Reader
-	buf              []byte
-	head             int
-	tail             int
-	depth            int
-	captureStartedAt int
-	captured         []byte
-	Error            error
-	Attachment       interface{} // open for customized decoder
+	cfg    *frozenConfig
+	reader io.Reader
+	buf    []byte
+	head   int
+	tail   int
+	depth  int
+
+	Error error
 }
 
 // NewIterator creates an empty Iterator instance
 func NewIterator(cfg API) *Iterator {
 	return &Iterator{
-		cfg:    cfg.(*frozenConfig),
-		reader: nil,
-		buf:    nil,
-		head:   0,
-		tail:   0,
-		depth:  0,
+		cfg: cfg.(*frozenConfig),
 	}
 }
 
@@ -120,9 +113,6 @@ func Parse(cfg API, reader io.Reader, bufSize int) *Iterator {
 		cfg:    cfg.(*frozenConfig),
 		reader: reader,
 		buf:    make([]byte, bufSize),
-		head:   0,
-		tail:   0,
-		depth:  0,
 	}
 }
 
@@ -219,18 +209,8 @@ func (it *Iterator) ReportError(operation string, msg string) {
 		contextEnd = it.tail
 	}
 	context := string(it.buf[contextStart:contextEnd])
-	it.Error = fmt.Errorf("%s: %s, error found in #%v byte of ...|%s|..., bigger context ...|%s|...",
+	it.Error = fmt.Errorf("%s: %s, error found in #%v byte of |%s|...|%s|",
 		operation, msg, it.head-peekStart, parsing, context)
-}
-
-// CurrentBuffer gets current buffer as string for debugging purpose
-func (it *Iterator) CurrentBuffer() string {
-	peekStart := it.head - 10
-	if peekStart < 0 {
-		peekStart = 0
-	}
-	return fmt.Sprintf("parsing #%v byte, around ...|%s|..., whole buffer ...|%s|...", it.head,
-		string(it.buf[peekStart:it.head]), string(it.buf[0:it.tail]))
 }
 
 func (it *Iterator) readByte() (ret byte) {
@@ -254,11 +234,6 @@ func (it *Iterator) loadMore() bool {
 			it.Error = io.EOF
 		}
 		return false
-	}
-	if it.captured != nil {
-		it.captured = append(it.captured,
-			it.buf[it.captureStartedAt:it.tail]...)
-		it.captureStartedAt = 0
 	}
 	for {
 		n, err := it.reader.Read(it.buf)

@@ -37,7 +37,7 @@ func Benchmark_skip(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		result := TestResp{}
 		iter := ParseBytes(Default, input)
-		for field := iter.ReadObject(); field != ""; field = iter.ReadObject() {
+		for field := iter.ReadField(); field != ""; field = iter.ReadField() {
 			switch field {
 			case "code":
 				result.Code = iter.ReadUint64()

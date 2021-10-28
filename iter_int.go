@@ -21,7 +21,7 @@ func init() {
 	}
 }
 
-// ReadUint read uint
+// ReadUint read uint.
 func (it *Iterator) ReadUint() uint {
 	if strconv.IntSize == 32 {
 		return uint(it.ReadUint32())
@@ -29,8 +29,8 @@ func (it *Iterator) ReadUint() uint {
 	return uint(it.ReadUint64())
 }
 
-// ReadInt read int
-func (it *Iterator) ReadInt() int {
+// Int reads integer.
+func (it *Iterator) Int() int {
 	if strconv.IntSize == 32 {
 		return int(it.ReadInt32())
 	}
@@ -340,7 +340,7 @@ func (it *Iterator) readUint64(c byte) (ret uint64) {
 }
 
 func (it *Iterator) assertInteger() {
-	if it.head < it.tail && it.buf[it.head] == tDot {
+	if it.head < it.tail && it.buf[it.head] == '.' {
 		it.ReportError("assertInteger", "can not decode float as int")
 	}
 }

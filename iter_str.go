@@ -5,20 +5,20 @@ import (
 	"unicode/utf16"
 )
 
-// ReadString read string from iterator
-func (it *Iterator) ReadString() (ret string) {
+// String reads string.
+func (it *Iterator) String() (s string) {
 	c := it.nextToken()
 	if c == '"' {
 		for i := it.head; i < it.tail; i++ {
 			c := it.buf[i]
 			if c == '"' {
-				ret = string(it.buf[it.head:i])
+				s = string(it.buf[it.head:i])
 				it.head = i + 1
-				return ret
+				return s
 			} else if c == '\\' {
 				break
 			} else if c < ' ' {
-				it.ReportError("ReadString",
+				it.ReportError("String",
 					fmt.Sprintf(`invalid control character found: %d`, c))
 				return
 			}
@@ -28,8 +28,8 @@ func (it *Iterator) ReadString() (ret string) {
 		it.skipThreeBytes('u', 'l', 'l')
 		return ""
 	}
-	it.ReportError("ReadString", `expects " or n, but found `+string([]byte{c}))
-	return
+	it.ReportError("String", `expects " or n, but found `+string([]byte{c}))
+	return ""
 }
 
 func (it *Iterator) readStringSlowPath() (ret string) {
@@ -111,9 +111,9 @@ func (it *Iterator) readEscapedChar(c byte, str []byte) []byte {
 	return str
 }
 
-// ReadStringAsSlice read string from iterator without copying into string form.
+// StringAsSlice read string from iterator without copying into string form.
 // The []byte can not be kept, as it will change after next iterator call.
-func (it *Iterator) ReadStringAsSlice() (ret []byte) {
+func (it *Iterator) StringAsSlice() (ret []byte) {
 	c := it.nextToken()
 	if c == '"' {
 		for i := it.head; i < it.tail; i++ {
@@ -139,7 +139,7 @@ func (it *Iterator) ReadStringAsSlice() (ret []byte) {
 		}
 		return copied
 	}
-	it.ReportError("ReadStringAsSlice", `expects " or n, but found `+string([]byte{c}))
+	it.ReportError("StringAsSlice", `expects " or n, but found `+string([]byte{c}))
 	return
 }
 

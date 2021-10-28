@@ -4,3 +4,7 @@ Fast json for go. Fork of [jsoniter](https://github.com/json-iterator/go).
 
 * No standard library adapter
 * No reflection helpers
+* Refactored
+
+## Roadmap
+* Optimize skipping

@@ -26,17 +26,17 @@ func iterDown(i *Iterator, count *int) bool {
 	case Number:
 		_ = i.ReadNumber()
 	case String:
-		_ = i.ReadString()
+		_ = i.String()
 	case Nil:
 		i.ReadNil()
 	case Bool:
 		i.ReadBool()
 	case Object:
-		return i.ReadObjectCB(func(i *Iterator, s string) bool {
+		return i.ReadObject(func(i *Iterator, s string) bool {
 			return iterDown(i, count)
 		})
 	case Array:
-		return i.ReadArrayCB(func(i *Iterator) bool {
+		return i.Array(func(i *Iterator) bool {
 			return iterDown(i, count)
 		})
 	default:
@@ -239,7 +239,7 @@ func parseVal(i *Iterator, v *Value) bool {
 			v.Type = ValInt
 		}
 	case String:
-		v.Str = i.ReadString()
+		v.Str = i.String()
 		v.Type = ValStr
 	case Nil:
 		i.ReadNil()
@@ -249,7 +249,7 @@ func parseVal(i *Iterator, v *Value) bool {
 		v.Type = ValBool
 	case Object:
 		v.Type = ValObj
-		return i.ReadObjectCB(func(i *Iterator, s string) bool {
+		return i.ReadObject(func(i *Iterator, s string) bool {
 			var elem Value
 			if !parseVal(i, &elem) {
 				return false
@@ -261,7 +261,7 @@ func parseVal(i *Iterator, v *Value) bool {
 		})
 	case Array:
 		v.Type = ValArr
-		return i.ReadArrayCB(func(i *Iterator) bool {
+		return i.Array(func(i *Iterator) bool {
 			var elem Value
 			if !parseVal(i, &elem) {
 				return false

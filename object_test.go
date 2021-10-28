@@ -10,10 +10,10 @@ import (
 func Test_empty_object(t *testing.T) {
 	should := require.New(t)
 	iter := ParseString(Default, `{}`)
-	field := iter.ReadObject()
+	field := iter.ReadField()
 	should.Equal("", field)
 	iter = ParseString(Default, `{}`)
-	iter.ReadObjectCB(func(iter *Iterator, field string) bool {
+	iter.ReadObject(func(iter *Iterator, field string) bool {
 		should.FailNow("should not call")
 		return true
 	})
@@ -22,14 +22,14 @@ func Test_empty_object(t *testing.T) {
 func Test_one_field(t *testing.T) {
 	should := require.New(t)
 	iter := ParseString(Default, `{"a": "stream"}`)
-	field := iter.ReadObject()
+	field := iter.ReadField()
 	should.Equal("a", field)
-	value := iter.ReadString()
+	value := iter.String()
 	should.Equal("stream", value)
-	field = iter.ReadObject()
+	field = iter.ReadField()
 	should.Equal("", field)
 	iter = ParseString(Default, `{"a": "stream"}`)
-	should.True(iter.ReadObjectCB(func(iter *Iterator, field string) bool {
+	should.True(iter.ReadObject(func(iter *Iterator, field string) bool {
 		should.Equal("a", field)
 		iter.Skip()
 		return true
@@ -40,21 +40,21 @@ func Test_one_field(t *testing.T) {
 func Test_two_field(t *testing.T) {
 	should := require.New(t)
 	iter := ParseString(Default, `{ "a": "stream" , "c": "d" }`)
-	field := iter.ReadObject()
+	field := iter.ReadField()
 	should.Equal("a", field)
-	value := iter.ReadString()
+	value := iter.String()
 	should.Equal("stream", value)
-	field = iter.ReadObject()
+	field = iter.ReadField()
 	should.Equal("c", field)
-	value = iter.ReadString()
+	value = iter.String()
 	should.Equal("d", value)
-	field = iter.ReadObject()
+	field = iter.ReadField()
 	should.Equal("", field)
 	iter = ParseString(Default, `{"field1": "1", "field2": 2}`)
-	for field := iter.ReadObject(); field != ""; field = iter.ReadObject() {
+	for field := iter.ReadField(); field != ""; field = iter.ReadField() {
 		switch field {
 		case "field1":
-			iter.ReadString()
+			iter.String()
 		case "field2":
 			iter.ReadInt64()
 		default:

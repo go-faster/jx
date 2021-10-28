@@ -36,6 +36,5 @@ func (cfg *frozenConfig) Iterator(data []byte) *Iterator {
 
 func (cfg *frozenConfig) PutIterator(iter *Iterator) {
 	iter.Error = nil
-	iter.Attachment = nil
 	cfg.iteratorPool.Put(iter)
 }

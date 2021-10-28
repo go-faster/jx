@@ -29,46 +29,6 @@ func (it *Iterator) ReadBool() (ret bool) {
 	return
 }
 
-// SkipBytes skips next json element and returns its contents as []byte.
-//
-// The []byte can be retained.
-func (it *Iterator) SkipBytes() []byte {
-	it.startCapture(it.head)
-	it.Skip()
-	return it.stopCapture()
-}
-
-// SkipAppend skips next JSON element and appends its content to
-// buffer, returning the result.
-func (it *Iterator) SkipAppend(buf []byte) []byte {
-	it.startCaptureTo(buf, it.head)
-	it.Skip()
-	return it.stopCapture()
-}
-
-func (it *Iterator) startCaptureTo(buf []byte, captureStartedAt int) {
-	if it.captured != nil {
-		panic("already in capture mode")
-	}
-	it.captureStartedAt = captureStartedAt
-	it.captured = buf
-}
-
-func (it *Iterator) startCapture(captureStartedAt int) {
-	it.startCaptureTo(make([]byte, 0, 32), captureStartedAt)
-}
-
-func (it *Iterator) stopCapture() []byte {
-	if it.captured == nil {
-		panic("not in capture mode")
-	}
-	captured := it.captured
-	remaining := it.buf[it.captureStartedAt:it.head]
-	it.captureStartedAt = -1
-	it.captured = nil
-	return append(captured, remaining...)
-}
-
 // Skip skips a json object and positions to relatively the next json object.
 func (it *Iterator) Skip() {
 	c := it.nextToken()
