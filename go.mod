@@ -1,11 +1,8 @@
-module github.com/ogen-go/json
+module github.com/ogen-go/jir
 
 go 1.17
 
-require (
-	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421
-	github.com/stretchr/testify v1.7.0
-)
+require github.com/stretchr/testify v1.7.0
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect

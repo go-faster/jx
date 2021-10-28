@@ -1,4 +1,4 @@
-package json
+package jir
 
 var digits []uint32
 

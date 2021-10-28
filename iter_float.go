@@ -1,4 +1,4 @@
-package json
+package jir
 
 import (
 	"encoding/json"
@@ -244,7 +244,7 @@ func (iter *Iterator) readPositiveFloat64() (ret float64) {
 	}
 	value := uint64(ind)
 	// chars before dot
-non_decimal_loop:
+NonDecimal:
 	for ; i < iter.tail; i++ {
 		c = iter.buf[i]
 		ind := floatDigits[c]
@@ -255,7 +255,7 @@ non_decimal_loop:
 			iter.head = i
 			return float64(value)
 		case dotInNumber:
-			break non_decimal_loop
+			break NonDecimal
 		}
 		if value > uint64SafeToMultiple10 {
 			return iter.readFloat64SlowPath()
@@ -336,7 +336,7 @@ func validateFloat(str string) string {
 	return ""
 }
 
-// ReadNumber read json.Number
+// ReadNumber read jir.Number
 func (iter *Iterator) ReadNumber() (ret json.Number) {
 	return json.Number(iter.readNumberAsString())
 }

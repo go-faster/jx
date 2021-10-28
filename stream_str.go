@@ -1,4 +1,4 @@
-package json
+package jir
 
 import (
 	"unicode/utf8"

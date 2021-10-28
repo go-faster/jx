@@ -1,10 +1,6 @@
-package json
+package jir
 
-import (
-	"sync"
-
-	"github.com/modern-go/concurrent"
-)
+import "sync"
 
 // Valid reports whether json in data is valid.
 func Valid(data []byte) bool {
@@ -56,8 +52,6 @@ type frozenConfig struct {
 	objectFieldMustBeSimpleString bool
 	onlyTaggedField               bool
 	disallowUnknownFields         bool
-	decoderCache                  *concurrent.Map
-	encoderCache                  *concurrent.Map
 	streamPool                    *sync.Pool
 	iteratorPool                  *sync.Pool
 	caseSensitive                 bool
@@ -65,10 +59,6 @@ type frozenConfig struct {
 
 func (cfg *frozenConfig) private() {}
 
-func (cfg *frozenConfig) initCache() {
-	cfg.decoderCache = concurrent.NewMap()
-	cfg.encoderCache = concurrent.NewMap()
-}
 
 // API creates new API from config
 func (cfg Config) API() API {
@@ -90,7 +80,6 @@ func (cfg Config) API() API {
 			return NewIterator(api)
 		},
 	}
-	api.initCache()
 	api.configBeforeFrozen = cfg
 	return api
 }

@@ -1,4 +1,4 @@
-package json
+package jir
 
 import "fmt"
 

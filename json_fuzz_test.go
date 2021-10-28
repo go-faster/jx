@@ -1,6 +1,6 @@
 //go:build go1.18
 
-package json
+package jir
 
 import (
 	"bytes"
