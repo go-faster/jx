@@ -44,56 +44,87 @@ func (it *Iterator) Field() (ret string) {
 	}
 }
 
-// Object read object, calling f on each field.
-func (it *Iterator) Object(f func(i *Iterator, key string) bool) bool {
+func (it *Iterator) object(f func(i *Iterator, key []byte) bool) bool {
+	if it.buf == nil {
+		it.buf = make([]byte, 0, 64)
+	}
+	// Use it.buf to hold keys.
+	// Rest back on exit.
+	n := len(it.buf)
+	defer func() { it.buf = it.buf[:n] }()
+
 	c := it.nextToken()
-	if c == '{' {
-		if !it.incrementDepth() {
-			return false
-		}
-		c = it.nextToken()
-		if c == '"' {
-			it.unreadByte()
-			key := it.Str()
-			c = it.nextToken()
-			if c != ':' {
-				it.ReportError("Field", "expect : after object field, but found "+string([]byte{c}))
-			}
-			if !f(it, key) {
-				it.decrementDepth()
-				return false
-			}
-			c = it.nextToken()
-			for c == ',' {
-				key = it.Str()
-				c = it.nextToken()
-				if c != ':' {
-					it.ReportError("Field", "expect : after object field, but found "+string([]byte{c}))
-				}
-				if !f(it, key) {
-					it.decrementDepth()
-					return false
-				}
-				c = it.nextToken()
-			}
-			if c != '}' {
-				it.ReportError("Object", `object not ended with }`)
-				it.decrementDepth()
-				return false
-			}
-			return it.decrementDepth()
-		}
-		if c == '}' {
-			return it.decrementDepth()
-		}
-		it.ReportError("Object", `expect " after {, but found `+string([]byte{c}))
+	if c != '{' {
+		it.ReportError("Object", `expect { or n, but found `+string([]byte{c}))
+		return false
+	}
+	if !it.incrementDepth() {
+		return false
+	}
+
+	c = it.nextToken()
+	if c == '}' {
+		return it.decrementDepth()
+	}
+	it.unreadByte()
+
+	j := len(it.buf)
+	if str := it.strBytes(it.buf); str == nil {
+		return false
+	} else {
+		it.buf = str
+	}
+	k := it.buf[j:]
+
+	c = it.nextToken()
+	if c != ':' {
+		it.ReportError("Field", "expect : after object field, but found "+string([]byte{c}))
+		return false
+	}
+	if !f(it, k) {
 		it.decrementDepth()
 		return false
 	}
-	if c == 'n' {
-		it.skipThreeBytes('u', 'l', 'l')
-		return true // null
+
+	// Drop k.
+	it.buf = it.buf[:j]
+
+	c = it.nextToken()
+	for c == ',' {
+		// Expand buf for k.
+		j := len(it.buf)
+		if str := it.strBytes(it.buf); str == nil {
+			return false
+		} else {
+			it.buf = str
+		}
+		k := it.buf[j:]
+
+		c = it.nextToken()
+		if c != ':' {
+			it.ReportError("Field", "expect : after object field, but found "+string([]byte{c}))
+		}
+		if !f(it, k) {
+			it.decrementDepth()
+			return false
+		}
+
+		// Drop k.
+		it.buf = it.buf[:j]
+
+		c = it.nextToken()
 	}
-	it.ReportError("Object", `expect { or n, but found `+string([]byte{c}))
-	return false
+	if c != '}' {
+		it.ReportError("Object", `object not ended with }`)
+		it.decrementDepth()
+		return false
+	}
+	return it.decrementDepth()
+}
+
+// Object read object, calling f on each field.
+func (it *Iterator) Object(f func(i *Iterator, key string) bool) bool {
+	return it.object(func(i *Iterator, key []byte) bool {
+		return f(i, string(key))
+	})
 }

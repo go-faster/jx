@@ -15,7 +15,7 @@ func Test_bad_case(t *testing.T) {
 			for iter.Elem() {
 				for field := iter.Field(); field != ""; field = iter.Field() {
 					if field == "Bit" {
-						iter.StrAsSlice()
+						iter.StrBytes()
 					} else {
 						if field != "Size" && field != "EndIndex" && field != "EndMask" && field != "Good" && field != "Flush" {
 							t.Fatal(field)

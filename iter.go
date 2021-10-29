@@ -93,9 +93,6 @@ type Iterator struct {
 	cfg    *frozenConfig
 	reader io.Reader
 
-	// val is buffer for reading current value.
-	val []byte
-
 	// buf is current buffer.
 	//
 	// Contains full json if reader is nil or used as a read buffer

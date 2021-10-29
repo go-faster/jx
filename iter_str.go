@@ -5,48 +5,73 @@ import (
 	"unicode/utf16"
 )
 
-// Str reads string.
-func (it *Iterator) Str() (s string) {
+// StrAppend reads string and appends it to byte slice.
+func (it *Iterator) StrAppend(b []byte) []byte {
+	return it.strBytes(b)
+}
+
+func (it *Iterator) strBytes(b []byte) []byte {
 	c := it.nextToken()
 	if c == '"' {
 		for i := it.head; i < it.tail; i++ {
 			c := it.buf[i]
 			if c == '\\' {
-				break
+				break // escaped, fallback to slow path
 			}
 			if c == '"' {
-				s = string(it.buf[it.head:i])
+				// End of string in fast path.
+				str := it.buf[it.head:i]
 				it.head = i + 1
-				return s
+				if b == nil {
+					// Returning str directly if no b.
+					return str
+				}
+				return append(b, str...)
 			}
 			if c < ' ' {
 				it.ReportError("Str", fmt.Sprintf(`invalid control character found: %d`, c))
-				return ""
+				return b
 			}
 		}
-		return it.readStringSlowPath()
+		return it.readStringSlowPath(b)
 	}
 	it.ReportError("Str", `expects " or n, but found `+string([]byte{c}))
+	return nil
+}
+
+// StrBytes returns string value as sub-slice of internal buffer.
+//
+// Buffer is valid only until next call to any Iterator method.
+func (it *Iterator) StrBytes() []byte {
+	return it.strBytes(nil)
+}
+
+// Str reads string.
+func (it *Iterator) Str() string {
+	if s := it.StrBytes(); s != nil {
+		return string(s)
+	}
 	return ""
 }
 
-func (it *Iterator) readStringSlowPath() (ret string) {
-	var str []byte
-	var c byte
+func (it *Iterator) readStringSlowPath(b []byte) []byte {
 	for it.Error == nil {
-		c = it.readByte()
+		c := it.readByte()
 		if c == '"' {
-			return string(str)
+			return b // end of string
 		}
 		if c == '\\' {
-			c = it.readByte()
-			str = it.readEscapedChar(c, str)
+			if str := it.readEscapedChar(it.readByte(), b); str == nil {
+				return nil
+			} else {
+				b = str
+			}
 		} else {
-			str = append(str, c)
+			b = append(b, c)
 		}
 	}
 	it.ReportError("readStringSlowPath", "unexpected end of input")
-	return
+	return nil
 }
 
 func (it *Iterator) readEscapedChar(c byte, str []byte) []byte {
@@ -107,38 +132,6 @@ func (it *Iterator) readEscapedChar(c byte, str []byte) []byte {
 		return nil
 	}
 	return str
-}
-
-// StrAsSlice read string from iterator without copying into string form.
-// The []byte can not be kept, as it will change after next iterator call.
-func (it *Iterator) StrAsSlice() (ret []byte) {
-	c := it.nextToken()
-	if c == '"' {
-		for i := it.head; i < it.tail; i++ {
-			// require ascii string and no escape
-			// for: field name, base64, number
-			if it.buf[i] == '"' {
-				// fast path: reuse the underlying buffer
-				ret = it.buf[it.head:i]
-				it.head = i + 1
-				return ret
-			}
-		}
-		readLen := it.tail - it.head
-		copied := make([]byte, readLen, readLen*2)
-		copy(copied, it.buf[it.head:it.tail])
-		it.head = it.tail
-		for it.Error == nil {
-			c := it.readByte()
-			if c == '"' {
-				return copied
-			}
-			copied = append(copied, c)
-		}
-		return copied
-	}
-	it.ReportError("StrAsSlice", `expects " or n, but found `+string([]byte{c}))
-	return
 }
 
 func (it *Iterator) readU4() (ret rune) {
