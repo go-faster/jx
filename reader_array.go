@@ -34,7 +34,7 @@ func (r *Reader) Elem() (ok bool, err error) {
 }
 
 // Array reads array and call f on each element.
-func (r *Reader) Array(f func(i *Reader) error) error {
+func (r *Reader) Array(f func(r *Reader) error) error {
 	if err := r.expectNext('['); err != nil {
 		return xerrors.Errorf("start: %w", err)
 	}

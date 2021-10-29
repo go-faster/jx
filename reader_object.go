@@ -9,7 +9,7 @@ import (
 // ObjBytes calls f for every key in object, using byte slice as key.
 //
 // The key value is valid only until f is not returned.
-func (r *Reader) ObjBytes(f func(i *Reader, key []byte) error) error {
+func (r *Reader) ObjBytes(f func(r *Reader, key []byte) error) error {
 	if err := r.expectNext('{'); err != nil {
 		return xerrors.Errorf("start: %w", err)
 	}
