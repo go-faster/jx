@@ -54,18 +54,25 @@ func Test_read_int_overflow(t *testing.T) {
 		})
 	}
 
-	for _, s := range []string{"9223372036854775811", "-9523372036854775807", "1234232323232323235678912", "-1234567892323232323212"} {
+	for _, s := range []string{"123456789232323232321545111111111111111111111111111111145454545445", "-1234567892323232323212"} {
 		t.Run(s, func(t *testing.T) {
 			should := require.New(t)
 			iter := ParseString(Default, s)
-			_, err := iter.Int64()
-			should.Error(err)
+			v, err := iter.Int64()
+			should.Error(err, "%v", v)
 
 			iterUint := ParseString(Default, s)
-			_, err = iterUint.Uint64()
-			should.Error(err)
+			vu, err := iterUint.Uint64()
+			should.Error(err, "%v", vu)
 		})
 	}
+}
+
+func Test_read_int64_overflow(t *testing.T) {
+	s := `123456789232323232321545111111111111111111111111111111145454545445`
+	iter := ParseString(Default, s)
+	_, err := iter.Int64()
+	require.Error(t, err)
 }
 
 func Test_read_int64(t *testing.T) {

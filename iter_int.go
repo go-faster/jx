@@ -224,6 +224,9 @@ func (it *Iterator) Int64() (int64, error) {
 		return -int64(val), nil
 	}
 	val, err := it.readUint64(c)
+	if err != nil {
+		return 0, err
+	}
 	if val > math.MaxInt64 {
 		return 0, xerrors.Errorf("%d overflows", val)
 	}
