@@ -4,6 +4,7 @@ package jx
 
 import (
 	"bytes"
+	"errors"
 	"reflect"
 	"testing"
 )
@@ -67,6 +68,44 @@ func FuzzDecEnc(f *testing.F) {
 		}
 		if !bytes.Equal(newBuf.Bytes(), buf.Bytes()) {
 			t.Fatalf("%s != %s", &newBuf, &buf)
+		}
+	})
+}
+
+func FuzzValues(f *testing.F) {
+	f.Add(int64(1))
+	f.Add(int64(1534564316421))
+	f.Fuzz(func(t *testing.T, n int64) {
+		buf := new(bytes.Buffer)
+		s := Default.GetStream(buf)
+		defer Default.PutStream(s)
+
+		s.WriteArrayStart()
+		s.WriteInt64(n)
+		s.WriteArrayEnd()
+
+		if err := s.Flush(); err != nil {
+			t.Fatal(err)
+		}
+
+		i := Default.GetIter(buf.Bytes())
+		var nGot int64
+		if err := i.Array(func(i *Iter) error {
+			var err error
+			switch i.Next() {
+			case Number:
+				nGot, err = i.Int64()
+			default:
+				err = errors.New("unexpected")
+			}
+			return err
+		}); err != nil {
+			t.Fatalf("'%s': %v", buf, err)
+		}
+		if nGot != n {
+			t.Fatalf("'%s': %d (got) != %d (expected)",
+				buf, nGot, n,
+			)
 		}
 	})
 }
