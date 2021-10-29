@@ -87,10 +87,10 @@ func init() {
 	types['{'] = Object
 }
 
-// Iter is an io.Reader like object, with json specific read functions.
+// Reader is an io.Reader like object, with json specific read functions.
 //
 // Error is not returned as return value, but rather stored as Error field.
-type Iter struct {
+type Reader struct {
 	reader io.Reader
 
 	// buf is current buffer.
@@ -104,22 +104,22 @@ type Iter struct {
 	depth int
 }
 
-// NewIter creates an empty Iter instance
-func NewIter() *Iter {
-	return &Iter{}
+// NewReader creates an empty Reader instance.
+func NewReader() *Reader {
+	return &Reader{}
 }
 
-// Parse creates an Iter instance from io.Reader
-func Parse(reader io.Reader, bufSize int) *Iter {
-	return &Iter{
+// Read creates an Reader instance from io.Reader
+func Read(reader io.Reader, bufSize int) *Reader {
+	return &Reader{
 		reader: reader,
 		buf:    make([]byte, bufSize),
 	}
 }
 
-// ParseBytes creates an Iter instance from byte array
-func ParseBytes(input []byte) *Iter {
-	return &Iter{
+// ReadBytes creates a Reader instance from byte slice.
+func ReadBytes(input []byte) *Reader {
+	return &Reader{
 		reader: nil,
 		buf:    input,
 		head:   0,
@@ -128,39 +128,39 @@ func ParseBytes(input []byte) *Iter {
 	}
 }
 
-// ParseString creates an Iter instance from string
-func ParseString(input string) *Iter {
-	return ParseBytes([]byte(input))
+// ReadString creates a Reader instance from string.
+func ReadString(input string) *Reader {
+	return ReadBytes([]byte(input))
 }
 
 // Reset reuse iterator instance by specifying another reader
-func (it *Iter) Reset(reader io.Reader) *Iter {
-	it.reader = reader
-	it.head = 0
-	it.tail = 0
-	it.depth = 0
-	return it
+func (r *Reader) Reset(reader io.Reader) *Reader {
+	r.reader = reader
+	r.head = 0
+	r.tail = 0
+	r.depth = 0
+	return r
 }
 
 // ResetBytes reuse iterator instance by specifying another byte array as input
-func (it *Iter) ResetBytes(input []byte) *Iter {
-	it.reader = nil
-	it.buf = input
-	it.head = 0
-	it.tail = len(input)
-	it.depth = 0
-	return it
+func (r *Reader) ResetBytes(input []byte) *Reader {
+	r.reader = nil
+	r.buf = input
+	r.head = 0
+	r.tail = len(input)
+	r.depth = 0
+	return r
 }
 
 // Next gets Type of relatively next json element
-func (it *Iter) Next() Type {
-	v, _ := it.next()
-	it.unread()
+func (r *Reader) Next() Type {
+	v, _ := r.next()
+	r.unread()
 	return types[v]
 }
 
-func (it *Iter) expectNext(c byte) error {
-	v, err := it.next()
+func (r *Reader) expectNext(c byte) error {
+	v, err := r.next()
 	if err == io.EOF {
 		return io.ErrUnexpectedEOF
 	}
@@ -174,66 +174,66 @@ func (it *Iter) expectNext(c byte) error {
 }
 
 // next returns non-whitespace token or error.
-func (it *Iter) next() (byte, error) {
+func (r *Reader) next() (byte, error) {
 	for {
-		for i := it.head; i < it.tail; i++ {
-			c := it.buf[i]
+		for i := r.head; i < r.tail; i++ {
+			c := r.buf[i]
 			switch c {
 			case ' ', '\n', '\t', '\r':
 				continue
 			}
-			it.head = i + 1
+			r.head = i + 1
 			return c, nil
 		}
-		if err := it.read(); err != nil {
+		if err := r.read(); err != nil {
 			return 0, err
 		}
 	}
 }
 
-func (it *Iter) byte() (byte, error) {
-	if it.head == it.tail {
-		if err := it.read(); err != nil {
+func (r *Reader) byte() (byte, error) {
+	if r.head == r.tail {
+		if err := r.read(); err != nil {
 			return 0, err
 		}
 	}
-	c := it.buf[it.head]
-	it.head++
+	c := r.buf[r.head]
+	r.head++
 	return c, nil
 }
 
-func (it *Iter) read() error {
-	if it.reader == nil {
-		it.head = it.tail
+func (r *Reader) read() error {
+	if r.reader == nil {
+		r.head = r.tail
 		return io.EOF
 	}
 
-	n, err := it.reader.Read(it.buf)
+	n, err := r.reader.Read(r.buf)
 	if err != nil {
 		return err
 	}
 
-	it.head = 0
-	it.tail = n
+	r.head = 0
+	r.tail = n
 	return nil
 }
 
-func (it *Iter) unread() { it.head-- }
+func (r *Reader) unread() { r.head-- }
 
 // limit maximum depth of nesting, as allowed by https://tools.ietf.org/html/rfc7159#section-9
 const maxDepth = 10000
 
-func (it *Iter) incrementDepth() error {
-	it.depth++
-	if it.depth > maxDepth {
+func (r *Reader) incrementDepth() error {
+	r.depth++
+	if r.depth > maxDepth {
 		return xerrors.New("max depth")
 	}
 	return nil
 }
 
-func (it *Iter) decrementDepth() error {
-	it.depth--
-	if it.depth < 0 {
+func (r *Reader) decrementDepth() error {
+	r.depth--
+	if r.depth < 0 {
 		return xerrors.New("negative depth")
 	}
 	return nil

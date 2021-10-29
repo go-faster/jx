@@ -9,13 +9,13 @@ import (
 )
 
 // StrAppend reads string and appends it to byte slice.
-func (it *Iter) StrAppend(b []byte) ([]byte, error) {
+func (r *Reader) StrAppend(b []byte) ([]byte, error) {
 	v := value{
 		buf: b,
 		raw: false,
 	}
 	var err error
-	if v, err = it.str(v); err != nil {
+	if v, err = r.str(v); err != nil {
 		return b, err
 	}
 	return v.buf, nil
@@ -80,34 +80,34 @@ func badToken(c byte) error {
 	return UnexpectedTokenErr{Token: c}
 }
 
-func (it *Iter) str(v value) (value, error) {
-	if err := it.expectNext('"'); err != nil {
+func (r *Reader) str(v value) (value, error) {
+	if err := r.expectNext('"'); err != nil {
 		return value{}, xerrors.Errorf("start: %w", err)
 	}
-	for i := it.head; i < it.tail; i++ {
-		c := it.buf[i]
+	for i := r.head; i < r.tail; i++ {
+		c := r.buf[i]
 		if c == '\\' {
 			// Character is escaped, fallback to slow path.
 			break
 		}
 		if c == '"' {
 			// End of string in fast path.
-			str := it.buf[it.head:i]
-			it.head = i + 1
+			str := r.buf[r.head:i]
+			r.head = i + 1
 			return v.direct(str), nil
 		}
 		if c < ' ' {
 			return value{}, xerrors.Errorf("control character: %w", badToken(c))
 		}
 	}
-	return it.strSlow(v)
+	return r.strSlow(v)
 }
 
 // StrBytes returns string value as sub-slice of internal buffer.
 //
-// Buf is valid only until next call to any Iter method.
-func (it *Iter) StrBytes() ([]byte, error) {
-	v, err := it.str(value{raw: true})
+// Buf is valid only until next call to any Reader method.
+func (r *Reader) StrBytes() ([]byte, error) {
+	v, err := r.str(value{raw: true})
 	if err != nil {
 		return nil, err
 	}
@@ -115,17 +115,17 @@ func (it *Iter) StrBytes() ([]byte, error) {
 }
 
 // Str reads string.
-func (it *Iter) Str() (string, error) {
-	s, err := it.StrBytes()
+func (r *Reader) Str() (string, error) {
+	s, err := r.StrBytes()
 	if err != nil {
 		return "", err
 	}
 	return string(s), nil
 }
 
-func (it *Iter) strSlow(v value) (value, error) {
+func (r *Reader) strSlow(v value) (value, error) {
 	for {
-		c, err := it.byte()
+		c, err := r.byte()
 		if err == io.EOF {
 			return value{}, io.ErrUnexpectedEOF
 		}
@@ -137,14 +137,14 @@ func (it *Iter) strSlow(v value) (value, error) {
 			// End of string.
 			return v, nil
 		case '\\':
-			c, err := it.byte()
+			c, err := r.byte()
 			if err == io.EOF {
 				return value{}, io.ErrUnexpectedEOF
 			}
 			if err != nil {
 				return value{}, xerrors.Errorf("next: %w", err)
 			}
-			v, err = it.escapedChar(v, c)
+			v, err = r.escapedChar(v, c)
 			if err != nil {
 				return v, xerrors.Errorf("escape: %w", err)
 			}
@@ -154,15 +154,15 @@ func (it *Iter) strSlow(v value) (value, error) {
 	}
 }
 
-func (it *Iter) escapedChar(v value, c byte) (value, error) {
+func (r *Reader) escapedChar(v value, c byte) (value, error) {
 	switch c {
 	case 'u':
-		r, err := it.readU4()
+		r1, err := r.readU4()
 		if err != nil {
 			return value{}, xerrors.Errorf("read u4: %w", err)
 		}
-		if utf16.IsSurrogate(r) {
-			c, err := it.byte()
+		if utf16.IsSurrogate(r1) {
+			c, err := r.byte()
 			if err == io.EOF {
 				return value{}, io.ErrUnexpectedEOF
 			}
@@ -170,10 +170,10 @@ func (it *Iter) escapedChar(v value, c byte) (value, error) {
 				return value{}, err
 			}
 			if c != '\\' {
-				it.unread()
-				return v.rune(r), nil
+				r.unread()
+				return v.rune(r1), nil
 			}
-			c, err = it.byte()
+			c, err = r.byte()
 			if err == io.EOF {
 				return value{}, io.ErrUnexpectedEOF
 			}
@@ -181,20 +181,20 @@ func (it *Iter) escapedChar(v value, c byte) (value, error) {
 				return value{}, err
 			}
 			if c != 'u' {
-				return it.escapedChar(v.rune(r), c)
+				return r.escapedChar(v.rune(r1), c)
 			}
-			r2, err := it.readU4()
+			r2, err := r.readU4()
 			if err != nil {
 				return value{}, err
 			}
-			combined := utf16.DecodeRune(r, r2)
+			combined := utf16.DecodeRune(r1, r2)
 			if combined == '\uFFFD' {
-				v = v.rune(r).rune(r2)
+				v = v.rune(r1).rune(r2)
 			} else {
 				v = v.rune(combined)
 			}
 		} else {
-			v = v.rune(r)
+			v = v.rune(r1)
 		}
 	case '"':
 		v = v.rune('"')
@@ -218,10 +218,10 @@ func (it *Iter) escapedChar(v value, c byte) (value, error) {
 	return v, nil
 }
 
-func (it *Iter) readU4() (rune, error) {
+func (r *Reader) readU4() (rune, error) {
 	var v rune
 	for i := 0; i < 4; i++ {
-		c, err := it.byte()
+		c, err := r.byte()
 		if err == io.EOF {
 			return 0, io.ErrUnexpectedEOF
 		}

@@ -7,7 +7,7 @@ import (
 )
 
 func TestIterator_Str(t *testing.T) {
-	i := GetIter()
+	i := GetReader()
 	i.ResetBytes([]byte(`"hello, world!"`))
 	s, err := i.Str()
 	require.NoError(t, err)

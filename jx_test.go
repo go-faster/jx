@@ -18,12 +18,12 @@ func Test_parseVal(t *testing.T) {
 	t.Run("Obj", func(t *testing.T) {
 		var v Value
 		const input = `{"foo":{"bar":1,"baz":[1,2,3.14],"200":null}}`
-		i := ParseString(input)
+		i := ReadString(input)
 		assert.NoError(t, parseVal(i, &v))
 		assert.Equal(t, `{foo: {bar: 1, baz: [1, 2, f3.14], 200: null}}`, v.String())
 
 		buf := new(bytes.Buffer)
-		s := NewStream(buf, 1024)
+		s := NewWriter(buf, 1024)
 		v.Write(s)
 		require.NoError(t, s.Flush())
 		require.Equal(t, input, buf.String(), "encoded value should equal to input")
@@ -38,11 +38,11 @@ func Test_parseVal(t *testing.T) {
 			t.Run(tt.Input, func(t *testing.T) {
 				var v Value
 				input := []byte(tt.Input)
-				i := ParseBytes(input)
+				i := ReadBytes(input)
 				require.NoError(t, parseVal(i, &v))
 
 				buf := new(bytes.Buffer)
-				s := NewStream(buf, 1024)
+				s := NewWriter(buf, 1024)
 				v.Write(s)
 				require.NoError(t, s.Flush())
 				require.Equal(t, tt.Input, buf.String(), "encoded value should equal to input")
@@ -85,8 +85,8 @@ type Value struct {
 	Child  []Value
 }
 
-// Write json representation of Value to Stream.
-func (v Value) Write(s *Stream) error {
+// Write json representation of Value to Writer.
+func (v Value) Write(s *Writer) error {
 	if v.KeySet {
 		s.ObjField(v.Key)
 	}
@@ -98,7 +98,7 @@ func (v Value) Write(s *Stream) error {
 			return err
 		}
 	case ValInt:
-		s.WriteInt64(v.Int)
+		s.Int64(v.Int)
 	case ValBool:
 		s.Bool(v.Bool)
 	case ValNull:
@@ -176,7 +176,7 @@ func (v Value) String() string {
 	return b.String()
 }
 
-func parseVal(i *Iter, v *Value) error {
+func parseVal(i *Reader, v *Value) error {
 	switch i.Next() {
 	case Invalid:
 		return xerrors.New("invalid")
@@ -222,7 +222,7 @@ func parseVal(i *Iter, v *Value) error {
 		v.Type = ValBool
 	case Object:
 		v.Type = ValObj
-		if err := i.Obj(func(i *Iter, s string) error {
+		if err := i.Obj(func(i *Reader, s string) error {
 			var elem Value
 			if err := parseVal(i, &elem); err != nil {
 				return xerrors.Errorf("elem: %w", err)
@@ -237,7 +237,7 @@ func parseVal(i *Iter, v *Value) error {
 		return nil
 	case Array:
 		v.Type = ValArr
-		if err := i.Array(func(i *Iter) error {
+		if err := i.Array(func(i *Reader) error {
 			var elem Value
 			if err := parseVal(i, &elem); err != nil {
 				return xerrors.Errorf("elem: %w", err)

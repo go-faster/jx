@@ -20,14 +20,14 @@ func TestIterator_Capture(t *testing.T) {
 		}
 	]
 }`
-	i := GetIter()
+	i := GetReader()
 	i.ResetBytes([]byte(input))
-	err := i.Obj(func(i *Iter, key string) error {
-		return i.Array(func(i *Iter) error {
+	err := i.Obj(func(i *Reader, key string) error {
+		return i.Array(func(i *Reader) error {
 			// Reading "type" field value first.
 			var typ string
-			if err := i.Capture(func(i *Iter) error {
-				return i.Obj(func(i *Iter, key string) error {
+			if err := i.Capture(func(i *Reader) error {
+				return i.Obj(func(i *Reader, key string) error {
 					switch key {
 					case "type":
 						s, err := i.Str()
@@ -44,7 +44,7 @@ func TestIterator_Capture(t *testing.T) {
 				return err
 			}
 			// Reading objects depending on type.
-			return i.Obj(func(i *Iter, key string) error {
+			return i.Obj(func(i *Reader, key string) error {
 				if key == "type" {
 					s, err := i.Str()
 					if err != nil {
@@ -69,12 +69,12 @@ func TestIterator_Capture(t *testing.T) {
 
 func BenchmarkIterator_Skip(b *testing.B) {
 	var input = []byte(`{"type": "foo", "foo": "string"}`)
-	it := GetIter()
+	it := GetReader()
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
 		it.ResetBytes(input)
-		if err := it.Capture(func(i *Iter) error {
+		if err := it.Capture(func(i *Reader) error {
 			return i.Skip()
 		}); err != nil {
 			b.Fatal(err)
@@ -83,10 +83,10 @@ func BenchmarkIterator_Skip(b *testing.B) {
 }
 
 func TestIter_Capture(t *testing.T) {
-	i := ParseString(`["foo", "bar", "baz"]`)
+	i := ReadString(`["foo", "bar", "baz"]`)
 	var elems int
-	if err := i.Capture(func(i *Iter) error {
-		return i.Array(func(i *Iter) error {
+	if err := i.Capture(func(i *Reader) error {
+		return i.Array(func(i *Reader) error {
 			elems++
 			return i.Skip()
 		})

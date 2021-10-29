@@ -8,7 +8,7 @@ import (
 
 func Benchmark_stream_encode_big_object(b *testing.B) {
 	var buf bytes.Buffer
-	var stream = NewStream(&buf, 100)
+	var stream = NewWriter(&buf, 100)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		stream.Reset(&buf)
@@ -18,72 +18,72 @@ func Benchmark_stream_encode_big_object(b *testing.B) {
 	}
 }
 
-func encodeObject(stream *Stream) error {
-	stream.ObjStart()
+func encodeObject(w *Writer) error {
+	w.ObjStart()
 
-	stream.ObjField("objectId")
-	stream.WriteUint64(8838243212)
+	w.ObjField("objectId")
+	w.Uint64(8838243212)
 
-	stream.More()
-	stream.ObjField("name")
-	stream.Str("Jane Doe")
+	w.More()
+	w.ObjField("name")
+	w.Str("Jane Doe")
 
-	stream.More()
-	stream.ObjField("address")
-	stream.ObjStart()
+	w.More()
+	w.ObjField("address")
+	w.ObjStart()
 	for i, field := range addressFields {
 		if i != 0 {
-			stream.More()
+			w.More()
 		}
-		stream.ObjField(field.key)
-		stream.Str(field.val)
+		w.ObjField(field.key)
+		w.Str(field.val)
 	}
 
-	stream.More()
-	stream.ObjField("geo")
+	w.More()
+	w.ObjField("geo")
 	{
-		stream.ObjStart()
-		stream.ObjField("latitude")
-		if err := stream.WriteFloat64(-154.550817); err != nil {
+		w.ObjStart()
+		w.ObjField("latitude")
+		if err := w.WriteFloat64(-154.550817); err != nil {
 			return err
 		}
-		stream.More()
-		stream.ObjField("longitude")
-		if err := stream.WriteFloat64(-84.176159); err != nil {
+		w.More()
+		w.ObjField("longitude")
+		if err := w.WriteFloat64(-84.176159); err != nil {
 			return err
 		}
-		stream.ObjEnd()
+		w.ObjEnd()
 	}
-	stream.ObjEnd()
+	w.ObjEnd()
 
-	stream.More()
-	stream.ObjField("specialties")
-	stream.ArrStart()
+	w.More()
+	w.ObjField("specialties")
+	w.ArrStart()
 	for i, s := range specialties {
 		if i != 0 {
-			stream.More()
+			w.More()
 		}
-		stream.Str(s)
+		w.Str(s)
 	}
-	stream.ArrEnd()
+	w.ArrEnd()
 
-	stream.More()
+	w.More()
 	for i, text := range longText {
 		if i != 0 {
-			stream.More()
+			w.More()
 		}
-		stream.ObjField("longText" + strconv.Itoa(i))
-		stream.Str(text)
+		w.ObjField("longText" + strconv.Itoa(i))
+		w.Str(text)
 	}
 
 	for i := 0; i < 25; i++ {
 		num := i * 18328
-		stream.More()
-		stream.ObjField("integerField" + strconv.Itoa(i))
-		stream.WriteInt64(int64(num))
+		w.More()
+		w.ObjField("integerField" + strconv.Itoa(i))
+		w.Int64(int64(num))
 	}
 
-	stream.ObjEnd()
+	w.ObjEnd()
 	return nil
 }
 

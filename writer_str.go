@@ -218,27 +218,27 @@ var safeSet = [utf8.RuneSelf]bool{
 const hex = "0123456789abcdef"
 
 // StrHTMLEscaped write string to stream with html special characters escaped
-func (s *Stream) StrHTMLEscaped(v string) {
+func (w *Writer) StrHTMLEscaped(v string) {
 	valLen := len(v)
-	s.buf = append(s.buf, '"')
+	w.buf = append(w.buf, '"')
 	// write string, the fast path, without utf8 and escape support
 	i := 0
 	for ; i < valLen; i++ {
 		c := v[i]
 		if c < utf8.RuneSelf && htmlSafeSet[c] {
-			s.buf = append(s.buf, c)
+			w.buf = append(w.buf, c)
 		} else {
 			break
 		}
 	}
 	if i == valLen {
-		s.buf = append(s.buf, '"')
+		w.buf = append(w.buf, '"')
 		return
 	}
-	s.strHTMLEscapedSlow(i, v, valLen)
+	w.strHTMLEscapedSlow(i, v, valLen)
 }
 
-func (s *Stream) strHTMLEscapedSlow(i int, v string, valLen int) {
+func (w *Writer) strHTMLEscapedSlow(i int, v string, valLen int) {
 	start := i
 	// for the remaining parts, we process them char by char
 	for i < valLen {
@@ -248,25 +248,25 @@ func (s *Stream) strHTMLEscapedSlow(i int, v string, valLen int) {
 				continue
 			}
 			if start < i {
-				s.Raw(v[start:i])
+				w.Raw(v[start:i])
 			}
 			switch b {
 			case '\\', '"':
-				s.twoBytes('\\', b)
+				w.twoBytes('\\', b)
 			case '\n':
-				s.twoBytes('\\', 'n')
+				w.twoBytes('\\', 'n')
 			case '\r':
-				s.twoBytes('\\', 'r')
+				w.twoBytes('\\', 'r')
 			case '\t':
-				s.twoBytes('\\', 't')
+				w.twoBytes('\\', 't')
 			default:
 				// This encodes bytes < 0x20 except for \t, \n and \r.
 				// If escapeHTML is set, it also escapes <, >, and &
 				// because they can lead to security holes when
 				// user-controlled strings are rendered into JSON
 				// and served to some browsers.
-				s.Raw(`\u00`)
-				s.twoBytes(hex[b>>4], hex[b&0xF])
+				w.Raw(`\u00`)
+				w.twoBytes(hex[b>>4], hex[b&0xF])
 			}
 			i++
 			start = i
@@ -275,9 +275,9 @@ func (s *Stream) strHTMLEscapedSlow(i int, v string, valLen int) {
 		c, size := utf8.DecodeRuneInString(v[i:])
 		if c == utf8.RuneError && size == 1 {
 			if start < i {
-				s.Raw(v[start:i])
+				w.Raw(v[start:i])
 			}
-			s.Raw(`\ufffd`)
+			w.Raw(`\ufffd`)
 			i++
 			start = i
 			continue
@@ -291,10 +291,10 @@ func (s *Stream) strHTMLEscapedSlow(i int, v string, valLen int) {
 		// See http://timelessrepo.com/json-isnt-a-javascript-subset for discussion.
 		if c == '\u2028' || c == '\u2029' {
 			if start < i {
-				s.Raw(v[start:i])
+				w.Raw(v[start:i])
 			}
-			s.Raw(`\u202`)
-			s.byte(hex[c&0xF])
+			w.Raw(`\u202`)
+			w.byte(hex[c&0xF])
 			i += size
 			start = i
 			continue
@@ -302,33 +302,33 @@ func (s *Stream) strHTMLEscapedSlow(i int, v string, valLen int) {
 		i += size
 	}
 	if start < len(v) {
-		s.Raw(v[start:])
+		w.Raw(v[start:])
 	}
-	s.byte('"')
+	w.byte('"')
 }
 
 // Str write string to stream without html escape
-func (s *Stream) Str(v string) {
+func (w *Writer) Str(v string) {
 	length := len(v)
-	s.buf = append(s.buf, '"')
+	w.buf = append(w.buf, '"')
 	// write string, the fast path, without utf8 and escape support
 	i := 0
 	for ; i < length; i++ {
 		c := v[i]
 		if c > 31 && c != '"' && c != '\\' {
-			s.buf = append(s.buf, c)
+			w.buf = append(w.buf, c)
 		} else {
 			break
 		}
 	}
 	if i == length {
-		s.buf = append(s.buf, '"')
+		w.buf = append(w.buf, '"')
 		return
 	}
-	s.strSlowPath(i, v, length)
+	w.strSlowPath(i, v, length)
 }
 
-func (s *Stream) strSlowPath(i int, v string, length int) {
+func (w *Writer) strSlowPath(i int, v string, length int) {
 	start := i
 	// for the remaining parts, we process them char by char
 	for i < length {
@@ -338,25 +338,25 @@ func (s *Stream) strSlowPath(i int, v string, length int) {
 				continue
 			}
 			if start < i {
-				s.Raw(v[start:i])
+				w.Raw(v[start:i])
 			}
 			switch b {
 			case '\\', '"':
-				s.twoBytes('\\', b)
+				w.twoBytes('\\', b)
 			case '\n':
-				s.twoBytes('\\', 'n')
+				w.twoBytes('\\', 'n')
 			case '\r':
-				s.twoBytes('\\', 'r')
+				w.twoBytes('\\', 'r')
 			case '\t':
-				s.twoBytes('\\', 't')
+				w.twoBytes('\\', 't')
 			default:
 				// This encodes bytes < 0x20 except for \t, \n and \r.
 				// If escapeHTML is set, it also escapes <, >, and &
 				// because they can lead to security holes when
 				// user-controlled strings are rendered into JSON
 				// and served to some browsers.
-				s.Raw(`\u00`)
-				s.twoBytes(hex[b>>4], hex[b&0xF])
+				w.Raw(`\u00`)
+				w.twoBytes(hex[b>>4], hex[b&0xF])
 			}
 			i++
 			start = i
@@ -366,7 +366,7 @@ func (s *Stream) strSlowPath(i int, v string, length int) {
 		continue
 	}
 	if start < len(v) {
-		s.Raw(v[start:])
+		w.Raw(v[start:])
 	}
-	s.byte('"')
+	w.byte('"')
 }

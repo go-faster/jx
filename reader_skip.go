@@ -6,63 +6,63 @@ import (
 
 // Null reads a json object as null and
 // returns whether it's a null or not.
-func (it *Iter) Null() error {
-	if err := it.expectNext('n'); err != nil {
+func (r *Reader) Null() error {
+	if err := r.expectNext('n'); err != nil {
 		return err
 	}
-	return it.skipThreeBytes('u', 'l', 'l') // null
+	return r.skipThreeBytes('u', 'l', 'l') // null
 }
 
 // Bool reads a json object as Bool
-func (it *Iter) Bool() (bool, error) {
-	c, err := it.next()
+func (r *Reader) Bool() (bool, error) {
+	c, err := r.next()
 	if err != nil {
 		return false, err
 	}
 	switch c {
 	case 't':
-		if err := it.skipThreeBytes('r', 'u', 'e'); err != nil {
+		if err := r.skipThreeBytes('r', 'u', 'e'); err != nil {
 			return false, err
 		}
 		return true, nil
 	case 'f':
-		return false, it.skipFourBytes('a', 'l', 's', 'e')
+		return false, r.skipFourBytes('a', 'l', 's', 'e')
 	default:
 		return false, badToken(c)
 	}
 }
 
 // Skip skips a json object and positions to relatively the next json object.
-func (it *Iter) Skip() error {
-	c, err := it.next()
+func (r *Reader) Skip() error {
+	c, err := r.next()
 	if err != nil {
 		return err
 	}
 	switch c {
 	case '"':
-		if err := it.strSkip(); err != nil {
+		if err := r.strSkip(); err != nil {
 			return xerrors.Errorf("str: %w", err)
 		}
 		return nil
 	case 'n':
-		return it.skipThreeBytes('u', 'l', 'l') // null
+		return r.skipThreeBytes('u', 'l', 'l') // null
 	case 't':
-		return it.skipThreeBytes('r', 'u', 'e') // true
+		return r.skipThreeBytes('r', 'u', 'e') // true
 	case 'f':
-		return it.skipFourBytes('a', 'l', 's', 'e') // false
+		return r.skipFourBytes('a', 'l', 's', 'e') // false
 	case '0':
-		it.unread()
-		_, err := it.Float32()
+		r.unread()
+		_, err := r.Float32()
 		return err
 	case '-', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-		return it.skipNumber()
+		return r.skipNumber()
 	case '[':
-		if err := it.skipArray(); err != nil {
+		if err := r.skipArray(); err != nil {
 			return xerrors.Errorf("array: %w", err)
 		}
 		return nil
 	case '{':
-		if err := it.skipObject(); err != nil {
+		if err := r.skipObject(); err != nil {
 			return xerrors.Errorf("object: %w", err)
 		}
 		return nil
@@ -71,9 +71,9 @@ func (it *Iter) Skip() error {
 	}
 }
 
-func (it *Iter) skipFourBytes(b1, b2, b3, b4 byte) error {
+func (r *Reader) skipFourBytes(b1, b2, b3, b4 byte) error {
 	for _, b := range [...]byte{b1, b2, b3, b4} {
-		c, err := it.byte()
+		c, err := r.byte()
 		if err != nil {
 			return err
 		}
@@ -84,9 +84,9 @@ func (it *Iter) skipFourBytes(b1, b2, b3, b4 byte) error {
 	return nil
 }
 
-func (it *Iter) skipThreeBytes(b1, b2, b3 byte) error {
+func (r *Reader) skipThreeBytes(b1, b2, b3 byte) error {
 	for _, b := range [...]byte{b1, b2, b3} {
-		c, err := it.byte()
+		c, err := r.byte()
 		if err != nil {
 			return err
 		}

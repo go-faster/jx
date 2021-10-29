@@ -8,19 +8,19 @@ import (
 
 // Elem reads array element and reports whether array has more
 // elements to read.
-func (it *Iter) Elem() (ok bool, err error) {
-	c, err := it.next()
+func (r *Reader) Elem() (ok bool, err error) {
+	c, err := r.next()
 	if err != nil {
 		return false, err
 	}
 	switch c {
 	case '[':
-		c, err := it.next()
+		c, err := r.next()
 		if err != nil {
 			return false, xerrors.Errorf("next: %w", err)
 		}
 		if c != ']' {
-			it.unread()
+			r.unread()
 			return true, nil
 		}
 		return false, nil
@@ -34,14 +34,14 @@ func (it *Iter) Elem() (ok bool, err error) {
 }
 
 // Array reads array and call f on each element.
-func (it *Iter) Array(f func(i *Iter) error) error {
-	if err := it.expectNext('['); err != nil {
+func (r *Reader) Array(f func(i *Reader) error) error {
+	if err := r.expectNext('['); err != nil {
 		return xerrors.Errorf("start: %w", err)
 	}
-	if err := it.incrementDepth(); err != nil {
+	if err := r.incrementDepth(); err != nil {
 		return xerrors.Errorf("inc: %w", err)
 	}
-	c, err := it.next()
+	c, err := r.next()
 	if err == io.EOF {
 		return io.ErrUnexpectedEOF
 	}
@@ -49,14 +49,14 @@ func (it *Iter) Array(f func(i *Iter) error) error {
 		return err
 	}
 	if c == ']' {
-		return it.decrementDepth()
+		return r.decrementDepth()
 	}
-	it.unread()
-	if err := f(it); err != nil {
+	r.unread()
+	if err := f(r); err != nil {
 		return xerrors.Errorf("callback: %w", err)
 	}
 
-	c, err = it.next()
+	c, err = r.next()
 	if err == io.EOF {
 		return io.ErrUnexpectedEOF
 	}
@@ -64,15 +64,15 @@ func (it *Iter) Array(f func(i *Iter) error) error {
 		return xerrors.Errorf("next: %w", err)
 	}
 	for c == ',' {
-		if err := f(it); err != nil {
+		if err := f(r); err != nil {
 			return xerrors.Errorf("callback: %w", err)
 		}
-		if c, err = it.next(); err != nil {
+		if c, err = r.next(); err != nil {
 			return xerrors.Errorf("next: %w", err)
 		}
 	}
 	if c != ']' {
 		return xerrors.Errorf("end: %w", badToken(c))
 	}
-	return it.decrementDepth()
+	return r.decrementDepth()
 }

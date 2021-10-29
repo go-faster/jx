@@ -7,7 +7,7 @@ import (
 )
 
 func TestStream_WriteStringWithHTMLEscaped(t *testing.T) {
-	s := NewStream(nil, 0)
+	s := NewWriter(nil, 0)
 	const data = `<html>Hello\\\n\r\\` + "\n\rWorld\u2028</html>"
 	s.StrHTMLEscaped(data)
 	require.NoError(t, s.Flush())
@@ -17,7 +17,7 @@ func TestStream_WriteStringWithHTMLEscaped(t *testing.T) {
 }
 
 func TestStream_WriteString(t *testing.T) {
-	s := NewStream(nil, 0)
+	s := NewWriter(nil, 0)
 	const data = `\nH\tel\tl\ro\\World\r` + "\n\rHello\r\tHi"
 	s.Str(data)
 	require.NoError(t, s.Flush())
@@ -25,7 +25,7 @@ func TestStream_WriteString(t *testing.T) {
 	require.Equal(t, expected, string(s.Buf()))
 	requireCompat(t, s.Buf(), data)
 	t.Run("Read", func(t *testing.T) {
-		i := NewIter()
+		i := NewReader()
 		i.ResetBytes(s.Buf())
 		s, err := i.Str()
 		require.NoError(t, err)

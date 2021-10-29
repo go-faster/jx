@@ -9,23 +9,23 @@ import (
 
 func Test_true(t *testing.T) {
 	should := require.New(t)
-	iter := ParseString(`true`)
+	iter := ReadString(`true`)
 	should.True(iter.Bool())
 }
 
 func Test_false(t *testing.T) {
 	should := require.New(t)
-	iter := ParseString(`false`)
+	iter := ReadString(`false`)
 	should.False(iter.Bool())
 }
 
 func Test_write_true_false(t *testing.T) {
 	should := require.New(t)
 	buf := &bytes.Buffer{}
-	stream := NewStream(buf, 4096)
-	stream.True()
-	stream.False()
-	stream.Bool(false)
-	should.NoError(stream.Flush())
+	w := NewWriter(buf, 4096)
+	w.True()
+	w.False()
+	w.Bool(false)
+	should.NoError(w.Flush())
 	should.Equal("truefalsefalse", buf.String())
 }

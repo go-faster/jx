@@ -28,13 +28,13 @@ func FuzzDecEnc(f *testing.F) {
 	f.Add([]byte(`null`))
 	f.Add([]byte(`{"foo": {"bar": 1, "baz": [1, 2, 3]}}`))
 	f.Fuzz(func(t *testing.T, data []byte) {
-		i := GetIter()
-		i.ResetBytes(data)
-		defer PutIter(i)
+		r := GetReader()
+		r.ResetBytes(data)
+		defer PutReader(r)
 
 		// Parsing to v.
 		var v Value
-		if parseVal(i, &v) != nil {
+		if parseVal(r, &v) != nil {
 			t.Skip()
 		}
 		if v.Type == ValInvalid {
@@ -42,17 +42,17 @@ func FuzzDecEnc(f *testing.F) {
 		}
 		// Writing v to buf.
 		var buf bytes.Buffer
-		s := GetStream()
-		s.Reset(&buf)
-		v.Write(s)
-		if err := s.Flush(); err != nil {
+		w := GetWriter()
+		w.Reset(&buf)
+		v.Write(w)
+		if err := w.Flush(); err != nil {
 			t.Fatal(err)
 		}
 
 		// Parsing from buf to new value.
-		i.ResetBytes(buf.Bytes())
+		r.ResetBytes(buf.Bytes())
 		var parsed Value
-		if err := parseVal(i, &parsed); err != nil {
+		if err := parseVal(r, &parsed); err != nil {
 			t.Fatalf("%v:\nBuf:   %s\nValue: %s\nData:  %s",
 				err, buf.Bytes(), v, data)
 		}
@@ -62,11 +62,11 @@ func FuzzDecEnc(f *testing.F) {
 		}
 		// Writing parsed value to newBuf.
 		var newBuf bytes.Buffer
-		s.Reset(&newBuf)
-		if err := parsed.Write(s); err != nil {
+		w.Reset(&newBuf)
+		if err := parsed.Write(w); err != nil {
 			t.Fatal(err)
 		}
-		if err := s.Flush(); err != nil {
+		if err := w.Flush(); err != nil {
 			t.Fatal(err)
 		}
 		if !bytes.Equal(newBuf.Bytes(), buf.Bytes()) {
@@ -80,27 +80,27 @@ func FuzzValues(f *testing.F) {
 	f.Add(int64(1534564316421), " привет ")
 	f.Fuzz(func(t *testing.T, n int64, str string) {
 		buf := new(bytes.Buffer)
-		s := GetStream()
-		s.Reset(buf)
-		defer PutStream(s)
+		w := GetWriter()
+		w.Reset(buf)
+		defer PutWriter(w)
 
-		s.ArrStart()
-		s.WriteInt64(n)
-		s.More()
-		s.Str(str)
-		s.ArrEnd()
+		w.ArrStart()
+		w.Int64(n)
+		w.More()
+		w.Str(str)
+		w.ArrEnd()
 
-		if err := s.Flush(); err != nil {
+		if err := w.Flush(); err != nil {
 			t.Fatal(err)
 		}
 
-		i := GetIter()
+		i := GetReader()
 		i.ResetBytes(buf.Bytes())
 		var (
 			nGot int64
 			sGot string
 		)
-		if err := i.Array(func(i *Iter) error {
+		if err := i.Array(func(i *Reader) error {
 			var err error
 			switch i.Next() {
 			case Number:
