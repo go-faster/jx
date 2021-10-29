@@ -52,7 +52,7 @@ func (it *Iterator) ObjectBytes(f func(i *Iterator, key []byte) bool) bool {
 		it.buf = make([]byte, 0, 64)
 	}
 	// Use it.buf to hold keys.
-	// Rest back on exit.
+	// Reset back on exit.
 	n := len(it.buf)
 	defer func() { it.buf = it.buf[:n] }()
 
