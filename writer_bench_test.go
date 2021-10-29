@@ -44,12 +44,12 @@ func encodeObject(w *Writer) error {
 	{
 		w.ObjStart()
 		w.ObjField("latitude")
-		if err := w.WriteFloat64(-154.550817); err != nil {
+		if err := w.Float64(-154.550817); err != nil {
 			return err
 		}
 		w.More()
 		w.ObjField("longitude")
-		if err := w.WriteFloat64(-84.176159); err != nil {
+		if err := w.Float64(-84.176159); err != nil {
 			return err
 		}
 		w.ObjEnd()

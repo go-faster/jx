@@ -94,7 +94,7 @@ func (v Value) Write(s *Writer) error {
 	case ValStr:
 		s.Str(v.Str)
 	case ValFloat:
-		if err := s.WriteFloat64(v.Float); err != nil {
+		if err := s.Float64(v.Float); err != nil {
 			return err
 		}
 	case ValInt:

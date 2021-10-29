@@ -114,7 +114,7 @@ func Test_write_float32(t *testing.T) {
 			should := require.New(t)
 			buf := &bytes.Buffer{}
 			w := NewWriter(buf, 4096)
-			should.NoError(w.WriteFloat32Lossy(val))
+			should.NoError(w.Float32Lossy(val))
 			should.NoError(w.Flush())
 			output, err := json.Marshal(val)
 			should.Nil(err)
@@ -125,7 +125,7 @@ func Test_write_float32(t *testing.T) {
 	buf := &bytes.Buffer{}
 	w := NewWriter(buf, 10)
 	w.Raw("abcdefg")
-	should.NoError(w.WriteFloat32Lossy(1.123456))
+	should.NoError(w.Float32Lossy(1.123456))
 	should.NoError(w.Flush())
 	should.Equal("abcdefg1.123456", buf.String())
 
@@ -142,7 +142,7 @@ func Test_write_float64(t *testing.T) {
 			should := require.New(t)
 			buf := &bytes.Buffer{}
 			w := NewWriter(buf, 4096)
-			should.NoError(w.WriteFloat64(val))
+			should.NoError(w.Float64(val))
 			should.NoError(w.Flush())
 			s := strconv.FormatFloat(val, 'f', -1, 64)
 			if !strings.Contains(s, ".") {
@@ -155,11 +155,11 @@ func Test_write_float64(t *testing.T) {
 	buf := &bytes.Buffer{}
 	w := NewWriter(buf, 10)
 	w.Raw("abcdefg")
-	should.NoError(w.WriteFloat64Lossy(1.123456))
+	should.NoError(w.Float64Lossy(1.123456))
 	should.NoError(w.Flush())
 	should.Equal("abcdefg1.123456", buf.String())
 
 	w = NewWriter(nil, 0)
-	should.NoError(w.WriteFloat64(0.0000001))
+	should.NoError(w.Float64(0.0000001))
 	should.Equal("1e-07", string(w.Buf()))
 }

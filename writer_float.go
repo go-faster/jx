@@ -9,7 +9,7 @@ import (
 
 var pow10 = []uint64{1, 10, 100, 1000, 10000, 100000, 1000000}
 
-// WriteFloat32 write float32 to stream.
+// WriteFloat32 writes float32 to writer.
 func (w *Writer) WriteFloat32(val float32) error {
 	if math.IsInf(float64(val), 0) || math.IsNaN(float64(val)) {
 		return xerrors.Errorf("bad value %v", val)
@@ -26,8 +26,8 @@ func (w *Writer) WriteFloat32(val float32) error {
 	return nil
 }
 
-// WriteFloat32Lossy write float32 to stream with ONLY 6 digits precision although much much faster
-func (w *Writer) WriteFloat32Lossy(val float32) error {
+// Float32Lossy writes float32 to writer with ONLY 6 digits precision, but fast.
+func (w *Writer) Float32Lossy(val float32) error {
 	if math.IsInf(float64(val), 0) || math.IsNaN(float64(val)) {
 		return xerrors.Errorf("bad value %v", val)
 	}
@@ -57,8 +57,8 @@ func (w *Writer) WriteFloat32Lossy(val float32) error {
 	return nil
 }
 
-// WriteFloat64 write float64 to stream
-func (w *Writer) WriteFloat64(val float64) error {
+// Float64 writes float64 to stream.
+func (w *Writer) Float64(val float64) error {
 	if math.IsInf(val, 0) || math.IsNaN(val) {
 		return xerrors.Errorf("unsupported value: %f", val)
 	}
@@ -87,8 +87,8 @@ func (w *Writer) WriteFloat64(val float64) error {
 	return nil
 }
 
-// WriteFloat64Lossy write float64 to stream with ONLY 6 digits precision although much much faster
-func (w *Writer) WriteFloat64Lossy(val float64) error {
+// Float64Lossy write float64 to stream with ONLY 6 digits precision although much much faster
+func (w *Writer) Float64Lossy(val float64) error {
 	if math.IsInf(val, 0) || math.IsNaN(val) {
 		return xerrors.Errorf("unsupported value: %f", val)
 	}
@@ -97,7 +97,7 @@ func (w *Writer) WriteFloat64Lossy(val float64) error {
 		val = -val
 	}
 	if val > 0x4ffffff {
-		return w.WriteFloat64(val)
+		return w.Float64(val)
 	}
 	precision := 6
 	exp := uint64(1000000) // 6
