@@ -9,7 +9,7 @@ import (
 )
 
 // StrAppend reads string and appends it to byte slice.
-func (it *Iterator) StrAppend(b []byte) ([]byte, error) {
+func (it *Iter) StrAppend(b []byte) ([]byte, error) {
 	v := value{
 		buf: b,
 		raw: false,
@@ -67,20 +67,7 @@ func (v value) append(b []byte) value {
 	}
 }
 
-func (v value) set(b []byte) value {
-	if v.ignore {
-		return v
-	}
-	return value{
-		raw: v.raw,
-		buf: b,
-	}
-}
-
-func (v value) error(err error) (value, error) {
-	return value{}, err
-}
-
+// UnexpectedTokenErr means that Token was unexpected while reading json.
 type UnexpectedTokenErr struct {
 	Token byte
 }
@@ -93,7 +80,7 @@ func badToken(c byte) error {
 	return UnexpectedTokenErr{Token: c}
 }
 
-func (it *Iterator) str(v value) (value, error) {
+func (it *Iter) str(v value) (value, error) {
 	if err := it.expectNext('"'); err != nil {
 		return value{}, xerrors.Errorf("start: %w", err)
 	}
@@ -118,8 +105,8 @@ func (it *Iterator) str(v value) (value, error) {
 
 // StrBytes returns string value as sub-slice of internal buffer.
 //
-// Buffer is valid only until next call to any Iterator method.
-func (it *Iterator) StrBytes() ([]byte, error) {
+// Buffer is valid only until next call to any Iter method.
+func (it *Iter) StrBytes() ([]byte, error) {
 	v, err := it.str(value{raw: true})
 	if err != nil {
 		return nil, err
@@ -128,7 +115,7 @@ func (it *Iterator) StrBytes() ([]byte, error) {
 }
 
 // Str reads string.
-func (it *Iterator) Str() (string, error) {
+func (it *Iter) Str() (string, error) {
 	s, err := it.StrBytes()
 	if err != nil {
 		return "", err
@@ -136,7 +123,7 @@ func (it *Iterator) Str() (string, error) {
 	return string(s), nil
 }
 
-func (it *Iterator) strSlow(v value) (value, error) {
+func (it *Iter) strSlow(v value) (value, error) {
 	for {
 		c, err := it.next()
 		if err == io.EOF {
@@ -167,7 +154,7 @@ func (it *Iterator) strSlow(v value) (value, error) {
 	}
 }
 
-func (it *Iterator) escapedChar(v value, c byte) (value, error) {
+func (it *Iter) escapedChar(v value, c byte) (value, error) {
 	switch c {
 	case 'u':
 		r, err := it.readU4()
@@ -231,7 +218,7 @@ func (it *Iterator) escapedChar(v value, c byte) (value, error) {
 	return v, nil
 }
 
-func (it *Iterator) readU4() (rune, error) {
+func (it *Iter) readU4() (rune, error) {
 	var v rune
 	for i := 0; i < 4; i++ {
 		c, err := it.next()
@@ -241,13 +228,14 @@ func (it *Iterator) readU4() (rune, error) {
 		if err != nil {
 			return 0, err
 		}
-		if c >= '0' && c <= '9' {
+		switch {
+		case c >= '0' && c <= '9':
 			v = v*16 + rune(c-'0')
-		} else if c >= 'a' && c <= 'f' {
+		case c >= 'a' && c <= 'f':
 			v = v*16 + rune(c-'a'+10)
-		} else if c >= 'A' && c <= 'F' {
+		case c >= 'A' && c <= 'F':
 			v = v*16 + rune(c-'A'+10)
-		} else {
+		default:
 			return 0, badToken(c)
 		}
 	}
@@ -283,25 +271,27 @@ func appendRune(p []byte, r rune) []byte {
 	// Negative values are erroneous. Making it unsigned addresses the problem.
 	switch i := uint32(r); {
 	case i <= rune1Max:
-		p = append(p, byte(r))
-		return p
+		return append(p, byte(r))
 	case i <= rune2Max:
-		p = append(p, t2|byte(r>>6))
-		p = append(p, tx|byte(r)&maskx)
-		return p
+		return append(p,
+			t2|byte(r>>6),
+			tx|byte(r)&maskx,
+		)
 	case i > maxRune, surrogateMin <= i && i <= surrogateMax:
 		r = runeError
 		fallthrough
 	case i <= rune3Max:
-		p = append(p, t3|byte(r>>12))
-		p = append(p, tx|byte(r>>6)&maskx)
-		p = append(p, tx|byte(r)&maskx)
-		return p
+		return append(p,
+			t3|byte(r>>12),
+			tx|byte(r>>6)&maskx,
+			tx|byte(r)&maskx,
+		)
 	default:
-		p = append(p, t4|byte(r>>18))
-		p = append(p, tx|byte(r>>12)&maskx)
-		p = append(p, tx|byte(r>>6)&maskx)
-		p = append(p, tx|byte(r)&maskx)
-		return p
+		return append(p,
+			t4|byte(r>>18),
+			tx|byte(r>>12)&maskx,
+			tx|byte(r>>6)&maskx,
+			tx|byte(r)&maskx,
+		)
 	}
 }

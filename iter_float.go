@@ -34,7 +34,7 @@ func init() {
 }
 
 // BigFloat read big.Float
-func (it *Iterator) BigFloat() (*big.Float, error) {
+func (it *Iter) BigFloat() (*big.Float, error) {
 	str, err := it.number(nil)
 	if err != nil {
 		return nil, xerrors.Errorf("number: %w", err)
@@ -51,7 +51,7 @@ func (it *Iterator) BigFloat() (*big.Float, error) {
 }
 
 // BigInt read big.Int
-func (it *Iterator) BigInt() (*big.Int, error) {
+func (it *Iter) BigInt() (*big.Int, error) {
 	str, err := it.number(nil)
 	if err != nil {
 		return nil, xerrors.Errorf("number: %w", err)
@@ -65,7 +65,7 @@ func (it *Iterator) BigInt() (*big.Int, error) {
 }
 
 // Float32 reads float32 value.
-func (it *Iterator) Float32() (float32, error) {
+func (it *Iter) Float32() (float32, error) {
 	c, err := it.next()
 	if err != nil {
 		return 0, xerrors.Errorf("next: %w", err)
@@ -83,7 +83,7 @@ func (it *Iterator) Float32() (float32, error) {
 	return v, nil
 }
 
-func (it *Iterator) positiveFloat32() (float32, error) {
+func (it *Iter) positiveFloat32() (float32, error) {
 	i := it.head
 	// First char.
 	if i == it.tail {
@@ -160,7 +160,7 @@ NonDecimalLoop:
 	return it.f32Slow()
 }
 
-func (it *Iterator) number(b []byte) ([]byte, error) {
+func (it *Iter) number(b []byte) ([]byte, error) {
 	for {
 		for i := it.head; i < it.tail; i++ {
 			switch c := it.buf[i]; c {
@@ -187,7 +187,7 @@ const (
 	size64 = 64
 )
 
-func (it *Iterator) f32Slow() (float32, error) {
+func (it *Iter) f32Slow() (float32, error) {
 	v, err := it.floatSlow(size32)
 	if err != nil {
 		return 0, err
@@ -196,7 +196,7 @@ func (it *Iterator) f32Slow() (float32, error) {
 }
 
 // Float64 read float64
-func (it *Iterator) Float64() (float64, error) {
+func (it *Iter) Float64() (float64, error) {
 	c, err := it.next()
 	if err != nil {
 		return 0, err
@@ -212,7 +212,7 @@ func (it *Iterator) Float64() (float64, error) {
 	return it.positiveFloat64()
 }
 
-func (it *Iterator) positiveFloat64() (float64, error) {
+func (it *Iter) positiveFloat64() (float64, error) {
 	i := it.head
 	// First char.
 	if i == it.tail {
@@ -292,7 +292,7 @@ NonDecimal:
 	return it.float64Slow()
 }
 
-func (it *Iterator) floatSlow(size int) (float64, error) {
+func (it *Iter) floatSlow(size int) (float64, error) {
 	var buf [32]byte
 
 	str, err := it.number(buf[:0])
@@ -311,7 +311,7 @@ func (it *Iterator) floatSlow(size int) (float64, error) {
 	return val, nil
 }
 
-func (it *Iterator) float64Slow() (float64, error) { return it.floatSlow(size64) }
+func (it *Iter) float64Slow() (float64, error) { return it.floatSlow(size64) }
 
 func validateFloat(str []byte) error {
 	// strconv.ParseFloat is not validating `1.` or `1.e1`
@@ -336,7 +336,7 @@ func validateFloat(str []byte) error {
 }
 
 // Number reads json.Number.
-func (it *Iterator) Number() (json.Number, error) {
+func (it *Iter) Number() (json.Number, error) {
 	str, err := it.number(nil)
 	if err != nil {
 		return "", err

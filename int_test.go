@@ -249,7 +249,7 @@ func Test_write_uint64(t *testing.T) {
 			stream.WriteUint64(val)
 			_ = stream.Flush()
 			should.Nil(stream.Error)
-			should.Equal(strconv.FormatUint(uint64(val), 10), buf.String())
+			should.Equal(strconv.FormatUint(val, 10), buf.String())
 		})
 	}
 	should := require.New(t)

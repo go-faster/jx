@@ -9,7 +9,7 @@ import (
 // ObjectBytes calls f for every key in object, using byte slice as key.
 //
 // The key value is valid only until f is not returned.
-func (it *Iterator) ObjectBytes(f func(i *Iterator, key []byte) error) error {
+func (it *Iter) ObjectBytes(f func(i *Iter, key []byte) error) error {
 	if err := it.expectNext('{'); err != nil {
 		return xerrors.Errorf("start: %w", err)
 	}
@@ -65,8 +65,8 @@ func (it *Iterator) ObjectBytes(f func(i *Iterator, key []byte) error) error {
 }
 
 // Object read ObjectBytes, calling f on each field.
-func (it *Iterator) Object(f func(i *Iterator, key string) error) error {
-	return it.ObjectBytes(func(i *Iterator, key []byte) error {
+func (it *Iter) Object(f func(i *Iter, key string) error) error {
+	return it.ObjectBytes(func(i *Iter, key []byte) error {
 		return f(i, string(key))
 	})
 }

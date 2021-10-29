@@ -24,7 +24,7 @@ type Config struct {
 // API the public interface of this package.
 // Primary Marshal and Unmarshal.
 type API interface {
-	IteratorPool
+	IterPool
 	StreamPool
 	Valid(data []byte) bool
 
@@ -76,7 +76,7 @@ func (cfg Config) API() API {
 	}
 	api.iteratorPool = &sync.Pool{
 		New: func() interface{} {
-			return NewIterator(api)
+			return NewIter(api)
 		},
 	}
 	api.configBeforeFrozen = cfg
@@ -84,7 +84,7 @@ func (cfg Config) API() API {
 }
 
 func (cfg *frozenConfig) Valid(data []byte) bool {
-	iter := cfg.Iterator(data)
-	defer cfg.PutIterator(iter)
+	iter := cfg.GetIter(data)
+	defer cfg.PutIter(iter)
 	return iter.Skip() == nil
 }

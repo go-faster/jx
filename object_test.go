@@ -9,7 +9,7 @@ import (
 
 func Test_empty_object(t *testing.T) {
 	iter := ParseString(Default, `{}`)
-	require.NoError(t, iter.Object(func(iter *Iterator, field string) error {
+	require.NoError(t, iter.Object(func(iter *Iter, field string) error {
 		t.Error("should not call")
 		return nil
 	}))
@@ -18,11 +18,10 @@ func Test_empty_object(t *testing.T) {
 func Test_one_field(t *testing.T) {
 	should := require.New(t)
 	iter := ParseString(Default, `{"a": "stream"}`)
-	should.NoError(iter.Object(func(iter *Iterator, field string) error {
+	should.NoError(iter.Object(func(iter *Iter, field string) error {
 		should.Equal("a", field)
 		return iter.Skip()
 	}))
-
 }
 
 func Test_write_object(t *testing.T) {

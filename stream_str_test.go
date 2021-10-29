@@ -25,7 +25,7 @@ func TestStream_WriteString(t *testing.T) {
 	require.Equal(t, expected, string(s.Buffer()))
 	requireCompat(t, s.Buffer(), data)
 	t.Run("Read", func(t *testing.T) {
-		i := NewIterator(Default)
+		i := NewIter(Default)
 		i.ResetBytes(s.Buffer())
 		s, err := i.Str()
 		require.NoError(t, err)

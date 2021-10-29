@@ -25,7 +25,7 @@ func init() {
 }
 
 // Uint read uint.
-func (it *Iterator) Uint() (uint, error) {
+func (it *Iter) Uint() (uint, error) {
 	if strconv.IntSize == 32 {
 		v, err := it.Uint32()
 		if err != nil {
@@ -41,7 +41,7 @@ func (it *Iterator) Uint() (uint, error) {
 }
 
 // Int reads integer.
-func (it *Iterator) Int() (int, error) {
+func (it *Iter) Int() (int, error) {
 	if strconv.IntSize == 32 {
 		v, err := it.Int32()
 		return int(v), err
@@ -51,7 +51,7 @@ func (it *Iterator) Int() (int, error) {
 }
 
 // Int32 reads int32 value.
-func (it *Iterator) Int32() (int32, error) {
+func (it *Iter) Int32() (int32, error) {
 	c, err := it.next()
 	if err != nil {
 		return 0, err
@@ -78,11 +78,11 @@ func (it *Iterator) Int32() (int32, error) {
 }
 
 // Uint32 read uint32
-func (it *Iterator) Uint32() (uint32, error) {
+func (it *Iter) Uint32() (uint32, error) {
 	return it.readUint32()
 }
 
-func (it *Iterator) readUint32() (uint32, error) {
+func (it *Iter) readUint32() (uint32, error) {
 	c, err := it.next()
 	if err != nil {
 		return 0, err
@@ -204,7 +204,7 @@ func (it *Iterator) readUint32() (uint32, error) {
 }
 
 // Int64 read int64
-func (it *Iterator) Int64() (int64, error) {
+func (it *Iter) Int64() (int64, error) {
 	c, err := it.next()
 	if err != nil {
 		return 0, err
@@ -234,7 +234,7 @@ func (it *Iterator) Int64() (int64, error) {
 }
 
 // Uint64 read uint64
-func (it *Iterator) Uint64() (uint64, error) {
+func (it *Iter) Uint64() (uint64, error) {
 	c, err := it.next()
 	if err != nil {
 		return 0, err
@@ -242,7 +242,7 @@ func (it *Iterator) Uint64() (uint64, error) {
 	return it.readUint64(c)
 }
 
-func (it *Iterator) readUint64(c byte) (uint64, error) {
+func (it *Iter) readUint64(c byte) (uint64, error) {
 	ind := intDigits[c]
 	if ind == 0 {
 		if err := it.assertInt(); err != nil {
@@ -362,7 +362,7 @@ func (it *Iterator) readUint64(c byte) (uint64, error) {
 	}
 }
 
-func (it *Iterator) assertInt() error {
+func (it *Iter) assertInt() error {
 	if it.head < it.tail && it.buf[it.head] == '.' {
 		return xerrors.New("got float instead of int")
 	}

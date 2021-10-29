@@ -7,7 +7,7 @@ import (
 )
 
 func TestIterator_Str(t *testing.T) {
-	i := Default.Iterator([]byte(`"hello, world!"`))
+	i := Default.GetIter([]byte(`"hello, world!"`))
 	s, err := i.Str()
 	require.NoError(t, err)
 	require.Equal(t, "hello, world!", s)

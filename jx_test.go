@@ -32,7 +32,6 @@ func Test_parseVal(t *testing.T) {
 		v.Write(s)
 		require.NoError(t, s.Flush())
 		require.Equal(t, input, buf.String(), "encoded value should equal to input")
-
 	})
 	t.Run("Inputs", func(t *testing.T) {
 		for _, tt := range []struct {
@@ -62,7 +61,6 @@ func Test_parseVal(t *testing.T) {
 					t.Log(hexEnc.Dump(buf.Bytes()))
 				}
 			})
-
 		}
 	})
 }
@@ -173,11 +171,10 @@ func (v Value) String() string {
 	default:
 		panic(v.Type)
 	}
-
 	return b.String()
 }
 
-func parseVal(i *Iterator, v *Value) error {
+func parseVal(i *Iter, v *Value) error {
 	switch i.Next() {
 	case Invalid:
 		return xerrors.New("invalid")
@@ -223,7 +220,7 @@ func parseVal(i *Iterator, v *Value) error {
 		v.Type = ValBool
 	case Object:
 		v.Type = ValObj
-		if err := i.Object(func(i *Iterator, s string) error {
+		if err := i.Object(func(i *Iter, s string) error {
 			var elem Value
 			if err := parseVal(i, &elem); err != nil {
 				return xerrors.Errorf("elem: %w", err)
@@ -238,7 +235,7 @@ func parseVal(i *Iterator, v *Value) error {
 		return nil
 	case Array:
 		v.Type = ValArr
-		if err := i.Array(func(i *Iterator) error {
+		if err := i.Array(func(i *Iter) error {
 			var elem Value
 			if err := parseVal(i, &elem); err != nil {
 				return xerrors.Errorf("elem: %w", err)

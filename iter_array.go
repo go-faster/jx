@@ -8,7 +8,7 @@ import (
 
 // Elem reads array element and reports whether array has more
 // elements to read.
-func (it *Iterator) Elem() (ok bool, err error) {
+func (it *Iter) Elem() (ok bool, err error) {
 	c, err := it.next()
 	if err != nil {
 		return false, err
@@ -34,7 +34,7 @@ func (it *Iterator) Elem() (ok bool, err error) {
 }
 
 // Array reads array and call f on each element.
-func (it *Iterator) Array(f func(i *Iterator) error) error {
+func (it *Iter) Array(f func(i *Iter) error) error {
 	if err := it.expectNext('['); err != nil {
 		return xerrors.Errorf("start: %w", err)
 	}

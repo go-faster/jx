@@ -27,9 +27,9 @@ func FuzzDecEnc(f *testing.F) {
 	f.Add([]byte(`null`))
 	f.Add([]byte(`{"foo": {"bar": 1, "baz": [1, 2, 3]}}`))
 	f.Fuzz(func(t *testing.T, data []byte) {
-		i := Default.Iterator(nil)
+		i := Default.GetIter(nil)
 		i.ResetBytes(data)
-		defer Default.PutIterator(i)
+		defer Default.PutIter(i)
 
 		// Parsing to v.
 		var v Value
@@ -41,7 +41,7 @@ func FuzzDecEnc(f *testing.F) {
 		}
 		// Writing v to buf.
 		var buf bytes.Buffer
-		s := Default.Stream(&buf)
+		s := Default.GetStream(&buf)
 		v.Write(s)
 		if err := s.Flush(); err != nil {
 			t.Fatal(err)

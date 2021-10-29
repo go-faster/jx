@@ -80,19 +80,19 @@ func (s *Stream) writeByte(c byte) {
 	s.buf = append(s.buf, c)
 }
 
-func (s *Stream) writeTwoBytes(c1 byte, c2 byte) {
+func (s *Stream) writeTwoBytes(c1, c2 byte) {
 	s.buf = append(s.buf, c1, c2)
 }
 
-func (s *Stream) writeThreeBytes(c1 byte, c2 byte, c3 byte) {
+func (s *Stream) writeThreeBytes(c1, c2, c3 byte) {
 	s.buf = append(s.buf, c1, c2, c3)
 }
 
-func (s *Stream) writeFourBytes(c1 byte, c2 byte, c3 byte, c4 byte) {
+func (s *Stream) writeFourBytes(c1, c2, c3, c4 byte) {
 	s.buf = append(s.buf, c1, c2, c3, c4)
 }
 
-func (s *Stream) writeFiveBytes(c1 byte, c2 byte, c3 byte, c4 byte, c5 byte) {
+func (s *Stream) writeFiveBytes(c1, c2, c3, c4, c5 byte) {
 	s.buf = append(s.buf, c1, c2, c3, c4, c5)
 }
 

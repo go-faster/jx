@@ -6,7 +6,7 @@ import (
 
 // Null reads a json object as null and
 // returns whether it's a null or not.
-func (it *Iterator) Null() error {
+func (it *Iter) Null() error {
 	if err := it.expectNext('n'); err != nil {
 		return err
 	}
@@ -14,7 +14,7 @@ func (it *Iterator) Null() error {
 }
 
 // Bool reads a json object as Bool
-func (it *Iterator) Bool() (bool, error) {
+func (it *Iter) Bool() (bool, error) {
 	c, err := it.next()
 	if err != nil {
 		return false, err
@@ -33,7 +33,7 @@ func (it *Iterator) Bool() (bool, error) {
 }
 
 // Skip skips a json object and positions to relatively the next json object.
-func (it *Iterator) Skip() error {
+func (it *Iter) Skip() error {
 	c, err := it.next()
 	if err != nil {
 		return err
@@ -71,7 +71,7 @@ func (it *Iterator) Skip() error {
 	}
 }
 
-func (it *Iterator) skipFourBytes(b1, b2, b3, b4 byte) error {
+func (it *Iter) skipFourBytes(b1, b2, b3, b4 byte) error {
 	if err := it.skipThreeBytes(b1, b2, b3); err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func (it *Iterator) skipFourBytes(b1, b2, b3, b4 byte) error {
 	return nil
 }
 
-func (it *Iterator) skipThreeBytes(b1, b2, b3 byte) error {
+func (it *Iter) skipThreeBytes(b1, b2, b3 byte) error {
 	if it.byte() != b1 {
 		return badToken(it.byte())
 	}

@@ -87,10 +87,10 @@ func init() {
 	types['{'] = Object
 }
 
-// Iterator is an io.Reader like object, with json specific read functions.
+// Iter is an io.Reader like object, with json specific read functions.
 //
 // Error is not returned as return value, but rather stored as Error field.
-type Iterator struct {
+type Iter struct {
 	cfg    *frozenConfig
 	reader io.Reader
 
@@ -105,25 +105,25 @@ type Iterator struct {
 	depth int
 }
 
-// NewIterator creates an empty Iterator instance
-func NewIterator(cfg API) *Iterator {
-	return &Iterator{
+// NewIter creates an empty Iter instance
+func NewIter(cfg API) *Iter {
+	return &Iter{
 		cfg: cfg.(*frozenConfig),
 	}
 }
 
-// Parse creates an Iterator instance from io.Reader
-func Parse(cfg API, reader io.Reader, bufSize int) *Iterator {
-	return &Iterator{
+// Parse creates an Iter instance from io.Reader
+func Parse(cfg API, reader io.Reader, bufSize int) *Iter {
+	return &Iter{
 		cfg:    cfg.(*frozenConfig),
 		reader: reader,
 		buf:    make([]byte, bufSize),
 	}
 }
 
-// ParseBytes creates an Iterator instance from byte array
-func ParseBytes(cfg API, input []byte) *Iterator {
-	return &Iterator{
+// ParseBytes creates an Iter instance from byte array
+func ParseBytes(cfg API, input []byte) *Iter {
+	return &Iter{
 		cfg:    cfg.(*frozenConfig),
 		reader: nil,
 		buf:    input,
@@ -133,13 +133,13 @@ func ParseBytes(cfg API, input []byte) *Iterator {
 	}
 }
 
-// ParseString creates an Iterator instance from string
-func ParseString(cfg API, input string) *Iterator {
+// ParseString creates an Iter instance from string
+func ParseString(cfg API, input string) *Iter {
 	return ParseBytes(cfg, []byte(input))
 }
 
 // Reset reuse iterator instance by specifying another reader
-func (it *Iterator) Reset(reader io.Reader) *Iterator {
+func (it *Iter) Reset(reader io.Reader) *Iter {
 	it.reader = reader
 	it.head = 0
 	it.tail = 0
@@ -148,7 +148,7 @@ func (it *Iterator) Reset(reader io.Reader) *Iterator {
 }
 
 // ResetBytes reuse iterator instance by specifying another byte array as input
-func (it *Iterator) ResetBytes(input []byte) *Iterator {
+func (it *Iter) ResetBytes(input []byte) *Iter {
 	it.reader = nil
 	it.buf = input
 	it.head = 0
@@ -158,13 +158,13 @@ func (it *Iterator) ResetBytes(input []byte) *Iterator {
 }
 
 // Next gets Type of relatively next json element
-func (it *Iterator) Next() Type {
+func (it *Iter) Next() Type {
 	v, _ := it.next()
 	it.unread()
 	return types[v]
 }
 
-func (it *Iterator) expectNext(c byte) error {
+func (it *Iter) expectNext(c byte) error {
 	v, err := it.next()
 	if err == io.EOF {
 		return io.ErrUnexpectedEOF
@@ -179,7 +179,7 @@ func (it *Iterator) expectNext(c byte) error {
 }
 
 // next returns non-whitespace token or error.
-func (it *Iterator) next() (byte, error) {
+func (it *Iter) next() (byte, error) {
 	for {
 		for i := it.head; i < it.tail; i++ {
 			c := it.buf[i]
@@ -196,7 +196,7 @@ func (it *Iterator) next() (byte, error) {
 	}
 }
 
-func (it *Iterator) byte() (ret byte) {
+func (it *Iter) byte() (ret byte) {
 	if it.head == it.tail {
 		if it.read() == nil {
 			ret = it.buf[it.head]
@@ -210,7 +210,7 @@ func (it *Iterator) byte() (ret byte) {
 	return ret
 }
 
-func (it *Iterator) read() error {
+func (it *Iter) read() error {
 	if it.reader == nil {
 		it.head = it.tail
 		return io.EOF
@@ -226,12 +226,12 @@ func (it *Iterator) read() error {
 	return nil
 }
 
-func (it *Iterator) unread() { it.head-- }
+func (it *Iter) unread() { it.head-- }
 
 // limit maximum depth of nesting, as allowed by https://tools.ietf.org/html/rfc7159#section-9
 const maxDepth = 10000
 
-func (it *Iterator) incrementDepth() error {
+func (it *Iter) incrementDepth() error {
 	it.depth++
 	if it.depth > maxDepth {
 		return xerrors.New("max depth")
@@ -239,7 +239,7 @@ func (it *Iterator) incrementDepth() error {
 	return nil
 }
 
-func (it *Iterator) decrementDepth() error {
+func (it *Iter) decrementDepth() error {
 	it.depth--
 	if it.depth < 0 {
 		return xerrors.New("negative depth")

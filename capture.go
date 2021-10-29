@@ -2,7 +2,7 @@ package jx
 
 // Capture call f and then rolls back buffer to state before call.
 // Does not work with reader.
-func (it *Iterator) Capture(f func(i *Iterator) error) error {
+func (it *Iter) Capture(f func(i *Iter) error) error {
 	if it.reader != nil {
 		panic("capture is not supported")
 	}

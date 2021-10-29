@@ -22,7 +22,7 @@ func Benchmark_itoa(b *testing.B) {
 }
 
 func Benchmark_int(b *testing.B) {
-	iter := NewIterator(Default)
+	iter := NewIter(Default)
 	input := []byte(`100`)
 	for n := 0; n < b.N; n++ {
 		iter.ResetBytes(input)

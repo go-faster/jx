@@ -149,7 +149,7 @@ func Test_write_float64(t *testing.T) {
 			should.Nil(stream.Error)
 			s := strconv.FormatFloat(val, 'f', -1, 64)
 			if !strings.Contains(s, ".") {
-				s = s + ".0"
+				s += ".0"
 			}
 			should.Equal(s, buf.String())
 		})

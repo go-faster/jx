@@ -56,7 +56,7 @@ func (w *NopWriter) Write(p []byte) (n int, err error) {
 }
 
 func Test_flush_buffer_should_stop_grow_buffer(t *testing.T) {
-	// Stream an array of a zillion zeros.
+	// GetStream an array of a zillion zeros.
 	writer := new(NopWriter)
 	stream := NewStream(Default, writer, 512)
 	stream.WriteArrayStart()

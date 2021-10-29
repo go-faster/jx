@@ -19,7 +19,7 @@ func Benchmark_large_file(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		iter.ResetBytes(data)
-		if err := iter.Array(func(iter *Iterator) error {
+		if err := iter.Array(func(iter *Iter) error {
 			return iter.Skip()
 		}); err != nil {
 			b.Fatal(err)

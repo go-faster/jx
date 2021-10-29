@@ -4,7 +4,7 @@ import (
 	"golang.org/x/xerrors"
 )
 
-func (it *Iterator) skipNumber() error {
+func (it *Iter) skipNumber() error {
 	ok, err := it.skipNumberFast()
 	if err != nil || ok {
 		return err
@@ -16,7 +16,7 @@ func (it *Iterator) skipNumber() error {
 	return nil
 }
 
-func (it *Iterator) skipNumberFast() (ok bool, err error) {
+func (it *Iter) skipNumberFast() (ok bool, err error) {
 	dotFound := false
 	for i := it.head; i < it.tail; i++ {
 		c := it.buf[i]
@@ -51,7 +51,7 @@ func (it *Iterator) skipNumberFast() (ok bool, err error) {
 	return false, nil
 }
 
-func (it *Iterator) strSkip() error {
+func (it *Iter) strSkip() error {
 	ok, err := it.strFastSkip()
 	if err != nil || ok {
 		return err
@@ -64,31 +64,32 @@ func (it *Iterator) strSkip() error {
 	return nil
 }
 
-func (it *Iterator) strFastSkip() (ok bool, err error) {
+func (it *Iter) strFastSkip() (ok bool, err error) {
 	for i := it.head; i < it.tail; i++ {
 		c := it.buf[i]
-		if c == '"' {
+		switch {
+		case c == '"':
 			it.head = i + 1
 			return true, nil
-		} else if c == '\\' {
+		case c == '\\':
 			return false, nil
-		} else if c < ' ' {
+		case c < ' ':
 			return false, badToken(c)
 		}
 	}
 	return false, nil
 }
 
-func (it *Iterator) skipObject() error {
+func (it *Iter) skipObject() error {
 	it.unread()
-	return it.ObjectBytes(func(iter *Iterator, _ []byte) error {
+	return it.ObjectBytes(func(iter *Iter, _ []byte) error {
 		return iter.Skip()
 	})
 }
 
-func (it *Iterator) skipArray() error {
+func (it *Iter) skipArray() error {
 	it.unread()
-	return it.Array(func(iter *Iterator) error {
+	return it.Array(func(iter *Iter) error {
 		return iter.Skip()
 	})
 }
