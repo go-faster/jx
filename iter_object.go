@@ -6,10 +6,10 @@ import (
 	"golang.org/x/xerrors"
 )
 
-// ObjectBytes calls f for every key in object, using byte slice as key.
+// ObjBytes calls f for every key in object, using byte slice as key.
 //
 // The key value is valid only until f is not returned.
-func (it *Iter) ObjectBytes(f func(i *Iter, key []byte) error) error {
+func (it *Iter) ObjBytes(f func(i *Iter, key []byte) error) error {
 	if err := it.expectNext('{'); err != nil {
 		return xerrors.Errorf("start: %w", err)
 	}
@@ -64,9 +64,9 @@ func (it *Iter) ObjectBytes(f func(i *Iter, key []byte) error) error {
 	return it.decrementDepth()
 }
 
-// Object read ObjectBytes, calling f on each field.
-func (it *Iter) Object(f func(i *Iter, key string) error) error {
-	return it.ObjectBytes(func(i *Iter, key []byte) error {
+// Obj read json object, calling f on each field.
+func (it *Iter) Obj(f func(i *Iter, key string) error) error {
+	return it.ObjBytes(func(i *Iter, key []byte) error {
 		return f(i, string(key))
 	})
 }

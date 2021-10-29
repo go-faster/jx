@@ -15,7 +15,7 @@ import (
 )
 
 func Test_parseVal(t *testing.T) {
-	t.Run("Object", func(t *testing.T) {
+	t.Run("Obj", func(t *testing.T) {
 		var v Value
 		const input = `{"foo":{"bar":1,"baz":[1,2,3.14],"200":null}}`
 		i := ParseString(input)
@@ -222,7 +222,7 @@ func parseVal(i *Iter, v *Value) error {
 		v.Type = ValBool
 	case Object:
 		v.Type = ValObj
-		if err := i.Object(func(i *Iter, s string) error {
+		if err := i.Obj(func(i *Iter, s string) error {
 			var elem Value
 			if err := parseVal(i, &elem); err != nil {
 				return xerrors.Errorf("elem: %w", err)

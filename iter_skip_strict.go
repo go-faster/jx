@@ -82,7 +82,7 @@ func (it *Iter) strFastSkip() (ok bool, err error) {
 
 func (it *Iter) skipObject() error {
 	it.unread()
-	return it.ObjectBytes(func(iter *Iter, _ []byte) error {
+	return it.ObjBytes(func(iter *Iter, _ []byte) error {
 		return iter.Skip()
 	})
 }

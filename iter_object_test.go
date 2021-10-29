@@ -10,7 +10,7 @@ import (
 func TestIter_ObjectBytes(t *testing.T) {
 	i := ParseString(`{"id":1,"randomNumber":10}`)
 	met := map[string]struct{}{}
-	require.NoError(t, i.ObjectBytes(func(i *Iter, key []byte) error {
+	require.NoError(t, i.ObjBytes(func(i *Iter, key []byte) error {
 		switch string(key) {
 		case "id":
 			v, err := i.Int64()

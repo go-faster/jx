@@ -37,7 +37,7 @@ func Benchmark_skip(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		result := TestResp{}
 		iter := ParseBytes(input)
-		if err := iter.ObjectBytes(func(i *Iter, key []byte) error {
+		if err := iter.ObjBytes(func(i *Iter, key []byte) error {
 			switch string(key) {
 			case "code":
 				v, err := iter.Uint64()
