@@ -125,7 +125,7 @@ func (it *Iter) Str() (string, error) {
 
 func (it *Iter) strSlow(v value) (value, error) {
 	for {
-		c, err := it.next()
+		c, err := it.byte()
 		if err == io.EOF {
 			return value{}, io.ErrUnexpectedEOF
 		}
@@ -137,7 +137,7 @@ func (it *Iter) strSlow(v value) (value, error) {
 			// End of string.
 			return v, nil
 		case '\\':
-			c, err := it.next()
+			c, err := it.byte()
 			if err == io.EOF {
 				return value{}, io.ErrUnexpectedEOF
 			}
@@ -162,7 +162,7 @@ func (it *Iter) escapedChar(v value, c byte) (value, error) {
 			return value{}, xerrors.Errorf("read u4: %w", err)
 		}
 		if utf16.IsSurrogate(r) {
-			c, err := it.next()
+			c, err := it.byte()
 			if err == io.EOF {
 				return value{}, io.ErrUnexpectedEOF
 			}
@@ -173,7 +173,7 @@ func (it *Iter) escapedChar(v value, c byte) (value, error) {
 				it.unread()
 				return v.rune(r), nil
 			}
-			c, err = it.next()
+			c, err = it.byte()
 			if err == io.EOF {
 				return value{}, io.ErrUnexpectedEOF
 			}
@@ -221,7 +221,7 @@ func (it *Iter) escapedChar(v value, c byte) (value, error) {
 func (it *Iter) readU4() (rune, error) {
 	var v rune
 	for i := 0; i < 4; i++ {
-		c, err := it.next()
+		c, err := it.byte()
 		if err == io.EOF {
 			return 0, io.ErrUnexpectedEOF
 		}

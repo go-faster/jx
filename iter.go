@@ -196,18 +196,15 @@ func (it *Iter) next() (byte, error) {
 	}
 }
 
-func (it *Iter) byte() (ret byte) {
+func (it *Iter) byte() (byte, error) {
 	if it.head == it.tail {
-		if it.read() == nil {
-			ret = it.buf[it.head]
-			it.head++
-			return ret
+		if err := it.read(); err != nil {
+			return 0, err
 		}
-		return 0
 	}
-	ret = it.buf[it.head]
+	c := it.buf[it.head]
 	it.head++
-	return ret
+	return c, nil
 }
 
 func (it *Iter) read() error {

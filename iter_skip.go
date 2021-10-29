@@ -72,24 +72,27 @@ func (it *Iter) Skip() error {
 }
 
 func (it *Iter) skipFourBytes(b1, b2, b3, b4 byte) error {
-	if err := it.skipThreeBytes(b1, b2, b3); err != nil {
-		return err
-	}
-	if it.byte() != b4 {
-		return badToken(it.byte())
+	for _, b := range [...]byte{b1, b2, b3, b4} {
+		c, err := it.byte()
+		if err != nil {
+			return err
+		}
+		if c != b {
+			return badToken(c)
+		}
 	}
 	return nil
 }
 
 func (it *Iter) skipThreeBytes(b1, b2, b3 byte) error {
-	if it.byte() != b1 {
-		return badToken(it.byte())
-	}
-	if it.byte() != b2 {
-		return badToken(it.byte())
-	}
-	if it.byte() != b3 {
-		return badToken(it.byte())
+	for _, b := range [...]byte{b1, b2, b3} {
+		c, err := it.byte()
+		if err != nil {
+			return err
+		}
+		if c != b {
+			return badToken(c)
+		}
 	}
 	return nil
 }

@@ -1,10 +1,13 @@
 package jx
 
 import (
+	"bytes"
+	hexEnc "encoding/hex"
 	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_read_string(t *testing.T) {
@@ -80,5 +83,37 @@ func testReadString(t *testing.T, input string, expectValue string, expectError 
 	if value != expectValue {
 		t.Errorf("%q: %s: expected %q, got %q", input, marshalerName, expectValue, value)
 		return
+	}
+}
+
+func TestIter_Str(t *testing.T) {
+	for _, tt := range []struct {
+		Name  string
+		Input string
+	}{
+		{Name: "\\x00", Input: "\x00"},
+		{Name: "\\x00TrailingSpace", Input: "\x00 "},
+	} {
+		t.Run(tt.Name, func(t *testing.T) {
+			buf := new(bytes.Buffer)
+			s := Default.GetStream(buf)
+			defer Default.PutStream(s)
+			t.Logf("%v", []rune(tt.Input))
+
+			s.WriteString(tt.Input)
+			require.NoError(t, s.Flush())
+			t.Logf("%v", []rune(buf.String()))
+
+			// Check `encoding/json` compatibility.
+			var gotStd string
+			requireCompat(t, buf.Bytes(), tt.Input)
+			require.NoError(t, json.Unmarshal(buf.Bytes(), &gotStd))
+			require.Equal(t, tt.Input, gotStd)
+
+			i := Default.GetIter(buf.Bytes())
+			got, err := i.Str()
+			require.NoError(t, err)
+			require.Equal(t, tt.Input, got, "%s\n%s", buf, hexEnc.Dump(buf.Bytes()))
+		})
 	}
 }

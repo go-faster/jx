@@ -73,15 +73,17 @@ func FuzzDecEnc(f *testing.F) {
 }
 
 func FuzzValues(f *testing.F) {
-	f.Add(int64(1))
-	f.Add(int64(1534564316421))
-	f.Fuzz(func(t *testing.T, n int64) {
+	f.Add(int64(1), "hello")
+	f.Add(int64(1534564316421), " привет ")
+	f.Fuzz(func(t *testing.T, n int64, str string) {
 		buf := new(bytes.Buffer)
 		s := Default.GetStream(buf)
 		defer Default.PutStream(s)
 
 		s.WriteArrayStart()
 		s.WriteInt64(n)
+		s.WriteMore()
+		s.WriteString(str)
 		s.WriteArrayEnd()
 
 		if err := s.Flush(); err != nil {
@@ -89,12 +91,17 @@ func FuzzValues(f *testing.F) {
 		}
 
 		i := Default.GetIter(buf.Bytes())
-		var nGot int64
+		var (
+			nGot int64
+			sGot string
+		)
 		if err := i.Array(func(i *Iter) error {
 			var err error
 			switch i.Next() {
 			case Number:
 				nGot, err = i.Int64()
+			case String:
+				sGot, err = i.Str()
 			default:
 				err = errors.New("unexpected")
 			}
@@ -105,6 +112,11 @@ func FuzzValues(f *testing.F) {
 		if nGot != n {
 			t.Fatalf("'%s': %d (got) != %d (expected)",
 				buf, nGot, n,
+			)
+		}
+		if sGot != str {
+			t.Fatalf("'%s': %q (got) != %q (expected)",
+				buf, sGot, str,
 			)
 		}
 	})
