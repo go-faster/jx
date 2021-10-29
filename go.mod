@@ -1,4 +1,4 @@
-module github.com/ogen-go/jir
+module github.com/ogen-go/jx
 
 go 1.17
 

@@ -1,6 +1,6 @@
 //go:build go1.18
 
-package jir
+package jx
 
 import (
 	"bytes"

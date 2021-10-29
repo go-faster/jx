@@ -1,4 +1,4 @@
-package jir
+package jx
 
 // Capture call f and then rolls back buffer to state before call.
 // Does not work with reader.

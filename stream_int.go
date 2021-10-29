@@ -1,4 +1,4 @@
-package jir
+package jx
 
 var digits []uint32
 

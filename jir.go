@@ -2,4 +2,4 @@
 //
 // The jir.Iterator provides a way to iterate over bytes/string/reader
 // and yield parsed elements one by one, fast.
-package jir
+package jx
