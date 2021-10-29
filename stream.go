@@ -8,22 +8,26 @@ import (
 //
 // Error is not returned as return value, but stored as Error member on this stream instance.
 type Stream struct {
-	cfg   *frozenConfig
-	out   io.Writer
-	buf   []byte
-	ident int
+	out io.Writer
+	buf []byte
+
+	ident    int
+	curIdent int
+}
+
+// SetIdent sets length of single indentation step.
+func (s *Stream) SetIdent(n int) {
+	s.ident = n
 }
 
 // NewStream create new stream instance.
 // cfg can be jsoniter.ConfigDefault.
 // out can be nil if write to internal buffer.
 // bufSize is the initial size for the internal buffer in bytes.
-func NewStream(cfg API, out io.Writer, bufSize int) *Stream {
+func NewStream(out io.Writer, bufSize int) *Stream {
 	return &Stream{
-		cfg:   cfg.(*frozenConfig),
-		out:   out,
-		buf:   make([]byte, 0, bufSize),
-		ident: 0,
+		out: out,
+		buf: make([]byte, 0, bufSize),
 	}
 }
 
@@ -103,7 +107,7 @@ func (s *Stream) Bool(val bool) {
 
 // ObjStart writes { with possible indention.
 func (s *Stream) ObjStart() {
-	s.ident += s.cfg.indentionStep
+	s.curIdent += s.ident
 	s.byte('{')
 	s.writeIdent(0)
 }
@@ -111,7 +115,7 @@ func (s *Stream) ObjStart() {
 // ObjField write "field": with possible indention.
 func (s *Stream) ObjField(field string) {
 	s.Str(field)
-	if s.ident > 0 {
+	if s.curIdent > 0 {
 		s.twoBytes(':', ' ')
 	} else {
 		s.byte(':')
@@ -120,8 +124,8 @@ func (s *Stream) ObjField(field string) {
 
 // ObjEnd write } with possible indention
 func (s *Stream) ObjEnd() {
-	s.writeIdent(s.cfg.indentionStep)
-	s.ident -= s.cfg.indentionStep
+	s.writeIdent(s.ident)
+	s.curIdent -= s.ident
 	s.byte('}')
 }
 
@@ -139,7 +143,7 @@ func (s *Stream) More() {
 
 // ArrStart writes [ with possible indention.
 func (s *Stream) ArrStart() {
-	s.ident += s.cfg.indentionStep
+	s.curIdent += s.ident
 	s.byte('[')
 	s.writeIdent(0)
 }
@@ -151,17 +155,17 @@ func (s *Stream) ArrEmpty() {
 
 // ArrEnd writes ] with possible indention.
 func (s *Stream) ArrEnd() {
-	s.writeIdent(s.cfg.indentionStep)
-	s.ident -= s.cfg.indentionStep
+	s.writeIdent(s.ident)
+	s.curIdent -= s.ident
 	s.byte(']')
 }
 
 func (s *Stream) writeIdent(delta int) {
-	if s.ident == 0 {
+	if s.curIdent == 0 {
 		return
 	}
 	s.byte('\n')
-	toWrite := s.ident - delta
+	toWrite := s.curIdent - delta
 	for i := 0; i < toWrite; i++ {
 		s.buf = append(s.buf, ' ')
 	}

@@ -8,7 +8,7 @@ import (
 )
 
 func Benchmark_encode_int(b *testing.B) {
-	stream := NewStream(Default, ioutil.Discard, 64)
+	stream := NewStream(ioutil.Discard, 64)
 	for n := 0; n < b.N; n++ {
 		stream.Reset(nil)
 		stream.WriteUint64(0xffffffff)
@@ -22,7 +22,7 @@ func Benchmark_itoa(b *testing.B) {
 }
 
 func Benchmark_int(b *testing.B) {
-	iter := NewIter(Default)
+	iter := NewIter()
 	input := []byte(`100`)
 	for n := 0; n < b.N; n++ {
 		iter.ResetBytes(input)

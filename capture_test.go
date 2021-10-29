@@ -20,7 +20,8 @@ func TestIterator_Capture(t *testing.T) {
 		}
 	]
 }`
-	i := Default.GetIter([]byte(input))
+	i := GetIter()
+	i.ResetBytes([]byte(input))
 	err := i.Object(func(i *Iter, key string) error {
 		return i.Array(func(i *Iter) error {
 			// Reading "type" field value first.
@@ -68,7 +69,7 @@ func TestIterator_Capture(t *testing.T) {
 
 func BenchmarkIterator_Skip(b *testing.B) {
 	var input = []byte(`{"type": "foo", "foo": "string"}`)
-	it := Default.GetIter(nil)
+	it := GetIter()
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {

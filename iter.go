@@ -91,7 +91,6 @@ func init() {
 //
 // Error is not returned as return value, but rather stored as Error field.
 type Iter struct {
-	cfg    *frozenConfig
 	reader io.Reader
 
 	// buf is current buffer.
@@ -106,25 +105,21 @@ type Iter struct {
 }
 
 // NewIter creates an empty Iter instance
-func NewIter(cfg API) *Iter {
-	return &Iter{
-		cfg: cfg.(*frozenConfig),
-	}
+func NewIter() *Iter {
+	return &Iter{}
 }
 
 // Parse creates an Iter instance from io.Reader
-func Parse(cfg API, reader io.Reader, bufSize int) *Iter {
+func Parse(reader io.Reader, bufSize int) *Iter {
 	return &Iter{
-		cfg:    cfg.(*frozenConfig),
 		reader: reader,
 		buf:    make([]byte, bufSize),
 	}
 }
 
 // ParseBytes creates an Iter instance from byte array
-func ParseBytes(cfg API, input []byte) *Iter {
+func ParseBytes(input []byte) *Iter {
 	return &Iter{
-		cfg:    cfg.(*frozenConfig),
 		reader: nil,
 		buf:    input,
 		head:   0,
@@ -134,8 +129,8 @@ func ParseBytes(cfg API, input []byte) *Iter {
 }
 
 // ParseString creates an Iter instance from string
-func ParseString(cfg API, input string) *Iter {
-	return ParseBytes(cfg, []byte(input))
+func ParseString(input string) *Iter {
+	return ParseBytes([]byte(input))
 }
 
 // Reset reuse iterator instance by specifying another reader

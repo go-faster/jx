@@ -78,7 +78,7 @@ func Test_skip(t *testing.T) {
 				should := require.New(t)
 				ptrVal := reflect.New(valType)
 				stdErr := json.Unmarshal([]byte(input), ptrVal.Interface())
-				iter := ParseString(Default, input)
+				iter := ParseString(input)
 				if stdErr == nil {
 					should.NoError(iter.Skip())
 					should.ErrorIs(iter.Null(), io.ErrUnexpectedEOF)

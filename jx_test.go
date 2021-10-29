@@ -14,21 +14,16 @@ import (
 	"golang.org/x/xerrors"
 )
 
-func TestJSON(t *testing.T) {
-	_ = Default
-	_ = Fastest
-}
-
 func Test_parseVal(t *testing.T) {
 	t.Run("Object", func(t *testing.T) {
 		var v Value
 		const input = `{"foo":{"bar":1,"baz":[1,2,3.14],"200":null}}`
-		i := ParseString(Default, input)
+		i := ParseString(input)
 		assert.NoError(t, parseVal(i, &v))
 		assert.Equal(t, `{foo: {bar: 1, baz: [1, 2, f3.14], 200: null}}`, v.String())
 
 		buf := new(bytes.Buffer)
-		s := NewStream(Default, buf, 1024)
+		s := NewStream(buf, 1024)
 		v.Write(s)
 		require.NoError(t, s.Flush())
 		require.Equal(t, input, buf.String(), "encoded value should equal to input")
@@ -43,11 +38,11 @@ func Test_parseVal(t *testing.T) {
 			t.Run(tt.Input, func(t *testing.T) {
 				var v Value
 				input := []byte(tt.Input)
-				i := ParseBytes(Default, input)
+				i := ParseBytes(input)
 				require.NoError(t, parseVal(i, &v))
 
 				buf := new(bytes.Buffer)
-				s := NewStream(Default, buf, 1024)
+				s := NewStream(buf, 1024)
 				v.Write(s)
 				require.NoError(t, s.Flush())
 				require.Equal(t, tt.Input, buf.String(), "encoded value should equal to input")
@@ -91,7 +86,7 @@ type Value struct {
 }
 
 // Write json representation of Value to Stream.
-func (v Value) Write(s *Stream) {
+func (v Value) Write(s *Stream) error {
 	if v.KeySet {
 		s.ObjField(v.Key)
 	}
@@ -99,7 +94,9 @@ func (v Value) Write(s *Stream) {
 	case ValStr:
 		s.Str(v.Str)
 	case ValFloat:
-		s.WriteFloat64(v.Float)
+		if err := s.WriteFloat64(v.Float); err != nil {
+			return err
+		}
 	case ValInt:
 		s.WriteInt64(v.Int)
 	case ValBool:
@@ -112,7 +109,9 @@ func (v Value) Write(s *Stream) {
 			if i != 0 {
 				s.More()
 			}
-			c.Write(s)
+			if err := c.Write(s); err != nil {
+				return err
+			}
 		}
 		s.ArrEnd()
 	case ValObj:
@@ -121,12 +120,15 @@ func (v Value) Write(s *Stream) {
 			if i != 0 {
 				s.More()
 			}
-			c.Write(s)
+			if err := c.Write(s); err != nil {
+				return err
+			}
 		}
 		s.ObjEnd()
 	default:
 		panic(v.Type)
 	}
+	return nil
 }
 
 func (v Value) String() string {

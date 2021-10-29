@@ -28,9 +28,9 @@ func FuzzDecEnc(f *testing.F) {
 	f.Add([]byte(`null`))
 	f.Add([]byte(`{"foo": {"bar": 1, "baz": [1, 2, 3]}}`))
 	f.Fuzz(func(t *testing.T, data []byte) {
-		i := Default.GetIter(nil)
+		i := GetIter()
 		i.ResetBytes(data)
-		defer Default.PutIter(i)
+		defer PutIter(i)
 
 		// Parsing to v.
 		var v Value
@@ -42,7 +42,8 @@ func FuzzDecEnc(f *testing.F) {
 		}
 		// Writing v to buf.
 		var buf bytes.Buffer
-		s := Default.GetStream(&buf)
+		s := GetStream()
+		s.Reset(&buf)
 		v.Write(s)
 		if err := s.Flush(); err != nil {
 			t.Fatal(err)
@@ -62,7 +63,9 @@ func FuzzDecEnc(f *testing.F) {
 		// Writing parsed value to newBuf.
 		var newBuf bytes.Buffer
 		s.Reset(&newBuf)
-		parsed.Write(s)
+		if err := parsed.Write(s); err != nil {
+			t.Fatal(err)
+		}
 		if err := s.Flush(); err != nil {
 			t.Fatal(err)
 		}
@@ -77,8 +80,9 @@ func FuzzValues(f *testing.F) {
 	f.Add(int64(1534564316421), " привет ")
 	f.Fuzz(func(t *testing.T, n int64, str string) {
 		buf := new(bytes.Buffer)
-		s := Default.GetStream(buf)
-		defer Default.PutStream(s)
+		s := GetStream()
+		s.Reset(buf)
+		defer PutStream(s)
 
 		s.ArrStart()
 		s.WriteInt64(n)
@@ -90,7 +94,8 @@ func FuzzValues(f *testing.F) {
 			t.Fatal(err)
 		}
 
-		i := Default.GetIter(buf.Bytes())
+		i := GetIter()
+		i.ResetBytes(buf.Bytes())
 		var (
 			nGot int64
 			sGot string

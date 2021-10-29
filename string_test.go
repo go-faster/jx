@@ -27,11 +27,9 @@ func Test_read_string(t *testing.T) {
 	}
 
 	for _, input := range badInputs {
-		i := Compat.GetIter([]byte(input))
+		i := ParseString(input)
 		_, err := i.Str()
 		assert.Error(t, err, "input: %q", input)
-
-		Compat.PutIter(i)
 	}
 
 	goodInputs := []struct {
@@ -64,11 +62,10 @@ func Test_read_string(t *testing.T) {
 	for _, tc := range goodInputs {
 		testReadString(t, tc.input, tc.expectValue, false, "json.Unmarshal", json.Unmarshal)
 
-		i := Compat.GetIter([]byte(tc.input))
+		i := ParseString(tc.input)
 		s, err := i.Str()
 		assert.NoError(t, err)
 		assert.Equal(t, tc.expectValue, s)
-		Compat.PutIter(i)
 	}
 }
 
@@ -96,8 +93,7 @@ func TestIter_Str(t *testing.T) {
 	} {
 		t.Run(tt.Name, func(t *testing.T) {
 			buf := new(bytes.Buffer)
-			s := Default.GetStream(buf)
-			defer Default.PutStream(s)
+			s := NewStream(buf, 128)
 			t.Logf("%v", []rune(tt.Input))
 
 			s.Str(tt.Input)
@@ -110,7 +106,7 @@ func TestIter_Str(t *testing.T) {
 			require.NoError(t, json.Unmarshal(buf.Bytes(), &gotStd))
 			require.Equal(t, tt.Input, gotStd)
 
-			i := Default.GetIter(buf.Bytes())
+			i := ParseBytes(buf.Bytes())
 			got, err := i.Str()
 			require.NoError(t, err)
 			require.Equal(t, tt.Input, got, "%s\n%s", buf, hexEnc.Dump(buf.Bytes()))

@@ -8,7 +8,7 @@ import (
 )
 
 func Test_empty_object(t *testing.T) {
-	iter := ParseString(Default, `{}`)
+	iter := ParseString(`{}`)
 	require.NoError(t, iter.Object(func(iter *Iter, field string) error {
 		t.Error("should not call")
 		return nil
@@ -17,7 +17,7 @@ func Test_empty_object(t *testing.T) {
 
 func Test_one_field(t *testing.T) {
 	should := require.New(t)
-	iter := ParseString(Default, `{"a": "stream"}`)
+	iter := ParseString(`{"a": "stream"}`)
 	should.NoError(iter.Object(func(iter *Iter, field string) error {
 		should.Equal("a", field)
 		return iter.Skip()
@@ -27,14 +27,15 @@ func Test_one_field(t *testing.T) {
 func Test_write_object(t *testing.T) {
 	should := require.New(t)
 	buf := &bytes.Buffer{}
-	stream := NewStream(Config{IndentionStep: 2}.API(), buf, 4096)
-	stream.ObjStart()
-	stream.ObjField("hello")
-	stream.WriteInt(1)
-	stream.More()
-	stream.ObjField("world")
-	stream.WriteInt(2)
-	stream.ObjEnd()
-	should.NoError(stream.Flush())
+	s := NewStream(buf, 4096)
+	s.SetIdent(2)
+	s.ObjStart()
+	s.ObjField("hello")
+	s.WriteInt(1)
+	s.More()
+	s.ObjField("world")
+	s.WriteInt(2)
+	s.ObjEnd()
+	should.NoError(s.Flush())
 	should.Equal("{\n  \"hello\": 1,\n  \"world\": 2\n}", buf.String())
 }

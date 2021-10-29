@@ -8,7 +8,7 @@ import (
 )
 
 func TestIter_ObjectBytes(t *testing.T) {
-	i := Default.GetIter([]byte(`{"id":1,"randomNumber":10}`))
+	i := ParseString(`{"id":1,"randomNumber":10}`)
 	met := map[string]struct{}{}
 	require.NoError(t, i.ObjectBytes(func(i *Iter, key []byte) error {
 		switch string(key) {
