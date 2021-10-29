@@ -198,7 +198,7 @@ func (it *Iterator) next() (byte, error) {
 
 func (it *Iterator) byte() (ret byte) {
 	if it.head == it.tail {
-		if it.read() != nil {
+		if it.read() == nil {
 			ret = it.buf[it.head]
 			it.head++
 			return ret
