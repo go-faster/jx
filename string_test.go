@@ -26,7 +26,7 @@ func Test_read_string(t *testing.T) {
 	for _, input := range badInputs {
 		i := Compat.Iterator([]byte(input))
 		_, err := i.Str()
-		assert.Error(t, err)
+		assert.Error(t, err, "input: %q", input)
 
 		Compat.PutIterator(i)
 	}

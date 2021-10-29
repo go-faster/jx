@@ -150,7 +150,13 @@ func (it *Iterator) strSlow(v value) (value, error) {
 			// End of string.
 			return v, nil
 		case '\\':
-			var err error
+			c, err := it.next()
+			if err == io.EOF {
+				return value{}, io.ErrUnexpectedEOF
+			}
+			if err != nil {
+				return value{}, xerrors.Errorf("next: %w", err)
+			}
 			v, err = it.escapedChar(v, c)
 			if err != nil {
 				return v, xerrors.Errorf("escape: %w", err)
