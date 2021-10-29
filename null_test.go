@@ -11,9 +11,8 @@ func Test_write_null(t *testing.T) {
 	should := require.New(t)
 	buf := &bytes.Buffer{}
 	stream := NewStream(Default, buf, 4096)
-	stream.WriteNil()
-	stream.Flush()
-	should.Nil(stream.Error)
+	stream.Null()
+	should.NoError(stream.Flush())
 	should.Equal("null", buf.String())
 }
 

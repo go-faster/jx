@@ -100,7 +100,7 @@ func TestIter_Str(t *testing.T) {
 			defer Default.PutStream(s)
 			t.Logf("%v", []rune(tt.Input))
 
-			s.WriteString(tt.Input)
+			s.Str(tt.Input)
 			require.NoError(t, s.Flush())
 			t.Logf("%v", []rune(buf.String()))
 

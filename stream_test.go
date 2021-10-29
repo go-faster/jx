@@ -6,44 +6,33 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_writeByte_should_grow_buffer(t *testing.T) {
+func TestStream_byte_should_grow_buffer(t *testing.T) {
 	should := require.New(t)
 	stream := NewStream(Default, nil, 1)
-	stream.writeByte('1')
-	should.Equal("1", string(stream.Buffer()))
+	stream.byte('1')
+	should.Equal("1", string(stream.Buf()))
 	should.Equal(1, len(stream.buf))
-	stream.writeByte('2')
-	should.Equal("12", string(stream.Buffer()))
+	stream.byte('2')
+	should.Equal("12", string(stream.Buf()))
 	should.Equal(2, len(stream.buf))
-	stream.writeThreeBytes('3', '4', '5')
-	should.Equal("12345", string(stream.Buffer()))
+	stream.threeBytes('3', '4', '5')
+	should.Equal("12345", string(stream.Buf()))
 }
 
-func Test_writeBytes_should_grow_buffer(t *testing.T) {
+func TestStream_Raw_should_grow_buffer(t *testing.T) {
 	should := require.New(t)
 	stream := NewStream(Default, nil, 1)
-	_, _ = stream.Write([]byte{'1', '2'})
-	should.Equal("12", string(stream.Buffer()))
-	should.Equal(2, len(stream.buf))
-	_, _ = stream.Write([]byte{'3', '4', '5', '6', '7'})
-	should.Equal("1234567", string(stream.Buffer()))
-	should.Equal(7, len(stream.buf))
+	stream.Raw("123")
+	should.NoError(stream.Flush())
+	should.Equal("123", string(stream.Buf()))
 }
 
-func Test_writeRaw_should_grow_buffer(t *testing.T) {
-	should := require.New(t)
-	stream := NewStream(Default, nil, 1)
-	stream.WriteRaw("123")
-	should.Nil(stream.Error)
-	should.Equal("123", string(stream.Buffer()))
-}
-
-func Test_writeString_should_grow_buffer(t *testing.T) {
+func TestStream_Str_should_grow_buffer(t *testing.T) {
 	should := require.New(t)
 	stream := NewStream(Default, nil, 0)
-	stream.WriteString("123")
-	should.Nil(stream.Error)
-	should.Equal(`"123"`, string(stream.Buffer()))
+	stream.Str("123")
+	should.NoError(stream.Flush())
+	should.Equal(`"123"`, string(stream.Buf()))
 }
 
 type NopWriter struct {
@@ -55,18 +44,18 @@ func (w *NopWriter) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-func Test_flush_buffer_should_stop_grow_buffer(t *testing.T) {
+func TestStream_Flush_should_stop_grow_buffer(t *testing.T) {
 	// GetStream an array of a zillion zeros.
 	writer := new(NopWriter)
 	stream := NewStream(Default, writer, 512)
-	stream.WriteArrayStart()
+	stream.ArrStart()
 	for i := 0; i < 10000000; i++ {
 		stream.WriteInt(0)
-		stream.WriteMore()
+		stream.More()
 		_ = stream.Flush()
 	}
 	stream.WriteInt(0)
-	stream.WriteArrayEnd()
+	stream.ArrEnd()
 
 	// Confirm that the buffer didn't have to grow.
 	should := require.New(t)

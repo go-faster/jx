@@ -114,9 +114,8 @@ func Test_write_float32(t *testing.T) {
 			should := require.New(t)
 			buf := &bytes.Buffer{}
 			stream := NewStream(Default, buf, 4096)
-			stream.WriteFloat32Lossy(val)
-			_ = stream.Flush()
-			should.Nil(stream.Error)
+			should.NoError(stream.WriteFloat32Lossy(val))
+			should.NoError(stream.Flush())
 			output, err := json.Marshal(val)
 			should.Nil(err)
 			should.Equal(string(output), buf.String())
@@ -125,15 +124,14 @@ func Test_write_float32(t *testing.T) {
 	should := require.New(t)
 	buf := &bytes.Buffer{}
 	stream := NewStream(Default, buf, 10)
-	stream.WriteRaw("abcdefg")
-	stream.WriteFloat32Lossy(1.123456)
-	_ = stream.Flush()
-	should.Nil(stream.Error)
+	stream.Raw("abcdefg")
+	should.NoError(stream.WriteFloat32Lossy(1.123456))
+	should.NoError(stream.Flush())
 	should.Equal("abcdefg1.123456", buf.String())
 
 	stream = NewStream(Default, nil, 0)
 	stream.WriteFloat32(float32(0.0000001))
-	should.Equal("1e-07", string(stream.Buffer()))
+	should.Equal("1e-07", string(stream.Buf()))
 }
 
 func Test_write_float64(t *testing.T) {
@@ -144,9 +142,8 @@ func Test_write_float64(t *testing.T) {
 			should := require.New(t)
 			buf := &bytes.Buffer{}
 			stream := NewStream(Default, buf, 4096)
-			stream.WriteFloat64(val)
-			_ = stream.Flush()
-			should.Nil(stream.Error)
+			should.NoError(stream.WriteFloat64(val))
+			should.NoError(stream.Flush())
 			s := strconv.FormatFloat(val, 'f', -1, 64)
 			if !strings.Contains(s, ".") {
 				s += ".0"
@@ -157,13 +154,12 @@ func Test_write_float64(t *testing.T) {
 	should := require.New(t)
 	buf := &bytes.Buffer{}
 	stream := NewStream(Default, buf, 10)
-	stream.WriteRaw("abcdefg")
-	stream.WriteFloat64Lossy(1.123456)
-	_ = stream.Flush()
-	should.Nil(stream.Error)
+	stream.Raw("abcdefg")
+	should.NoError(stream.WriteFloat64Lossy(1.123456))
+	should.NoError(stream.Flush())
 	should.Equal("abcdefg1.123456", buf.String())
 
 	stream = NewStream(Default, nil, 0)
-	stream.WriteFloat64(0.0000001)
-	should.Equal("1e-07", string(stream.Buffer()))
+	should.NoError(stream.WriteFloat64(0.0000001))
+	should.Equal("1e-07", string(stream.Buf()))
 }

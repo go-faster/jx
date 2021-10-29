@@ -93,37 +93,37 @@ type Value struct {
 // Write json representation of Value to Stream.
 func (v Value) Write(s *Stream) {
 	if v.KeySet {
-		s.WriteObjectField(v.Key)
+		s.ObjField(v.Key)
 	}
 	switch v.Type {
 	case ValStr:
-		s.WriteString(v.Str)
+		s.Str(v.Str)
 	case ValFloat:
 		s.WriteFloat64(v.Float)
 	case ValInt:
 		s.WriteInt64(v.Int)
 	case ValBool:
-		s.WriteBool(v.Bool)
+		s.Bool(v.Bool)
 	case ValNull:
-		s.WriteNil()
+		s.Null()
 	case ValArr:
-		s.WriteArrayStart()
+		s.ArrStart()
 		for i, c := range v.Child {
 			if i != 0 {
-				s.WriteMore()
+				s.More()
 			}
 			c.Write(s)
 		}
-		s.WriteArrayEnd()
+		s.ArrEnd()
 	case ValObj:
-		s.WriteObjectStart()
+		s.ObjStart()
 		for i, c := range v.Child {
 			if i != 0 {
-				s.WriteMore()
+				s.More()
 			}
 			c.Write(s)
 		}
-		s.WriteObjectEnd()
+		s.ObjEnd()
 	default:
 		panic(v.Type)
 	}

@@ -105,7 +105,7 @@ func (it *Iter) str(v value) (value, error) {
 
 // StrBytes returns string value as sub-slice of internal buffer.
 //
-// Buffer is valid only until next call to any Iter method.
+// Buf is valid only until next call to any Iter method.
 func (it *Iter) StrBytes() ([]byte, error) {
 	v, err := it.str(value{raw: true})
 	if err != nil {

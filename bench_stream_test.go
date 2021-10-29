@@ -12,75 +12,79 @@ func Benchmark_stream_encode_big_object(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		stream.Reset(&buf)
-		encodeObject(stream)
-		if stream.Error != nil {
-			b.Errorf("error: %+v", stream.Error)
+		if err := encodeObject(stream); err != nil {
+			b.Fatal(err)
 		}
 	}
 }
 
-func encodeObject(stream *Stream) {
-	stream.WriteObjectStart()
+func encodeObject(stream *Stream) error {
+	stream.ObjStart()
 
-	stream.WriteObjectField("objectId")
+	stream.ObjField("objectId")
 	stream.WriteUint64(8838243212)
 
-	stream.WriteMore()
-	stream.WriteObjectField("name")
-	stream.WriteString("Jane Doe")
+	stream.More()
+	stream.ObjField("name")
+	stream.Str("Jane Doe")
 
-	stream.WriteMore()
-	stream.WriteObjectField("address")
-	stream.WriteObjectStart()
+	stream.More()
+	stream.ObjField("address")
+	stream.ObjStart()
 	for i, field := range addressFields {
 		if i != 0 {
-			stream.WriteMore()
+			stream.More()
 		}
-		stream.WriteObjectField(field.key)
-		stream.WriteString(field.val)
+		stream.ObjField(field.key)
+		stream.Str(field.val)
 	}
 
-	stream.WriteMore()
-	stream.WriteObjectField("geo")
+	stream.More()
+	stream.ObjField("geo")
 	{
-		stream.WriteObjectStart()
-		stream.WriteObjectField("latitude")
-		stream.WriteFloat64(-154.550817)
-		stream.WriteMore()
-		stream.WriteObjectField("longitude")
-		stream.WriteFloat64(-84.176159)
-		stream.WriteObjectEnd()
+		stream.ObjStart()
+		stream.ObjField("latitude")
+		if err := stream.WriteFloat64(-154.550817); err != nil {
+			return err
+		}
+		stream.More()
+		stream.ObjField("longitude")
+		if err := stream.WriteFloat64(-84.176159); err != nil {
+			return err
+		}
+		stream.ObjEnd()
 	}
-	stream.WriteObjectEnd()
+	stream.ObjEnd()
 
-	stream.WriteMore()
-	stream.WriteObjectField("specialties")
-	stream.WriteArrayStart()
+	stream.More()
+	stream.ObjField("specialties")
+	stream.ArrStart()
 	for i, s := range specialties {
 		if i != 0 {
-			stream.WriteMore()
+			stream.More()
 		}
-		stream.WriteString(s)
+		stream.Str(s)
 	}
-	stream.WriteArrayEnd()
+	stream.ArrEnd()
 
-	stream.WriteMore()
+	stream.More()
 	for i, text := range longText {
 		if i != 0 {
-			stream.WriteMore()
+			stream.More()
 		}
-		stream.WriteObjectField("longText" + strconv.Itoa(i))
-		stream.WriteString(text)
+		stream.ObjField("longText" + strconv.Itoa(i))
+		stream.Str(text)
 	}
 
 	for i := 0; i < 25; i++ {
 		num := i * 18328
-		stream.WriteMore()
-		stream.WriteObjectField("integerField" + strconv.Itoa(i))
+		stream.More()
+		stream.ObjField("integerField" + strconv.Itoa(i))
 		stream.WriteInt64(int64(num))
 	}
 
-	stream.WriteObjectEnd()
+	stream.ObjEnd()
+	return nil
 }
 
 type field struct{ key, val string }

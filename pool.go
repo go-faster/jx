@@ -24,7 +24,6 @@ func (cfg *frozenConfig) GetStream(writer io.Writer) *Stream {
 
 func (cfg *frozenConfig) PutStream(stream *Stream) {
 	stream.out = nil
-	stream.Error = nil
 	cfg.streamPool.Put(stream)
 }
 

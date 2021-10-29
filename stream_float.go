@@ -1,18 +1,18 @@
 package jx
 
 import (
-	"fmt"
 	"math"
 	"strconv"
+
+	"golang.org/x/xerrors"
 )
 
 var pow10 = []uint64{1, 10, 100, 1000, 10000, 100000, 1000000}
 
-// WriteFloat32 write float32 to stream
-func (s *Stream) WriteFloat32(val float32) {
+// WriteFloat32 write float32 to stream.
+func (s *Stream) WriteFloat32(val float32) error {
 	if math.IsInf(float64(val), 0) || math.IsNaN(float64(val)) {
-		s.Error = fmt.Errorf("unsupported value: %f", val)
-		return
+		return xerrors.Errorf("bad value %v", val)
 	}
 	abs := math.Abs(float64(val))
 	f := byte('f')
@@ -23,21 +23,20 @@ func (s *Stream) WriteFloat32(val float32) {
 		}
 	}
 	s.buf = strconv.AppendFloat(s.buf, float64(val), f, -1, 32)
+	return nil
 }
 
 // WriteFloat32Lossy write float32 to stream with ONLY 6 digits precision although much much faster
-func (s *Stream) WriteFloat32Lossy(val float32) {
+func (s *Stream) WriteFloat32Lossy(val float32) error {
 	if math.IsInf(float64(val), 0) || math.IsNaN(float64(val)) {
-		s.Error = fmt.Errorf("unsupported value: %f", val)
-		return
+		return xerrors.Errorf("bad value %v", val)
 	}
 	if val < 0 {
-		s.writeByte(tMinus)
+		s.byte(tMinus)
 		val = -val
 	}
 	if val > 0x4ffffff {
-		s.WriteFloat32(val)
-		return
+		return s.WriteFloat32(val)
 	}
 	precision := 6
 	exp := uint64(1000000) // 6
@@ -45,23 +44,23 @@ func (s *Stream) WriteFloat32Lossy(val float32) {
 	s.WriteUint64(lval / exp)
 	fval := lval % exp
 	if fval == 0 {
-		return
+		return nil
 	}
-	s.writeByte(tDot)
+	s.byte(tDot)
 	for p := precision - 1; p > 0 && fval < pow10[p]; p-- {
-		s.writeByte(tZero)
+		s.byte(tZero)
 	}
 	s.WriteUint64(fval)
 	for s.buf[len(s.buf)-1] == tZero {
 		s.buf = s.buf[:len(s.buf)-1]
 	}
+	return nil
 }
 
 // WriteFloat64 write float64 to stream
-func (s *Stream) WriteFloat64(val float64) {
+func (s *Stream) WriteFloat64(val float64) error {
 	if math.IsInf(val, 0) || math.IsNaN(val) {
-		s.Error = fmt.Errorf("unsupported value: %f", val)
-		return
+		return xerrors.Errorf("unsupported value: %f", val)
 	}
 	abs := math.Abs(val)
 	f := byte('f')
@@ -74,32 +73,31 @@ func (s *Stream) WriteFloat64(val float64) {
 	start := len(s.buf)
 	s.buf = strconv.AppendFloat(s.buf, val, f, -1, 64)
 	if f == 'e' {
-		return
+		return nil
 	}
 
 	// Ensure that we are still float.
 	for _, c := range s.buf[start:] {
 		if c == tDot {
-			return
+			return nil
 		}
 	}
 	s.buf = appendRune(s.buf, tDot)
 	s.buf = appendRune(s.buf, tZero)
+	return nil
 }
 
 // WriteFloat64Lossy write float64 to stream with ONLY 6 digits precision although much much faster
-func (s *Stream) WriteFloat64Lossy(val float64) {
+func (s *Stream) WriteFloat64Lossy(val float64) error {
 	if math.IsInf(val, 0) || math.IsNaN(val) {
-		s.Error = fmt.Errorf("unsupported value: %f", val)
-		return
+		return xerrors.Errorf("unsupported value: %f", val)
 	}
 	if val < 0 {
-		s.writeByte(tMinus)
+		s.byte(tMinus)
 		val = -val
 	}
 	if val > 0x4ffffff {
-		s.WriteFloat64(val)
-		return
+		return s.WriteFloat64(val)
 	}
 	precision := 6
 	exp := uint64(1000000) // 6
@@ -107,14 +105,15 @@ func (s *Stream) WriteFloat64Lossy(val float64) {
 	s.WriteUint64(lval / exp)
 	fval := lval % exp
 	if fval == 0 {
-		return
+		return nil
 	}
-	s.writeByte(tDot)
+	s.byte(tDot)
 	for p := precision - 1; p > 0 && fval < pow10[p]; p-- {
-		s.writeByte(tZero)
+		s.byte(tZero)
 	}
 	s.WriteUint64(fval)
 	for s.buf[len(s.buf)-1] == tZero {
 		s.buf = s.buf[:len(s.buf)-1]
 	}
+	return nil
 }

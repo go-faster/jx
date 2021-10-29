@@ -80,11 +80,11 @@ func FuzzValues(f *testing.F) {
 		s := Default.GetStream(buf)
 		defer Default.PutStream(s)
 
-		s.WriteArrayStart()
+		s.ArrStart()
 		s.WriteInt64(n)
-		s.WriteMore()
-		s.WriteString(str)
-		s.WriteArrayEnd()
+		s.More()
+		s.Str(str)
+		s.ArrEnd()
 
 		if err := s.Flush(); err != nil {
 			t.Fatal(err)
