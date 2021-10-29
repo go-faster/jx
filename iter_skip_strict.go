@@ -1,25 +1,22 @@
 package jir
 
 import (
-	"fmt"
-	"io"
+	"golang.org/x/xerrors"
 )
 
-func (it *Iterator) skipNumber() {
-	if !it.trySkipNumber() {
-		it.unreadByte()
-		if it.Error != nil && it.Error != io.EOF {
-			return
-		}
-		it.Float64()
-		if it.Error != nil && it.Error != io.EOF {
-			it.Error = nil
-			it.BigFloat()
-		}
+func (it *Iterator) skipNumber() error {
+	ok, err := it.skipNumberFast()
+	if err != nil || ok {
+		return err
 	}
+	it.unread()
+	if _, err := it.Float64(); err != nil {
+		return err
+	}
+	return nil
 }
 
-func (it *Iterator) trySkipNumber() bool {
+func (it *Iterator) skipNumberFast() (ok bool, err error) {
 	dotFound := false
 	for i := it.head; i < it.tail; i++ {
 		c := it.buf[i]
@@ -27,71 +24,71 @@ func (it *Iterator) trySkipNumber() bool {
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		case tDot:
 			if dotFound {
-				it.ReportError("validateNumber", `more than one dot found in number`)
-				return true // already failed
+				return false, xerrors.New("more than one dot")
 			}
 			if i+1 == it.tail {
-				return false
+				return false, nil
 			}
 			c = it.buf[i+1]
 			switch c {
 			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 			default:
-				it.ReportError("validateNumber", `missing digit after dot`)
-				return true // already failed
+				return false, xerrors.New("no digit after dot")
 			}
 			dotFound = true
 		default:
 			switch c {
 			case ',', ']', '}', ' ', '\t', '\n', '\r':
 				if it.head == i {
-					return false // if - without following digits
+					return false, nil // if - without following digits
 				}
 				it.head = i
-				return true // must be valid
+				return true, nil
 			}
-			return false // may be invalid
+			return false, nil
 		}
 	}
-	return false
+	return false, nil
 }
 
-func (it *Iterator) skipString() {
-	if !it.trySkipString() {
-		it.unreadByte()
-		_ = it.StrBytes()
+func (it *Iterator) strSkip() error {
+	ok, err := it.strFastSkip()
+	if err != nil || ok {
+		return err
 	}
+
+	it.unread()
+	if _, err := it.str(value{ignore: true}); err != nil {
+		return err
+	}
+	return nil
 }
 
-func (it *Iterator) trySkipString() bool {
+func (it *Iterator) strFastSkip() (ok bool, err error) {
 	for i := it.head; i < it.tail; i++ {
 		c := it.buf[i]
 		if c == '"' {
 			it.head = i + 1
-			return true // valid
+			return true, nil
 		} else if c == '\\' {
-			return false
+			return false, nil
 		} else if c < ' ' {
-			it.ReportError("trySkipString",
-				fmt.Sprintf(`invalid control character found: %d`, c))
-			return true // already failed
+			return false, badToken(c)
 		}
 	}
-	return false
+	return false, nil
 }
 
-func (it *Iterator) skipObject() {
-	it.unreadByte()
-	it.ObjectBytes(func(iter *Iterator, _ []byte) bool {
-		iter.Skip()
-		return true
+func (it *Iterator) skipObject() error {
+	it.unread()
+	return it.ObjectBytes(func(iter *Iterator, _ []byte) error {
+		return iter.Skip()
 	})
 }
 
-func (it *Iterator) skipArray() {
-	it.unreadByte()
-	it.Array(func(iter *Iterator) bool {
-		iter.Skip()
-		return true
+func (it *Iterator) skipArray() error {
+	it.unread()
+	return it.Array(func(iter *Iterator) error {
+		return iter.Skip()
 	})
 }

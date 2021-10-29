@@ -1,133 +1,72 @@
 package jir
 
 import (
-	"fmt"
-)
+	"io"
 
-// Field read one field from object.
-// If object ended, returns empty string.
-// Otherwise, returns the field name.
-func (it *Iterator) Field() (ret string) {
-	c := it.nextToken()
-	switch c {
-	case 'n':
-		it.skipThreeBytes('u', 'l', 'l')
-		return "" // null
-	case '{':
-		c = it.nextToken()
-		if c == '"' {
-			it.unreadByte()
-			field := it.Str()
-			c = it.nextToken()
-			if c != ':' {
-				it.ReportError("Field", "expect : after object field, but found "+string([]byte{c}))
-			}
-			return field
-		}
-		if c == '}' {
-			return "" // end of object
-		}
-		it.ReportError("Field", `expect " after {, but found `+string([]byte{c}))
-		return
-	case ',':
-		field := it.Str()
-		c = it.nextToken()
-		if c != ':' {
-			it.ReportError("Field", "expect : after object field, but found "+string([]byte{c}))
-		}
-		return field
-	case '}':
-		return "" // end of object
-	default:
-		it.ReportError("Field", fmt.Sprintf(`expect { or , or } or n, but found %s`, string([]byte{c})))
-		return
-	}
-}
+	"golang.org/x/xerrors"
+)
 
 // ObjectBytes calls f for every key in object, using byte slice as key.
 //
 // The key value is valid only until f is not returned.
-func (it *Iterator) ObjectBytes(f func(i *Iterator, key []byte) bool) bool {
-	if it.buf == nil {
-		it.buf = make([]byte, 0, 64)
+func (it *Iterator) ObjectBytes(f func(i *Iterator, key []byte) error) error {
+	if err := it.expectNext('{'); err != nil {
+		return xerrors.Errorf("start: %w", err)
 	}
-	// Use it.buf to hold keys.
-	// Reset back on exit.
-	n := len(it.buf)
-	defer func() { it.buf = it.buf[:n] }()
-
-	c := it.nextToken()
-	if c != '{' {
-		it.ReportError("Object", `expect { or n, but found `+string([]byte{c}))
-		return false
+	if err := it.incrementDepth(); err != nil {
+		return xerrors.Errorf("inc: %w", err)
 	}
-	if !it.incrementDepth() {
-		return false
+	c, err := it.next()
+	if err != nil {
+		return xerrors.Errorf("next: %w", err)
 	}
-
-	c = it.nextToken()
 	if c == '}' {
 		return it.decrementDepth()
 	}
-	it.unreadByte()
+	it.unread()
 
-	j := len(it.buf)
-	if str := it.strBytes(it.buf); str == nil {
-		return false
-	} else {
-		it.buf = str
+	k, err := it.str(value{})
+	if err != nil {
+		return xerrors.Errorf("str: %w", err)
 	}
-	k := it.buf[j:]
-
-	c = it.nextToken()
-	if c != ':' {
-		it.ReportError("Field", "expect : after object field, but found "+string([]byte{c}))
-		return false
+	if err := it.expectNext(':'); err != nil {
+		return xerrors.Errorf("field: %w", err)
 	}
-	if !f(it, k) {
-		it.decrementDepth()
-		return false
+	if err := f(it, k.buf); err != nil {
+		return xerrors.Errorf("callback: %w", err)
 	}
 
-	// Drop k.
-	it.buf = it.buf[:j]
-
-	c = it.nextToken()
+	c, err = it.next()
+	if err == io.EOF {
+		return io.ErrUnexpectedEOF
+	}
+	if err != nil {
+		return xerrors.Errorf("next: %w", err)
+	}
 	for c == ',' {
-		// Expand buf for k.
-		j := len(it.buf)
-		if str := it.strBytes(it.buf); str == nil {
-			return false
-		} else {
-			it.buf = str
+		k, err := it.str(value{})
+		if err != nil {
+			return xerrors.Errorf("str: %w", err)
 		}
-		k := it.buf[j:]
-
-		c = it.nextToken()
-		if c != ':' {
-			it.ReportError("Field", "expect : after object field, but found "+string([]byte{c}))
+		if err := it.expectNext(':'); err != nil {
+			return xerrors.Errorf("field: %w", err)
 		}
-		if !f(it, k) {
-			it.decrementDepth()
-			return false
+		if err := f(it, k.buf); err != nil {
+			return xerrors.Errorf("callback: %w", err)
 		}
-
-		// Drop k.
-		it.buf = it.buf[:j]
-
-		c = it.nextToken()
+		if c, err = it.next(); err != nil {
+			return xerrors.Errorf("next: %w", err)
+		}
 	}
 	if c != '}' {
-		it.ReportError("Object", `object not ended with }`)
-		it.decrementDepth()
-		return false
+		return xerrors.Errorf("end: %w", badToken(c))
 	}
 	return it.decrementDepth()
 }
 
 // Object read ObjectBytes, calling f on each field.
-func (it *Iterator) Object(f func(i *Iterator, key string) bool) bool {
-	return it.ObjectBytes(func(i *Iterator, key []byte) bool {
+func (it *Iterator) Object(f func(i *Iterator, key string) error) error {
+	return it.ObjectBytes(func(i *Iterator, key []byte) error {
 		return f(i, string(key))
 	})
 }

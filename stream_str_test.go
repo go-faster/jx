@@ -27,6 +27,8 @@ func TestStream_WriteString(t *testing.T) {
 	t.Run("Read", func(t *testing.T) {
 		i := NewIterator(Default)
 		i.ResetBytes(s.Buffer())
-		require.Equal(t, data, i.Str())
+		s, err := i.Str()
+		require.NoError(t, err)
+		require.Equal(t, data, s)
 	})
 }

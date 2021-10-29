@@ -2,156 +2,250 @@ package jir
 
 import (
 	"fmt"
+	"io"
 	"unicode/utf16"
+
+	"golang.org/x/xerrors"
 )
 
 // StrAppend reads string and appends it to byte slice.
-func (it *Iterator) StrAppend(b []byte) []byte {
-	return it.strBytes(b)
+func (it *Iterator) StrAppend(b []byte) ([]byte, error) {
+	v := value{
+		buf: b,
+		raw: false,
+	}
+	var err error
+	if v, err = it.str(v); err != nil {
+		return b, err
+	}
+	return v.buf, nil
 }
 
-func (it *Iterator) strBytes(b []byte) []byte {
-	c := it.nextToken()
-	if c == '"' {
-		for i := it.head; i < it.tail; i++ {
-			c := it.buf[i]
-			if c == '\\' {
-				break // escaped, fallback to slow path
-			}
-			if c == '"' {
-				// End of string in fast path.
-				str := it.buf[it.head:i]
-				it.head = i + 1
-				if b == nil {
-					// Returning str directly if no b.
-					return str
-				}
-				return append(b, str...)
-			}
-			if c < ' ' {
-				it.ReportError("Str", fmt.Sprintf(`invalid control character found: %d`, c))
-				return b
-			}
-		}
-		return it.readStringSlowPath(b)
+type value struct {
+	buf    []byte
+	raw    bool // false forces buf reuse
+	ignore bool
+}
+
+func (v value) direct(b []byte) value {
+	if v.ignore {
+		return v
 	}
-	it.ReportError("Str", `expects " or n, but found `+string([]byte{c}))
-	return nil
+	if v.raw {
+		return value{buf: b}
+	}
+	return v.append(b)
+}
+
+func (v value) rune(r rune) value {
+	if v.ignore {
+		return v
+	}
+	return value{
+		buf: appendRune(v.buf, r),
+		raw: v.raw,
+	}
+}
+
+func (v value) byte(b byte) value {
+	if v.ignore {
+		return v
+	}
+	return value{
+		buf: append(v.buf, b),
+		raw: v.raw,
+	}
+}
+
+func (v value) append(b []byte) value {
+	if v.ignore {
+		return v
+	}
+	return value{
+		buf: append(v.buf, b...),
+		raw: v.raw,
+	}
+}
+
+func (v value) set(b []byte) value {
+	if v.ignore {
+		return v
+	}
+	return value{
+		raw: v.raw,
+		buf: b,
+	}
+}
+
+func (v value) error(err error) (value, error) {
+	return value{}, err
+}
+
+type UnexpectedTokenErr struct {
+	Token byte
+}
+
+func (e UnexpectedTokenErr) Error() string {
+	return fmt.Sprintf("unexpected byte %d '%s'", e.Token, []byte{e.Token})
+}
+
+func badToken(c byte) error {
+	return UnexpectedTokenErr{Token: c}
+}
+
+func (it *Iterator) str(v value) (value, error) {
+	if err := it.expectNext('"'); err != nil {
+		return value{}, xerrors.Errorf("start: %w", err)
+	}
+	for i := it.head; i < it.tail; i++ {
+		c := it.buf[i]
+		if c == '\\' {
+			// Character is escaped, fallback to slow path.
+			break
+		}
+		if c == '"' {
+			// End of string in fast path.
+			str := it.buf[it.head:i]
+			it.head = i + 1
+			return v.direct(str), nil
+		}
+		if c < ' ' {
+			return value{}, xerrors.Errorf("control character: %w", badToken(c))
+		}
+	}
+	return it.strSlow(v)
 }
 
 // StrBytes returns string value as sub-slice of internal buffer.
 //
 // Buffer is valid only until next call to any Iterator method.
-func (it *Iterator) StrBytes() []byte {
-	return it.strBytes(nil)
+func (it *Iterator) StrBytes() ([]byte, error) {
+	v, err := it.str(value{raw: true})
+	if err != nil {
+		return nil, err
+	}
+	return v.buf, nil
 }
 
 // Str reads string.
-func (it *Iterator) Str() string {
-	if s := it.StrBytes(); s != nil {
-		return string(s)
+func (it *Iterator) Str() (string, error) {
+	s, err := it.StrBytes()
+	if err != nil {
+		return "", err
 	}
-	return ""
+	return string(s), nil
 }
 
-func (it *Iterator) readStringSlowPath(b []byte) []byte {
-	for it.Error == nil {
-		c := it.readByte()
-		if c == '"' {
-			return b // end of string
+func (it *Iterator) strSlow(v value) (value, error) {
+	for {
+		c, err := it.next()
+		if err == io.EOF {
+			return value{}, io.ErrUnexpectedEOF
 		}
-		if c == '\\' {
-			if str := it.readEscapedChar(it.readByte(), b); str == nil {
-				return nil
-			} else {
-				b = str
+		if err != nil {
+			return value{}, xerrors.Errorf("next: %w", err)
+		}
+		switch c {
+		case '"':
+			// End of string.
+			return v, nil
+		case '\\':
+			var err error
+			v, err = it.escapedChar(v, c)
+			if err != nil {
+				return v, xerrors.Errorf("escape: %w", err)
 			}
-		} else {
-			b = append(b, c)
+		default:
+			v = v.byte(c)
 		}
 	}
-	it.ReportError("readStringSlowPath", "unexpected end of input")
-	return nil
 }
 
-func (it *Iterator) readEscapedChar(c byte, str []byte) []byte {
+func (it *Iterator) escapedChar(v value, c byte) (value, error) {
 	switch c {
 	case 'u':
-		r := it.readU4()
+		r, err := it.readU4()
+		if err != nil {
+			return value{}, xerrors.Errorf("read u4: %w", err)
+		}
 		if utf16.IsSurrogate(r) {
-			c = it.readByte()
-			if it.Error != nil {
-				return nil
+			c, err := it.next()
+			if err == io.EOF {
+				return value{}, io.ErrUnexpectedEOF
+			}
+			if err != nil {
+				return value{}, err
 			}
 			if c != '\\' {
-				it.unreadByte()
-				str = appendRune(str, r)
-				return str
+				it.unread()
+				return v.rune(r), nil
 			}
-			c = it.readByte()
-			if it.Error != nil {
-				return nil
+			c, err = it.next()
+			if err == io.EOF {
+				return value{}, io.ErrUnexpectedEOF
+			}
+			if err != nil {
+				return value{}, err
 			}
 			if c != 'u' {
-				str = appendRune(str, r)
-				return it.readEscapedChar(c, str)
+				return it.escapedChar(v.rune(r), c)
 			}
-			r2 := it.readU4()
-			if it.Error != nil {
-				return nil
+			r2, err := it.readU4()
+			if err != nil {
+				return value{}, err
 			}
 			combined := utf16.DecodeRune(r, r2)
 			if combined == '\uFFFD' {
-				str = appendRune(str, r)
-				str = appendRune(str, r2)
+				v = v.rune(r).rune(r2)
 			} else {
-				str = appendRune(str, combined)
+				v = v.rune(combined)
 			}
 		} else {
-			str = appendRune(str, r)
+			v = v.rune(r)
 		}
 	case '"':
-		str = append(str, '"')
+		v = v.rune('"')
 	case '\\':
-		str = append(str, '\\')
+		v = v.rune('\\')
 	case '/':
-		str = append(str, '/')
+		v = v.rune('/')
 	case 'b':
-		str = append(str, '\b')
+		v = v.rune('\b')
 	case 'f':
-		str = append(str, '\f')
+		v = v.rune('\f')
 	case 'n':
-		str = append(str, '\n')
+		v = v.rune('\n')
 	case 'r':
-		str = append(str, '\r')
+		v = v.rune('\r')
 	case 't':
-		str = append(str, '\t')
+		v = v.rune('\t')
 	default:
-		it.ReportError("readEscapedChar",
-			`invalid escape char after \`)
-		return nil
+		return v, xerrors.Errorf("bad escape: %w", badToken(c))
 	}
-	return str
+	return v, nil
 }
 
-func (it *Iterator) readU4() (ret rune) {
+func (it *Iterator) readU4() (rune, error) {
+	var v rune
 	for i := 0; i < 4; i++ {
-		c := it.readByte()
-		if it.Error != nil {
-			return
+		c, err := it.next()
+		if err == io.EOF {
+			return 0, io.ErrUnexpectedEOF
+		}
+		if err != nil {
+			return 0, err
 		}
 		if c >= '0' && c <= '9' {
-			ret = ret*16 + rune(c-'0')
+			v = v*16 + rune(c-'0')
 		} else if c >= 'a' && c <= 'f' {
-			ret = ret*16 + rune(c-'a'+10)
+			v = v*16 + rune(c-'a'+10)
 		} else if c >= 'A' && c <= 'F' {
-			ret = ret*16 + rune(c-'A'+10)
+			v = v*16 + rune(c-'A'+10)
 		} else {
-			it.ReportError("readU4", "expects 0~9 or a~f, but found "+string([]byte{c}))
-			return
+			return 0, badToken(c)
 		}
 	}
-	return ret
+	return v, nil
 }
 
 //nolint:unused,deadcode,varcheck

@@ -1,12 +1,13 @@
 package jir
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"math/big"
 	"strconv"
-	"strings"
-	"unsafe"
+
+	"golang.org/x/xerrors"
 )
 
 var floatDigits []int8
@@ -33,76 +34,79 @@ func init() {
 }
 
 // BigFloat read big.Float
-func (it *Iterator) BigFloat() (ret *big.Float) {
-	str := it.readNumberAsString()
-	if it.Error != nil && it.Error != io.EOF {
-		return nil
+func (it *Iterator) BigFloat() (*big.Float, error) {
+	str, err := it.number(nil)
+	if err != nil {
+		return nil, xerrors.Errorf("number: %w", err)
 	}
 	prec := 64
 	if len(str) > prec {
 		prec = len(str)
 	}
-	val, _, err := big.ParseFloat(str, 10, uint(prec), big.ToZero)
+	val, _, err := big.ParseFloat(string(str), 10, uint(prec), big.ToZero)
 	if err != nil {
-		it.Error = err
-		return nil
+		return nil, xerrors.Errorf("float: %w", err)
 	}
-	return val
+	return val, nil
 }
 
 // BigInt read big.Int
-func (it *Iterator) BigInt() (ret *big.Int) {
-	str := it.readNumberAsString()
-	if it.Error != nil && it.Error != io.EOF {
-		return nil
+func (it *Iterator) BigInt() (*big.Int, error) {
+	str, err := it.number(nil)
+	if err != nil {
+		return nil, xerrors.Errorf("number: %w", err)
 	}
-	ret = big.NewInt(0)
-	var success bool
-	ret, success = ret.SetString(str, 10)
-	if !success {
-		it.ReportError("BigInt", "invalid big int")
-		return nil
+	v := big.NewInt(0)
+	var ok bool
+	if v, ok = v.SetString(string(str), 10); !ok {
+		return nil, xerrors.New("invalid")
 	}
-	return ret
+	return v, nil
 }
 
-//Float32 read float32
-func (it *Iterator) Float32() float32 {
-	c := it.nextToken()
+// Float32 reads float32 value.
+func (it *Iterator) Float32() (float32, error) {
+	c, err := it.next()
+	if err != nil {
+		return 0, xerrors.Errorf("next: %w", err)
+	}
+	if c != '-' {
+		it.unread()
+	}
+	v, err := it.positiveFloat32()
+	if err != nil {
+		return 0, err
+	}
 	if c == '-' {
-		return -it.readPositiveFloat32()
+		v *= -1
 	}
-	it.unreadByte()
-	return it.readPositiveFloat32()
+	return v, nil
 }
 
-func (it *Iterator) readPositiveFloat32() (ret float32) {
+func (it *Iterator) positiveFloat32() (float32, error) {
 	i := it.head
 	// First char.
 	if i == it.tail {
-		return it.readFloat32SlowPath()
+		return it.f32Slow()
 	}
 	c := it.buf[i]
 	i++
 	ind := floatDigits[c]
 	switch ind {
 	case invalidCharForNumber:
-		return it.readFloat32SlowPath()
+		return it.f32Slow()
 	case endOfNumber:
-		it.ReportError("readFloat32", "empty number")
-		return
+		return 0, xerrors.New("empty")
 	case dotInNumber:
-		it.ReportError("readFloat32", "leading dot is invalid")
-		return
+		return 0, xerrors.New("leading dot")
 	case 0:
 		if i == it.tail {
-			return it.readFloat32SlowPath()
+			return it.f32Slow()
 		}
 		c = it.buf[i]
 		switch c {
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-			it.ReportError("readFloat32", "leading zero is invalid")
-			return
+			return 0, xerrors.New("leading zero")
 		}
 	}
 	value := uint64(ind)
@@ -113,15 +117,15 @@ NonDecimalLoop:
 		ind := floatDigits[c]
 		switch ind {
 		case invalidCharForNumber:
-			return it.readFloat32SlowPath()
+			return it.f32Slow()
 		case endOfNumber:
 			it.head = i
-			return float32(value)
+			return float32(value), nil
 		case dotInNumber:
 			break NonDecimalLoop
 		}
 		if value > uint64SafeToMultiple10 {
-			return it.readFloat32SlowPath()
+			return it.f32Slow()
 		}
 		value = (value << 3) + (value << 1) + uint64(ind) // value = value * 10 + ind;
 	}
@@ -130,7 +134,7 @@ NonDecimalLoop:
 		i++
 		decimalPlaces := 0
 		if i == it.tail {
-			return it.readFloat32SlowPath()
+			return it.f32Slow()
 		}
 		for ; i < it.tail; i++ {
 			c = it.buf[i]
@@ -139,107 +143,99 @@ NonDecimalLoop:
 			case endOfNumber:
 				if decimalPlaces > 0 && decimalPlaces < len(pow10) {
 					it.head = i
-					return float32(float64(value) / float64(pow10[decimalPlaces]))
+					return float32(float64(value) / float64(pow10[decimalPlaces])), nil
 				}
 				// too many decimal places
-				return it.readFloat32SlowPath()
+				return it.f32Slow()
 			case invalidCharForNumber, dotInNumber:
-				return it.readFloat32SlowPath()
+				return it.f32Slow()
 			}
 			decimalPlaces++
 			if value > uint64SafeToMultiple10 {
-				return it.readFloat32SlowPath()
+				return it.f32Slow()
 			}
 			value = (value << 3) + (value << 1) + uint64(ind)
 		}
 	}
-	return it.readFloat32SlowPath()
+	return it.f32Slow()
 }
 
-func (it *Iterator) readNumberAsString() (ret string) {
-	strBuf := [16]byte{}
-	str := strBuf[0:0]
-Load:
+func (it *Iterator) number(b []byte) ([]byte, error) {
 	for {
 		for i := it.head; i < it.tail; i++ {
-			c := it.buf[i]
-			switch c {
+			switch c := it.buf[i]; c {
 			case '+', '-', '.', 'e', 'E', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				str = append(str, c)
+				b = append(b, c)
 				continue
 			default:
+				// End of number.
 				it.head = i
-				break Load
+				return b, nil
 			}
 		}
-		if !it.loadMore() {
-			break
+		if err := it.read(); err != nil {
+			if err == io.EOF {
+				return b, nil
+			}
+			return b, err
 		}
 	}
-	if it.Error != nil && it.Error != io.EOF {
-		return
-	}
-	if len(str) == 0 {
-		it.ReportError("readNumberAsString", "invalid number")
-	}
-	return *(*string)(unsafe.Pointer(&str))
 }
 
-func (it *Iterator) readFloat32SlowPath() (ret float32) {
-	str := it.readNumberAsString()
-	if it.Error != nil && it.Error != io.EOF {
-		return
-	}
-	errMsg := validateFloat(str)
-	if errMsg != "" {
-		it.ReportError("readFloat32SlowPath", errMsg)
-		return
-	}
-	val, err := strconv.ParseFloat(str, 32)
+const (
+	size32 = 32
+	size64 = 64
+)
+
+func (it *Iterator) f32Slow() (float32, error) {
+	v, err := it.floatSlow(size32)
 	if err != nil {
-		it.Error = err
-		return
+		return 0, err
 	}
-	return float32(val)
+	return float32(v), err
 }
 
 // Float64 read float64
-func (it *Iterator) Float64() float64 {
-	c := it.nextToken()
-	if c == '-' {
-		return -it.readPositiveFloat64()
+func (it *Iterator) Float64() (float64, error) {
+	c, err := it.next()
+	if err != nil {
+		return 0, err
 	}
-	it.unreadByte()
-	return it.readPositiveFloat64()
+	if c == '-' {
+		v, err := it.positiveFloat64()
+		if err != nil {
+			return 0, err
+		}
+		return -v, err
+	}
+	it.unread()
+	return it.positiveFloat64()
 }
 
-func (it *Iterator) readPositiveFloat64() (ret float64) {
+func (it *Iterator) positiveFloat64() (float64, error) {
 	i := it.head
 	// First char.
 	if i == it.tail {
-		return it.readFloat64SlowPath()
+		return it.float64Slow()
 	}
 	c := it.buf[i]
 	i++
 	ind := floatDigits[c]
 	switch ind {
 	case invalidCharForNumber:
-		return it.readFloat64SlowPath()
+		return it.float64Slow()
 	case endOfNumber:
-		it.ReportError("readFloat64", "empty number")
-		return
+		return 0, xerrors.New("empty")
 	case dotInNumber:
-		it.ReportError("readFloat64", "leading dot is invalid")
-		return
+		return 0, xerrors.New("leading dot")
 	case 0:
 		if i == it.tail {
-			return it.readFloat64SlowPath()
+			return it.float64Slow()
 		}
 		c = it.buf[i]
 		switch c {
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-			it.ReportError("readFloat64", "leading zero is invalid")
-			return
+			return 0, xerrors.New("leading zero")
 		}
 	}
 	value := uint64(ind)
@@ -250,15 +246,15 @@ NonDecimal:
 		ind := floatDigits[c]
 		switch ind {
 		case invalidCharForNumber:
-			return it.readFloat64SlowPath()
+			return it.float64Slow()
 		case endOfNumber:
 			it.head = i
-			return float64(value)
+			return float64(value), nil
 		case dotInNumber:
 			break NonDecimal
 		}
 		if value > uint64SafeToMultiple10 {
-			return it.readFloat64SlowPath()
+			return it.float64Slow()
 		}
 		value = (value << 3) + (value << 1) + uint64(ind) // value = value * 10 + ind;
 	}
@@ -267,7 +263,7 @@ NonDecimal:
 		i++
 		decimalPlaces := 0
 		if i == it.tail {
-			return it.readFloat64SlowPath()
+			return it.float64Slow()
 		}
 		for ; i < it.tail; i++ {
 			c = it.buf[i]
@@ -276,67 +272,74 @@ NonDecimal:
 			case endOfNumber:
 				if decimalPlaces > 0 && decimalPlaces < len(pow10) {
 					it.head = i
-					return float64(value) / float64(pow10[decimalPlaces])
+					return float64(value) / float64(pow10[decimalPlaces]), nil
 				}
 				// too many decimal places
-				return it.readFloat64SlowPath()
+				return it.float64Slow()
 			case invalidCharForNumber, dotInNumber:
-				return it.readFloat64SlowPath()
+				return it.float64Slow()
 			}
 			decimalPlaces++
 			if value > uint64SafeToMultiple10 {
-				return it.readFloat64SlowPath()
+				return it.float64Slow()
 			}
 			value = (value << 3) + (value << 1) + uint64(ind)
 			if value > maxFloat64 {
-				return it.readFloat64SlowPath()
+				return it.float64Slow()
 			}
 		}
 	}
-	return it.readFloat64SlowPath()
+	return it.float64Slow()
 }
 
-func (it *Iterator) readFloat64SlowPath() (ret float64) {
-	str := it.readNumberAsString()
-	if it.Error != nil && it.Error != io.EOF {
-		return
-	}
-	errMsg := validateFloat(str)
-	if errMsg != "" {
-		it.ReportError("readFloat64SlowPath", errMsg)
-		return
-	}
-	val, err := strconv.ParseFloat(str, 64)
+func (it *Iterator) floatSlow(size int) (float64, error) {
+	var buf [32]byte
+
+	str, err := it.number(buf[:0])
 	if err != nil {
-		it.Error = err
-		return
+		return 0, xerrors.Errorf("number: %w", err)
 	}
-	return val
+	if err := validateFloat(str); err != nil {
+		return 0, xerrors.Errorf("invalid: %w", err)
+	}
+
+	val, err := strconv.ParseFloat(string(str), size)
+	if err != nil {
+		return 0, err
+	}
+
+	return val, nil
 }
 
-func validateFloat(str string) string {
+func (it *Iterator) float64Slow() (float64, error) { return it.floatSlow(size64) }
+
+func validateFloat(str []byte) error {
 	// strconv.ParseFloat is not validating `1.` or `1.e1`
 	if len(str) == 0 {
-		return "empty number"
+		return xerrors.New("empty")
 	}
 	if str[0] == '-' {
-		return "-- is not valid"
+		return xerrors.New("double minus")
 	}
-	dotPos := strings.IndexByte(str, tDot)
+	dotPos := bytes.IndexByte(str, tDot)
 	if dotPos != -1 {
 		if dotPos == len(str)-1 {
-			return "dot can not be last character"
+			return xerrors.New("dot as last char")
 		}
 		switch str[dotPos+1] {
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		default:
-			return "missing digit after dot"
+			return xerrors.New("no digit after dot")
 		}
 	}
-	return ""
+	return nil
 }
 
-// ReadNumber read jir.Number
-func (it *Iterator) ReadNumber() (ret json.Number) {
-	return json.Number(it.readNumberAsString())
+// Number reads json.Number.
+func (it *Iterator) Number() (json.Number, error) {
+	str, err := it.number(nil)
+	if err != nil {
+		return "", err
+	}
+	return json.Number(str), nil
 }

@@ -21,38 +21,49 @@ func TestIterator_Capture(t *testing.T) {
 	]
 }`
 	i := Default.Iterator([]byte(input))
-	i.Object(func(i *Iterator, key string) bool {
-		return i.Array(func(i *Iterator) bool {
+	err := i.Object(func(i *Iterator, key string) error {
+		return i.Array(func(i *Iterator) error {
 			// Reading "type" field value first.
 			var typ string
-			i.Capture(func(i *Iterator) {
-				i.Object(func(i *Iterator, key string) bool {
+			if err := i.Capture(func(i *Iterator) error {
+				return i.Object(func(i *Iterator, key string) error {
 					switch key {
 					case "type":
-						typ = i.Str()
+						s, err := i.Str()
+						if err != nil {
+							return err
+						}
+						typ = s
 					default:
-						i.Skip()
+						return i.Skip()
 					}
-					return true
+					return nil
 				})
-			})
+			}); err != nil {
+				return err
+			}
 			// Reading objects depending on type.
-			return i.Object(func(i *Iterator, key string) bool {
+			return i.Object(func(i *Iterator, key string) error {
 				if key == "type" {
-					assert.Equal(t, typ, i.Str())
-					return true
+					s, err := i.Str()
+					if err != nil {
+						return err
+					}
+					assert.Equal(t, typ, s)
+					return nil
 				}
 				switch typ {
 				case "foo":
-					_ = i.Str()
+					_, _ = i.Str()
 				case "bar":
-					i.Int()
+					_, err := i.Int()
+					return err
 				}
-				return true
+				return nil
 			})
 		})
 	})
-	require.NoError(t, i.Error)
+	require.NoError(t, err)
 }
 
 func BenchmarkIterator_Skip(b *testing.B) {
@@ -62,8 +73,10 @@ func BenchmarkIterator_Skip(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		it.ResetBytes(input)
-		it.Capture(func(i *Iterator) {
-			i.Skip()
-		})
+		if err := it.Capture(func(i *Iterator) error {
+			return i.Skip()
+		}); err != nil {
+			b.Fatal(err)
+		}
 	}
 }

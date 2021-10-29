@@ -15,7 +15,8 @@ import (
 func Test_read_big_float(t *testing.T) {
 	should := require.New(t)
 	iter := ParseString(Default, `12.3`)
-	val := iter.BigFloat()
+	val, err := iter.BigFloat()
+	should.NoError(err)
 	val64, _ := val.Float64()
 	should.Equal(12.3, val64)
 }
@@ -23,7 +24,8 @@ func Test_read_big_float(t *testing.T) {
 func Test_read_big_int(t *testing.T) {
 	should := require.New(t)
 	iter := ParseString(Default, `92233720368547758079223372036854775807`)
-	val := iter.BigInt()
+	val, err := iter.BigInt()
+	should.NoError(err)
 	should.NotNil(val)
 	should.Equal(`92233720368547758079223372036854775807`, val.String())
 }
@@ -31,7 +33,8 @@ func Test_read_big_int(t *testing.T) {
 func Test_read_number(t *testing.T) {
 	should := require.New(t)
 	iter := ParseString(Default, `92233720368547758079223372036854775807`)
-	val := iter.ReadNumber()
+	val, err := iter.Number()
+	should.NoError(err)
 	should.Equal(`92233720368547758079223372036854775807`, string(val))
 }
 
@@ -66,31 +69,39 @@ func Test_read_float(t *testing.T) {
 			should := require.New(t)
 			iter := ParseString(Default, input+",")
 			expected, err := strconv.ParseFloat(input, 32)
-			should.Nil(err)
-			should.Equal(float32(expected), iter.Float32())
+			should.NoError(err)
+			got, err := iter.Float32()
+			should.NoError(err)
+			should.Equal(float32(expected), got)
 		})
 		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
 			should := require.New(t)
 			iter := ParseString(Default, input+",")
 			expected, err := strconv.ParseFloat(input, 64)
-			should.Nil(err)
-			should.Equal(expected, iter.Float64())
+			should.NoError(err)
+			got, err := iter.Float64()
+			should.NoError(err)
+			should.Equal(expected, got)
 		})
 		// streaming
 		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
 			should := require.New(t)
 			iter := Parse(Default, bytes.NewBufferString(input+","), 2)
 			expected, err := strconv.ParseFloat(input, 32)
-			should.Nil(err)
-			should.Equal(float32(expected), iter.Float32())
+			should.NoError(err)
+			got, err := iter.Float32()
+			should.NoError(err)
+			should.Equal(float32(expected), got)
 		})
 		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
 			should := require.New(t)
 			iter := Parse(Default, bytes.NewBufferString(input+","), 2)
 			val := float64(0)
 			err := json.Unmarshal([]byte(input), &val)
-			should.Nil(err)
-			should.Equal(val, iter.Float64())
+			should.NoError(err)
+			got, err := iter.Float64()
+			should.NoError(err)
+			should.Equal(val, got)
 		})
 	}
 }

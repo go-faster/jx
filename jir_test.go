@@ -5,13 +5,13 @@ import (
 	hexEnc "encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io"
 	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/xerrors"
 )
 
 func TestJSON(t *testing.T) {
@@ -24,8 +24,7 @@ func Test_parseVal(t *testing.T) {
 		var v Value
 		const input = `{"foo":{"bar":1,"baz":[1,2,3.14],"200":null}}`
 		i := ParseString(Default, input)
-		parseVal(i, &v)
-		assert.NoError(t, i.Error)
+		assert.NoError(t, parseVal(i, &v))
 		assert.Equal(t, `{foo: {bar: 1, baz: [1, 2, f3.14], 200: null}}`, v.String())
 
 		buf := new(bytes.Buffer)
@@ -46,10 +45,7 @@ func Test_parseVal(t *testing.T) {
 				var v Value
 				input := []byte(tt.Input)
 				i := ParseBytes(Default, input)
-				parseVal(i, &v)
-				if i.Error != nil && i.Error != io.EOF {
-					t.Fatal(i.Error)
-				}
+				require.NoError(t, parseVal(i, &v))
 
 				buf := new(bytes.Buffer)
 				s := NewStream(Default, buf, 1024)
@@ -59,8 +55,9 @@ func Test_parseVal(t *testing.T) {
 
 				var otherValue Value
 				i.ResetBytes(buf.Bytes())
-				parseVal(i, &otherValue)
-				if i.Error != nil && i.Error != io.EOF {
+
+				if err := parseVal(i, &otherValue); err != nil {
+					t.Error(err)
 					t.Log(hexEnc.Dump(input))
 					t.Log(hexEnc.Dump(buf.Bytes()))
 				}
@@ -180,65 +177,82 @@ func (v Value) String() string {
 	return b.String()
 }
 
-func parseVal(i *Iterator, v *Value) bool {
-	switch i.WhatIsNext() {
+func parseVal(i *Iterator, v *Value) error {
+	switch i.Next() {
 	case Invalid:
-		return false
+		return xerrors.New("invalid")
 	case Number:
-		n := i.ReadNumber()
+		n, err := i.Number()
+		if err != nil {
+			return xerrors.Errorf("number: %w", err)
+		}
 		idx := strings.Index(n.String(), ".")
 		if (idx > 0 && idx != len(n.String())-1) || strings.Contains(n.String(), "e") {
 			f, err := n.Float64()
 			if err != nil {
-				i.ReportError("ReadNumber", err.Error())
-				return false
+				return xerrors.Errorf("float: %w", err)
 			}
 			v.Float = f
 			v.Type = ValFloat
 		} else {
 			f, err := n.Int64()
 			if err != nil {
-				i.ReportError("ReadNumber", err.Error())
-				return false
+				return xerrors.Errorf("int: %w", err)
 			}
 			v.Int = f
 			v.Type = ValInt
 		}
 	case String:
-		v.Str = i.Str()
+		s, err := i.Str()
+		if err != nil {
+			return xerrors.Errorf("str: %w", err)
+		}
+		v.Str = s
 		v.Type = ValStr
 	case Nil:
-		i.Null()
+		if err := i.Null(); err != nil {
+			return xerrors.Errorf("null: %w", err)
+		}
 		v.Type = ValNull
 	case Bool:
-		v.Bool = i.Bool()
+		b, err := i.Bool()
+		if err != nil {
+			return xerrors.Errorf("bool: %w", err)
+		}
+		v.Bool = b
 		v.Type = ValBool
 	case Object:
 		v.Type = ValObj
-		return i.Object(func(i *Iterator, s string) bool {
+		if err := i.Object(func(i *Iterator, s string) error {
 			var elem Value
-			if !parseVal(i, &elem) {
-				return false
+			if err := parseVal(i, &elem); err != nil {
+				return xerrors.Errorf("elem: %w", err)
 			}
 			elem.Key = s
 			elem.KeySet = true
 			v.Child = append(v.Child, elem)
-			return true
-		})
+			return nil
+		}); err != nil {
+			return xerrors.Errorf("obj: %w", err)
+		}
+		return nil
 	case Array:
 		v.Type = ValArr
-		return i.Array(func(i *Iterator) bool {
+		if err := i.Array(func(i *Iterator) error {
 			var elem Value
-			if !parseVal(i, &elem) {
-				return false
+			if err := parseVal(i, &elem); err != nil {
+				return xerrors.Errorf("elem: %w", err)
 			}
 			v.Child = append(v.Child, elem)
-			return true
-		})
+			return nil
+		}); err != nil {
+			return xerrors.Errorf("array: %w", err)
+		}
+		return nil
 	default:
-		panic(i.WhatIsNext())
+		panic(i.Next())
 	}
-	return true
+	return nil
 }
 
 // requireCompat fails if `encoding/json` will encode v differently than exp.

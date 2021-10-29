@@ -4,7 +4,6 @@ package jir
 
 import (
 	"bytes"
-	"io"
 	"reflect"
 	"testing"
 )
@@ -34,13 +33,10 @@ func FuzzDecEnc(f *testing.F) {
 
 		// Parsing to v.
 		var v Value
-		if !parseVal(i, &v) {
+		if parseVal(i, &v) != nil {
 			t.Skip()
 		}
 		if v.Type == ValInvalid {
-			t.Skip()
-		}
-		if i.Error != nil && i.Error != io.EOF {
 			t.Skip()
 		}
 		// Writing v to buf.
@@ -54,14 +50,13 @@ func FuzzDecEnc(f *testing.F) {
 		// Parsing from buf to new value.
 		i.ResetBytes(buf.Bytes())
 		var parsed Value
-		parseVal(i, &parsed)
-		if i.Error != nil && i.Error != io.EOF {
+		if err := parseVal(i, &parsed); err != nil {
 			t.Fatalf("%v:\nBuf:   %s\nValue: %s\nData:  %s",
-				i.Error, buf.Bytes(), v, data)
+				err, buf.Bytes(), v, data)
 		}
 		if !reflect.DeepEqual(parsed, v) {
 			t.Fatalf("%v:\nBuf:   %s\nValue: %s != %s \nData:  %s",
-				i.Error, buf.Bytes(), parsed, v, data)
+				nil, buf.Bytes(), parsed, v, data)
 		}
 		// Writing parsed value to newBuf.
 		var newBuf bytes.Buffer

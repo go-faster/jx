@@ -86,6 +86,5 @@ func (cfg Config) API() API {
 func (cfg *frozenConfig) Valid(data []byte) bool {
 	iter := cfg.Iterator(data)
 	defer cfg.PutIterator(iter)
-	iter.Skip()
-	return iter.Error == nil
+	return iter.Skip() == nil
 }

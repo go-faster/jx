@@ -1,91 +1,95 @@
 package jir
 
-import "fmt"
+import (
+	"golang.org/x/xerrors"
+)
 
 // Null reads a json object as null and
 // returns whether it's a null or not.
-func (it *Iterator) Null() (ok bool) {
-	c := it.nextToken()
-	if c == 'n' {
-		it.skipThreeBytes('u', 'l', 'l') // null
-		return true
+func (it *Iterator) Null() error {
+	if err := it.expectNext('n'); err != nil {
+		return err
 	}
-	it.unreadByte()
-	return false
+	return it.skipThreeBytes('u', 'l', 'l') // null
 }
 
 // Bool reads a json object as Bool
-func (it *Iterator) Bool() bool {
-	c := it.nextToken()
-	if c == 't' {
-		it.skipThreeBytes('r', 'u', 'e')
-		return true
+func (it *Iterator) Bool() (bool, error) {
+	c, err := it.next()
+	if err != nil {
+		return false, err
 	}
-	if c == 'f' {
-		it.skipFourBytes('a', 'l', 's', 'e')
-		return false
+	switch c {
+	case 't':
+		if err := it.skipThreeBytes('r', 'u', 'e'); err != nil {
+			return false, err
+		}
+		return true, nil
+	case 'f':
+		return false, it.skipFourBytes('a', 'l', 's', 'e')
+	default:
+		return false, badToken(c)
 	}
-	it.ReportError("Bool", "expect t or f, but found "+string([]byte{c}))
-	return false
 }
 
 // Skip skips a json object and positions to relatively the next json object.
-func (it *Iterator) Skip() {
-	c := it.nextToken()
+func (it *Iterator) Skip() error {
+	c, err := it.next()
+	if err != nil {
+		return err
+	}
 	switch c {
 	case '"':
-		it.skipString()
+		if err := it.strSkip(); err != nil {
+			return xerrors.Errorf("str: %w", err)
+		}
+		return nil
 	case 'n':
-		it.skipThreeBytes('u', 'l', 'l') // null
+		return it.skipThreeBytes('u', 'l', 'l') // null
 	case 't':
-		it.skipThreeBytes('r', 'u', 'e') // true
+		return it.skipThreeBytes('r', 'u', 'e') // true
 	case 'f':
-		it.skipFourBytes('a', 'l', 's', 'e') // false
+		return it.skipFourBytes('a', 'l', 's', 'e') // false
 	case '0':
-		it.unreadByte()
-		it.Float32()
+		it.unread()
+		_, err := it.Float32()
+		return err
 	case '-', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-		it.skipNumber()
+		return it.skipNumber()
 	case '[':
-		it.skipArray()
+		if err := it.skipArray(); err != nil {
+			return xerrors.Errorf("array: %w", err)
+		}
+		return nil
 	case '{':
-		it.skipObject()
+		if err := it.skipObject(); err != nil {
+			return xerrors.Errorf("object: %w", err)
+		}
+		return nil
 	default:
-		it.ReportError("Skip", fmt.Sprintf("do not know how to skip: %v", c))
-		return
+		return badToken(c)
 	}
 }
 
-func (it *Iterator) skipFourBytes(b1, b2, b3, b4 byte) {
-	if it.readByte() != b1 {
-		it.ReportError("skipFourBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3, b4})))
-		return
+func (it *Iterator) skipFourBytes(b1, b2, b3, b4 byte) error {
+	if err := it.skipThreeBytes(b1, b2, b3); err != nil {
+		return err
 	}
-	if it.readByte() != b2 {
-		it.ReportError("skipFourBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3, b4})))
-		return
+	if it.byte() != b4 {
+		return badToken(it.byte())
 	}
-	if it.readByte() != b3 {
-		it.ReportError("skipFourBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3, b4})))
-		return
-	}
-	if it.readByte() != b4 {
-		it.ReportError("skipFourBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3, b4})))
-		return
-	}
+	return nil
 }
 
-func (it *Iterator) skipThreeBytes(b1, b2, b3 byte) {
-	if it.readByte() != b1 {
-		it.ReportError("skipThreeBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3})))
-		return
+func (it *Iterator) skipThreeBytes(b1, b2, b3 byte) error {
+	if it.byte() != b1 {
+		return badToken(it.byte())
 	}
-	if it.readByte() != b2 {
-		it.ReportError("skipThreeBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3})))
-		return
+	if it.byte() != b2 {
+		return badToken(it.byte())
 	}
-	if it.readByte() != b3 {
-		it.ReportError("skipThreeBytes", fmt.Sprintf("expect %s", string([]byte{b1, b2, b3})))
-		return
+	if it.byte() != b3 {
+		return badToken(it.byte())
 	}
+	return nil
 }

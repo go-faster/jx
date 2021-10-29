@@ -19,12 +19,10 @@ func Benchmark_large_file(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		iter.ResetBytes(data)
-		iter.Array(func(iter *Iterator) bool {
-			iter.Skip()
-			return true
-		})
-		if iter.Error != nil {
-			b.Error(iter.Error)
+		if err := iter.Array(func(iter *Iterator) error {
+			return iter.Skip()
+		}); err != nil {
+			b.Fatal(err)
 		}
 	}
 }
@@ -32,7 +30,7 @@ func Benchmark_large_file(b *testing.B) {
 func Benchmark_std_large_file(b *testing.B) {
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
-		result := []struct{}{}
+		var result []struct{}
 		err := json.Unmarshal(data, &result)
 		if err != nil {
 			b.Error(err)

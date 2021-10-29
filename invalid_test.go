@@ -1,7 +1,6 @@
 package jir
 
 import (
-	"io"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -21,17 +20,13 @@ func Test_invalid_float(t *testing.T) {
 		t.Run(input, func(t *testing.T) {
 			should := require.New(t)
 			iter := ParseString(Default, input+",")
-			iter.Skip()
-			should.NotEqual(io.EOF, iter.Error)
-			should.NotNil(iter.Error)
+			should.Error(iter.Skip())
 			iter = ParseString(Default, input+",")
-			iter.Float64()
-			should.NotEqual(io.EOF, iter.Error)
-			should.NotNil(iter.Error)
+			_, err := iter.Float64()
+			should.Error(err)
 			iter = ParseString(Default, input+",")
-			iter.Float32()
-			should.NotEqual(io.EOF, iter.Error)
-			should.NotNil(iter.Error)
+			_, err = iter.Float32()
+			should.Error(err)
 		})
 	}
 }

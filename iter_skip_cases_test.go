@@ -2,7 +2,6 @@ package jir
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"reflect"
 	"testing"
@@ -80,18 +79,19 @@ func Test_skip(t *testing.T) {
 				ptrVal := reflect.New(valType)
 				stdErr := json.Unmarshal([]byte(input), ptrVal.Interface())
 				iter := ParseString(Default, input)
-				iter.Skip()
-				iter.Null() // trigger looking forward
-				err := iter.Error
-				if err == io.EOF {
-					err = nil
-				} else {
-					err = errors.New("remaining bytes")
-				}
 				if stdErr == nil {
-					should.Nil(err)
+					should.NoError(iter.Skip())
+					should.ErrorIs(iter.Null(), io.ErrUnexpectedEOF)
 				} else {
-					should.NotNil(err)
+					should.Error(func() error {
+						if err := iter.Skip(); err != nil {
+							return err
+						}
+						if err := iter.Skip(); err != io.EOF {
+							return err
+						}
+						return nil
+					}())
 				}
 			})
 		}

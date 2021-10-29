@@ -1,65 +1,78 @@
 package jir
 
+import (
+	"io"
+
+	"golang.org/x/xerrors"
+)
+
 // Elem reads array element and reports whether array has more
 // elements to read.
-func (it *Iterator) Elem() (ret bool) {
-	c := it.nextToken()
+func (it *Iterator) Elem() (ok bool, err error) {
+	c, err := it.next()
+	if err != nil {
+		return false, err
+	}
 	switch c {
-	case 'n':
-		it.skipThreeBytes('u', 'l', 'l')
-		return false // null
 	case '[':
-		c = it.nextToken()
-		if c != ']' {
-			it.unreadByte()
-			return true
+		c, err := it.next()
+		if err != nil {
+			return false, xerrors.Errorf("next: %w", err)
 		}
-		return false
+		if c != ']' {
+			it.unread()
+			return true, nil
+		}
+		return false, nil
 	case ']':
-		return false
+		return false, nil
 	case ',':
-		return true
+		return true, nil
 	default:
-		it.ReportError("Elem", "expect [ or , or ] or n, but found "+string([]byte{c}))
-		return
+		return false, xerrors.Errorf(`"[" or "," or "]" expected: %w`, badToken(c))
 	}
 }
 
 // Array reads array and call f on each element.
-func (it *Iterator) Array(f func(i *Iterator) bool) (ret bool) {
-	c := it.nextToken()
-	if c == '[' {
-		if !it.incrementDepth() {
-			return false
-		}
-		c = it.nextToken()
-		if c != ']' {
-			it.unreadByte()
-			if !f(it) {
-				it.decrementDepth()
-				return false
-			}
-			c = it.nextToken()
-			for c == ',' {
-				if !f(it) {
-					it.decrementDepth()
-					return false
-				}
-				c = it.nextToken()
-			}
-			if c != ']' {
-				it.ReportError("Array", "expect ] in the end, but found "+string([]byte{c}))
-				it.decrementDepth()
-				return false
-			}
-			return it.decrementDepth()
-		}
+func (it *Iterator) Array(f func(i *Iterator) error) error {
+	if err := it.expectNext('['); err != nil {
+		return xerrors.Errorf("start: %w", err)
+	}
+	if err := it.incrementDepth(); err != nil {
+		return xerrors.Errorf("inc: %w", err)
+	}
+	c, err := it.next()
+	if err == io.EOF {
+		return io.ErrUnexpectedEOF
+	}
+	if err != nil {
+		return err
+	}
+	if c == ']' {
 		return it.decrementDepth()
 	}
-	if c == 'n' {
-		it.skipThreeBytes('u', 'l', 'l')
-		return true // null
+	it.unread()
+	if err := f(it); err != nil {
+		return xerrors.Errorf("callback: %w", err)
 	}
-	it.ReportError("Array", "expect [ or n, but found "+string([]byte{c}))
-	return false
+
+	c, err = it.next()
+	if err == io.EOF {
+		return io.ErrUnexpectedEOF
+	}
+	if err != nil {
+		return xerrors.Errorf("next: %w", err)
+	}
+	for c == ',' {
+		if err := f(it); err != nil {
+			return xerrors.Errorf("callback: %w", err)
+		}
+		if c, err = it.next(); err != nil {
+			return xerrors.Errorf("next: %w", err)
+		}
+	}
+	if c != ']' {
+		return xerrors.Errorf("end: %w", badToken(c))
+	}
+	return it.decrementDepth()
 }
