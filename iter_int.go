@@ -262,7 +262,7 @@ func (it *Iter) readUint64(c byte) (uint64, error) {
 			if err := it.assertInt(); err != nil {
 				return 0, err
 			}
-			return 0, nil
+			return value, nil
 		}
 		i++
 		ind3 := intDigits[it.buf[i]]
