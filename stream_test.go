@@ -66,3 +66,15 @@ func TestStream_Flush_should_stop_grow_buffer(t *testing.T) {
 	// is ever used, and it is never extended. Capacity remains 512.
 	should.Equal(512, writer.bufferSize)
 }
+
+func TestStream_ArrEmpty(t *testing.T) {
+	s := NewStream(Default, nil, 0)
+	s.ArrEmpty()
+	require.Equal(t, "[]", string(s.Buf()))
+}
+
+func TestStream_ObjEmpty(t *testing.T) {
+	s := NewStream(Default, nil, 0)
+	s.ObjEmpty()
+	require.Equal(t, "{}", string(s.Buf()))
+}
