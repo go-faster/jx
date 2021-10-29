@@ -44,7 +44,10 @@ func (it *Iterator) Field() (ret string) {
 	}
 }
 
-func (it *Iterator) object(f func(i *Iterator, key []byte) bool) bool {
+// ObjectBytes calls f for every key in object, using byte slice as key.
+//
+// The key value is valid only until f is not returned.
+func (it *Iterator) ObjectBytes(f func(i *Iterator, key []byte) bool) bool {
 	if it.buf == nil {
 		it.buf = make([]byte, 0, 64)
 	}
@@ -122,9 +125,9 @@ func (it *Iterator) object(f func(i *Iterator, key []byte) bool) bool {
 	return it.decrementDepth()
 }
 
-// Object read object, calling f on each field.
+// Object read ObjectBytes, calling f on each field.
 func (it *Iterator) Object(f func(i *Iterator, key string) bool) bool {
-	return it.object(func(i *Iterator, key []byte) bool {
+	return it.ObjectBytes(func(i *Iterator, key []byte) bool {
 		return f(i, string(key))
 	})
 }
