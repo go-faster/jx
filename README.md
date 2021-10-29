@@ -5,7 +5,7 @@ Fast json for go. Lightweight fork of [jsoniter](https://github.com/json-iterato
 ## Features
 * Reduced scope (no reflection or `encoding/json` adapter)
 * Fuzzing, improved test coverage
-* Drastically refactored
+* Drastically refactored and simplified
   * Explicit error returns
   * No `Config` or `API`
 
