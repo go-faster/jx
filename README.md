@@ -4,7 +4,10 @@ Fast json streaming in go. Buffered encoding and decoding of json values.
 Lightweight fork of [jsoniter](https://github.com/json-iterator/go).
 
 ## Features
-* Reduced scope (no reflection or `encoding/json` adapter)
+* Reduced scope
+  * No reflection
+  * No `encoding/json` adapter
+  * 2.2K SLOC vs 8.5K in `jsoniter`
 * Fuzzing, improved test coverage
 * Drastically refactored and simplified
   * Explicit error returns
