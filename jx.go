@@ -38,14 +38,15 @@ func PutDecoder(i *Decoder) {
 	decPool.Put(i)
 }
 
-// GetWriter returns *Encoder from pool.
-func GetWriter() *Encoder {
+// GetEncoder returns *Encoder from pool.
+func GetEncoder() *Encoder {
 	return encPool.Get().(*Encoder)
 }
 
-// PutWriter puts *Encoder to pool
-func PutWriter(s *Encoder) {
-	s.Reset(nil)
-	s.buf = s.buf[:0]
-	encPool.Put(s)
+// PutEncoder puts *Encoder to pool
+func PutEncoder(e *Encoder) {
+	e.Reset(nil)
+	e.SetIdent(0)
+	e.buf = e.buf[:0]
+	encPool.Put(e)
 }

@@ -40,7 +40,7 @@ func FuzzDecEnc(f *testing.F) {
 			t.Skip()
 		}
 		var buf bytes.Buffer
-		w := GetWriter()
+		w := GetEncoder()
 		w.Reset(&buf)
 		if err := w.Any(v); err != nil {
 			t.Fatal(err)
@@ -80,9 +80,9 @@ func FuzzValues(f *testing.F) {
 	f.Add(int64(1534564316421), " привет ")
 	f.Fuzz(func(t *testing.T, n int64, str string) {
 		buf := new(bytes.Buffer)
-		w := GetWriter()
+		w := GetEncoder()
 		w.Reset(buf)
-		defer PutWriter(w)
+		defer PutEncoder(w)
 
 		w.ArrStart()
 		w.Int64(n)

@@ -45,7 +45,7 @@ func (w *NopWriter) Write(p []byte) (n int, err error) {
 }
 
 func TestEncoder_Flush_should_stop_grow_buffer(t *testing.T) {
-	// GetWriter an array of a zillion zeros.
+	// GetEncoder an array of a zillion zeros.
 	writer := new(NopWriter)
 	stream := NewEncoder(writer, 512)
 	stream.ArrStart()
