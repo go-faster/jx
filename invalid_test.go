@@ -19,12 +19,12 @@ func Test_invalid_float(t *testing.T) {
 	for _, input := range inputs {
 		t.Run(input, func(t *testing.T) {
 			should := require.New(t)
-			iter := DecodeString(input + ",")
+			iter := DecodeStr(input + ",")
 			should.Error(iter.Skip())
-			iter = DecodeString(input + ",")
+			iter = DecodeStr(input + ",")
 			_, err := iter.Float64()
 			should.Error(err)
-			iter = DecodeString(input + ",")
+			iter = DecodeStr(input + ",")
 			_, err = iter.Float32()
 			should.Error(err)
 		})

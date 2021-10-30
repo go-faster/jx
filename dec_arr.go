@@ -33,12 +33,12 @@ func (d *Decoder) Elem() (ok bool, err error) {
 	}
 }
 
-// Array reads array and calls f on each array element.
-func (d *Decoder) Array(f func(d *Decoder) error) error {
+// Arr reads array and calls f on each array element.
+func (d *Decoder) Arr(f func(d *Decoder) error) error {
 	if err := d.expectNext('['); err != nil {
 		return xerrors.Errorf("start: %w", err)
 	}
-	if err := d.incrementDepth(); err != nil {
+	if err := d.incDepth(); err != nil {
 		return xerrors.Errorf("inc: %w", err)
 	}
 	c, err := d.next()
@@ -49,7 +49,7 @@ func (d *Decoder) Array(f func(d *Decoder) error) error {
 		return err
 	}
 	if c == ']' {
-		return d.decrementDepth()
+		return d.decDepth()
 	}
 	d.unread()
 	if err := f(d); err != nil {
@@ -74,5 +74,5 @@ func (d *Decoder) Array(f func(d *Decoder) error) error {
 	if c != ']' {
 		return xerrors.Errorf("end: %w", badToken(c))
 	}
-	return d.decrementDepth()
+	return d.decDepth()
 }

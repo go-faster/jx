@@ -1,7 +1,6 @@
 package jx
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -9,23 +8,21 @@ import (
 
 func Test_true(t *testing.T) {
 	should := require.New(t)
-	iter := DecodeString(`true`)
+	iter := DecodeStr(`true`)
 	should.True(iter.Bool())
 }
 
 func Test_false(t *testing.T) {
 	should := require.New(t)
-	iter := DecodeString(`false`)
+	iter := DecodeStr(`false`)
 	should.False(iter.Bool())
 }
 
 func Test_write_true_false(t *testing.T) {
 	should := require.New(t)
-	buf := &bytes.Buffer{}
-	w := NewEncoder(buf, 4096)
+	w := NewEncoder()
 	w.True()
 	w.False()
 	w.Bool(false)
-	should.NoError(w.Flush())
-	should.Equal("truefalsefalse", buf.String())
+	should.Equal("truefalsefalse", string(w.Bytes()))
 }

@@ -17,7 +17,7 @@ func Valid(data []byte) bool {
 var (
 	encPool = &sync.Pool{
 		New: func() interface{} {
-			return NewEncoder(nil, 256)
+			return NewEncoder()
 		},
 	}
 	decPool = &sync.Pool{
@@ -45,8 +45,7 @@ func GetEncoder() *Encoder {
 
 // PutEncoder puts *Encoder to pool
 func PutEncoder(e *Encoder) {
-	e.Reset(nil)
+	e.Reset()
 	e.SetIdent(0)
-	e.buf = e.buf[:0]
 	encPool.Put(e)
 }

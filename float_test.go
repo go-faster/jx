@@ -14,7 +14,7 @@ import (
 
 func Test_read_big_float(t *testing.T) {
 	should := require.New(t)
-	r := DecodeString(`12.3`)
+	r := DecodeStr(`12.3`)
 	val, err := r.BigFloat()
 	should.NoError(err)
 	val64, _ := val.Float64()
@@ -23,7 +23,7 @@ func Test_read_big_float(t *testing.T) {
 
 func Test_read_big_int(t *testing.T) {
 	should := require.New(t)
-	iter := DecodeString(`92233720368547758079223372036854775807`)
+	iter := DecodeStr(`92233720368547758079223372036854775807`)
 	val, err := iter.BigInt()
 	should.NoError(err)
 	should.NotNil(val)
@@ -32,7 +32,7 @@ func Test_read_big_int(t *testing.T) {
 
 func Test_read_number(t *testing.T) {
 	should := require.New(t)
-	iter := DecodeString(`92233720368547758079223372036854775807`)
+	iter := DecodeStr(`92233720368547758079223372036854775807`)
 	val, err := iter.Number()
 	should.NoError(err)
 	should.Equal(`92233720368547758079223372036854775807`, string(val))
@@ -67,7 +67,7 @@ func Test_read_float(t *testing.T) {
 		// non-streaming
 		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
 			should := require.New(t)
-			r := DecodeString(input + ",")
+			r := DecodeStr(input + ",")
 			expected, err := strconv.ParseFloat(input, 32)
 			should.NoError(err)
 			got, err := r.Float32()
@@ -76,7 +76,7 @@ func Test_read_float(t *testing.T) {
 		})
 		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
 			should := require.New(t)
-			r := DecodeString(input + ",")
+			r := DecodeStr(input + ",")
 			expected, err := strconv.ParseFloat(input, 64)
 			should.NoError(err)
 			got, err := r.Float64()
@@ -112,24 +112,20 @@ func Test_write_float32(t *testing.T) {
 	for _, val := range vals {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
-			buf := &bytes.Buffer{}
-			w := NewEncoder(buf, 4096)
+			w := NewEncoder()
 			should.NoError(w.Float32Lossy(val))
-			should.NoError(w.Flush())
 			output, err := json.Marshal(val)
 			should.Nil(err)
-			should.Equal(string(output), buf.String())
+			should.Equal(output, w.Bytes())
 		})
 	}
 	should := require.New(t)
-	buf := &bytes.Buffer{}
-	w := NewEncoder(buf, 10)
+	w := NewEncoder()
 	w.Raw("abcdefg")
 	should.NoError(w.Float32Lossy(1.123456))
-	should.NoError(w.Flush())
-	should.Equal("abcdefg1.123456", buf.String())
+	should.Equal("abcdefg1.123456", string(w.Bytes()))
 
-	w = NewEncoder(nil, 0)
+	w = NewEncoder()
 	should.NoError(w.WriteFloat32(float32(0.0000001)))
 	should.Equal("1e-07", string(w.Bytes()))
 }
@@ -140,26 +136,22 @@ func Test_write_float64(t *testing.T) {
 	for _, val := range vals {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
-			buf := &bytes.Buffer{}
-			w := NewEncoder(buf, 4096)
+			w := NewEncoder()
 			should.NoError(w.Float64(val))
-			should.NoError(w.Flush())
 			s := strconv.FormatFloat(val, 'f', -1, 64)
 			if !strings.Contains(s, ".") {
 				s += ".0"
 			}
-			should.Equal(s, buf.String())
+			should.Equal(s, string(w.Bytes()))
 		})
 	}
 	should := require.New(t)
-	buf := &bytes.Buffer{}
-	w := NewEncoder(buf, 10)
-	w.Raw("abcdefg")
-	should.NoError(w.Float64Lossy(1.123456))
-	should.NoError(w.Flush())
-	should.Equal("abcdefg1.123456", buf.String())
+	e := NewEncoder()
+	e.Raw("abcdefg")
+	should.NoError(e.Float64Lossy(1.123456))
+	should.Equal("abcdefg1.123456", e.String())
 
-	w = NewEncoder(nil, 0)
-	should.NoError(w.Float64(0.0000001))
-	should.Equal("1e-07", string(w.Bytes()))
+	e.Reset()
+	should.NoError(e.Float64(0.0000001))
+	should.Equal("1e-07", e.String())
 }

@@ -4,15 +4,17 @@ import (
 	"io"
 )
 
-// Encoder encodes json to internal buffer and flushes to io.Writer if set.
-//
-// Call Flush to write buffer to io.Writer.
+// Encoder encodes json to underlying buffer.
 type Encoder struct {
-	out io.Writer
-	buf []byte
-
+	buf      []byte
 	ident    int
 	curIdent int
+}
+
+// WriteTo implements io.WriterTo.
+func (e *Encoder) WriteTo(w io.Writer) (n int64, err error) {
+	wrote, err := w.Write(e.buf)
+	return int64(wrote), err
 }
 
 // SetIdent sets length of single indentation step.
@@ -20,25 +22,30 @@ func (e *Encoder) SetIdent(n int) {
 	e.ident = n
 }
 
-// NewEncoder create new encoder instance.
-func NewEncoder(out io.Writer, bufSize int) *Encoder {
+// String returns string of underlying buffer.
+func (e *Encoder) String() string {
+	return string(e.Bytes())
+}
+
+// NewEncoder creates new encoder.
+func NewEncoder() *Encoder {
+	const defaultBuf = 256
+
 	return &Encoder{
-		out: out,
-		buf: make([]byte, 0, bufSize),
+		buf: make([]byte, 0, defaultBuf),
 	}
 }
 
-// Reset reuse this stream instance by assign a new writer
-func (e *Encoder) Reset(out io.Writer) {
-	e.out = out
+// Reset resets underlying buffer.
+func (e *Encoder) Reset() {
 	e.buf = e.buf[:0]
 }
 
 // Bytes returns underlying buffer.
 func (e *Encoder) Bytes() []byte { return e.buf }
 
-// SetBuf allows to set the internal buffer directly.
-func (e *Encoder) SetBuf(buf []byte) { e.buf = buf }
+// SetBytes sets underlying buffer.
+func (e *Encoder) SetBytes(buf []byte) { e.buf = buf }
 
 // byte writes a single byte.
 func (e *Encoder) byte(c byte) {
@@ -61,24 +68,12 @@ func (e *Encoder) fiveBytes(c1, c2, c3, c4, c5 byte) {
 	e.buf = append(e.buf, c1, c2, c3, c4, c5)
 }
 
-// Flush writes any buffered data to the underlying io.Writer.
-func (e *Encoder) Flush() error {
-	if e.out == nil {
-		return nil
-	}
-	if _, err := e.out.Write(e.buf); err != nil {
-		return err
-	}
-	e.buf = e.buf[:0]
-	return nil
-}
-
-// Raw writes raw json.
+// Raw writes string as raw json.
 func (e *Encoder) Raw(v string) {
 	e.buf = append(e.buf, v...)
 }
 
-// RawBytes writes raw json.
+// RawBytes writes byte slice as raw json.
 func (e *Encoder) RawBytes(b []byte) {
 	e.buf = append(e.buf, b...)
 }
@@ -116,7 +111,7 @@ func (e *Encoder) ObjStart() {
 
 // ObjField write "field": with possible indention.
 func (e *Encoder) ObjField(field string) {
-	e.String(field)
+	e.Str(field)
 	if e.curIdent > 0 {
 		e.twoBytes(':', ' ')
 	} else {

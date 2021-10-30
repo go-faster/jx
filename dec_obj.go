@@ -6,14 +6,14 @@ import (
 	"golang.org/x/xerrors"
 )
 
-// ObjectBytes calls f for every key in object, using byte slice as key.
+// ObjBytes calls f for every key in object, using byte slice as key.
 //
 // The key value is valid only until f is not returned.
-func (d *Decoder) ObjectBytes(f func(d *Decoder, key []byte) error) error {
+func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 	if err := d.expectNext('{'); err != nil {
 		return xerrors.Errorf("start: %w", err)
 	}
-	if err := d.incrementDepth(); err != nil {
+	if err := d.incDepth(); err != nil {
 		return xerrors.Errorf("inc: %w", err)
 	}
 	c, err := d.next()
@@ -21,7 +21,7 @@ func (d *Decoder) ObjectBytes(f func(d *Decoder, key []byte) error) error {
 		return xerrors.Errorf("next: %w", err)
 	}
 	if c == '}' {
-		return d.decrementDepth()
+		return d.decDepth()
 	}
 	d.unread()
 
@@ -61,14 +61,14 @@ func (d *Decoder) ObjectBytes(f func(d *Decoder, key []byte) error) error {
 	if c != '}' {
 		return xerrors.Errorf("end: %w", badToken(c))
 	}
-	return d.decrementDepth()
+	return d.decDepth()
 }
 
-// Object reads json object, calling f on each field.
+// Obj reads json object, calling f on each field.
 //
-// Use ObjectBytes to reduce heap allocations for keys.
-func (d *Decoder) Object(f func(d *Decoder, key string) error) error {
-	return d.ObjectBytes(func(d *Decoder, key []byte) error {
+// Use ObjBytes to reduce heap allocations for keys.
+func (d *Decoder) Obj(f func(d *Decoder, key string) error) error {
+	return d.ObjBytes(func(d *Decoder, key []byte) error {
 		return f(d, string(key))
 	})
 }

@@ -39,38 +39,29 @@ func FuzzDecEnc(f *testing.F) {
 		if v.Type == AnyInvalid {
 			t.Skip()
 		}
-		var buf bytes.Buffer
 		w := GetEncoder()
-		w.Reset(&buf)
 		if err := w.Any(v); err != nil {
-			t.Fatal(err)
-		}
-		if err := w.Flush(); err != nil {
 			t.Fatal(err)
 		}
 
 		// Parsing from buf to new value.
-		r.ResetBytes(buf.Bytes())
+		r.ResetBytes(w.Bytes())
 		parsed, err := r.Any()
 		if err != nil {
 			t.Fatalf("%v:\nBuf:   %s\nValue: %s\nData:  %s",
-				err, buf.Bytes(), v, data)
+				err, w.Bytes(), v, data)
 		}
 		if !reflect.DeepEqual(parsed, v) {
 			t.Fatalf("%v:\nBuf:   %s\nValue: %s != %s \nData:  %s",
-				nil, buf.Bytes(), parsed, v, data)
+				nil, w.Bytes(), parsed, v, data)
 		}
-		// Writing parsed value to newBuf.
-		var newBuf bytes.Buffer
-		w.Reset(&newBuf)
+		b := w.Bytes()
+		w.SetBytes(nil)
 		if err := parsed.Write(w); err != nil {
 			t.Fatal(err)
 		}
-		if err := w.Flush(); err != nil {
-			t.Fatal(err)
-		}
-		if !bytes.Equal(newBuf.Bytes(), buf.Bytes()) {
-			t.Fatalf("%s != %s", &newBuf, &buf)
+		if !bytes.Equal(w.Bytes(), b) {
+			t.Fatalf("%s != %s", w, b)
 		}
 	})
 }
@@ -79,28 +70,22 @@ func FuzzValues(f *testing.F) {
 	f.Add(int64(1), "hello")
 	f.Add(int64(1534564316421), " привет ")
 	f.Fuzz(func(t *testing.T, n int64, str string) {
-		buf := new(bytes.Buffer)
 		w := GetEncoder()
-		w.Reset(buf)
 		defer PutEncoder(w)
 
 		w.ArrStart()
 		w.Int64(n)
 		w.More()
-		w.String(str)
+		w.Str(str)
 		w.ArrEnd()
 
-		if err := w.Flush(); err != nil {
-			t.Fatal(err)
-		}
-
 		i := GetDecoder()
-		i.ResetBytes(buf.Bytes())
+		i.ResetBytes(w.Bytes())
 		var (
 			nGot int64
 			sGot string
 		)
-		if err := i.Array(func(i *Decoder) error {
+		if err := i.Arr(func(i *Decoder) error {
 			var err error
 			switch i.Next() {
 			case Number:
@@ -112,16 +97,16 @@ func FuzzValues(f *testing.F) {
 			}
 			return err
 		}); err != nil {
-			t.Fatalf("'%s': %v", buf, err)
+			t.Fatalf("'%s': %v", w, err)
 		}
 		if nGot != n {
 			t.Fatalf("'%s': %d (got) != %d (expected)",
-				buf, nGot, n,
+				w, nGot, n,
 			)
 		}
 		if sGot != str {
 			t.Fatalf("'%s': %q (got) != %q (expected)",
-				buf, sGot, str,
+				w, sGot, str,
 			)
 		}
 	})

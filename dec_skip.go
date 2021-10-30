@@ -175,14 +175,14 @@ func (d *Decoder) strFastSkip() (ok bool, err error) {
 
 func (d *Decoder) skipObject() error {
 	d.unread()
-	return d.ObjectBytes(func(iter *Decoder, _ []byte) error {
+	return d.ObjBytes(func(iter *Decoder, _ []byte) error {
 		return iter.Skip()
 	})
 }
 
 func (d *Decoder) skipArray() error {
 	d.unread()
-	return d.Array(func(iter *Decoder) error {
+	return d.Arr(func(iter *Decoder) error {
 		return iter.Skip()
 	})
 }

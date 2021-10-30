@@ -22,12 +22,12 @@ func TestIterator_Capture(t *testing.T) {
 }`
 	i := GetDecoder()
 	i.ResetBytes([]byte(input))
-	err := i.Object(func(i *Decoder, key string) error {
-		return i.Array(func(i *Decoder) error {
+	err := i.Obj(func(i *Decoder, key string) error {
+		return i.Arr(func(i *Decoder) error {
 			// Reading "type" field value first.
 			var typ string
 			if err := i.Capture(func(i *Decoder) error {
-				return i.Object(func(i *Decoder, key string) error {
+				return i.Obj(func(i *Decoder, key string) error {
 					switch key {
 					case "type":
 						s, err := i.String()
@@ -44,7 +44,7 @@ func TestIterator_Capture(t *testing.T) {
 				return err
 			}
 			// Reading objects depending on type.
-			return i.Object(func(i *Decoder, key string) error {
+			return i.Obj(func(i *Decoder, key string) error {
 				if key == "type" {
 					s, err := i.String()
 					if err != nil {
@@ -83,10 +83,10 @@ func BenchmarkIterator_Skip(b *testing.B) {
 }
 
 func TestDecoder_Capture(t *testing.T) {
-	i := DecodeString(`["foo", "bar", "baz"]`)
+	i := DecodeStr(`["foo", "bar", "baz"]`)
 	var elems int
 	if err := i.Capture(func(i *Decoder) error {
-		return i.Array(func(i *Decoder) error {
+		return i.Arr(func(i *Decoder) error {
 			elems++
 			return i.Skip()
 		})

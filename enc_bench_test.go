@@ -1,18 +1,17 @@
 package jx
 
 import (
-	"bytes"
 	"strconv"
 	"testing"
 )
 
 func Benchmark_stream_encode_big_object(b *testing.B) {
-	var buf bytes.Buffer
-	var stream = NewEncoder(&buf, 100)
+	b.ReportAllocs()
+
+	e := GetEncoder()
 	for i := 0; i < b.N; i++ {
-		buf.Reset()
-		stream.Reset(&buf)
-		if err := encodeObject(stream); err != nil {
+		e.Reset()
+		if err := encodeObject(e); err != nil {
 			b.Fatal(err)
 		}
 	}
@@ -26,7 +25,7 @@ func encodeObject(w *Encoder) error {
 
 	w.More()
 	w.ObjField("name")
-	w.String("Jane Doe")
+	w.Str("Jane Doe")
 
 	w.More()
 	w.ObjField("address")
@@ -36,7 +35,7 @@ func encodeObject(w *Encoder) error {
 			w.More()
 		}
 		w.ObjField(field.key)
-		w.String(field.val)
+		w.Str(field.val)
 	}
 
 	w.More()
@@ -63,7 +62,7 @@ func encodeObject(w *Encoder) error {
 		if i != 0 {
 			w.More()
 		}
-		w.String(s)
+		w.Str(s)
 	}
 	w.ArrEnd()
 
@@ -73,7 +72,7 @@ func encodeObject(w *Encoder) error {
 			w.More()
 		}
 		w.ObjField("longText" + strconv.Itoa(i))
-		w.String(text)
+		w.Str(text)
 	}
 
 	for i := 0; i < 25; i++ {

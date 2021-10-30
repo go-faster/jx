@@ -8,9 +8,9 @@ import (
 )
 
 func TestDecoder_ObjectBytes(t *testing.T) {
-	i := DecodeString(`{"id":1,"randomNumber":10}`)
+	i := DecodeStr(`{"id":1,"randomNumber":10}`)
 	met := map[string]struct{}{}
-	require.NoError(t, i.ObjectBytes(func(i *Decoder, key []byte) error {
+	require.NoError(t, i.ObjBytes(func(i *Decoder, key []byte) error {
 		switch string(key) {
 		case "id":
 			v, err := i.Int64()

@@ -1,7 +1,6 @@
 package jx
 
 import (
-	"bytes"
 	hexEnc "encoding/hex"
 	"encoding/json"
 	"testing"
@@ -27,7 +26,7 @@ func Test_read_string(t *testing.T) {
 	}
 
 	for _, input := range badInputs {
-		i := DecodeString(input)
+		i := DecodeStr(input)
 		_, err := i.String()
 		assert.Error(t, err, "input: %q", input)
 	}
@@ -62,7 +61,7 @@ func Test_read_string(t *testing.T) {
 	for _, tc := range goodInputs {
 		testReadString(t, tc.input, tc.expectValue, false, "json.Unmarshal", json.Unmarshal)
 
-		i := DecodeString(tc.input)
+		i := DecodeStr(tc.input)
 		s, err := i.String()
 		assert.NoError(t, err)
 		assert.Equal(t, tc.expectValue, s)
@@ -92,24 +91,21 @@ func TestDecoder_Str(t *testing.T) {
 		{Name: "\\x00TrailingSpace", Input: "\x00 "},
 	} {
 		t.Run(tt.Name, func(t *testing.T) {
-			buf := new(bytes.Buffer)
-			s := NewEncoder(buf, 128)
+			s := NewEncoder()
 			t.Logf("%v", []rune(tt.Input))
 
-			s.String(tt.Input)
-			require.NoError(t, s.Flush())
-			t.Logf("%v", []rune(buf.String()))
+			s.Str(tt.Input)
+			t.Logf("%v", []rune(s.String()))
 
 			// Check `encoding/json` compatibility.
 			var gotStd string
-			requireCompat(t, buf.Bytes(), tt.Input)
-			require.NoError(t, json.Unmarshal(buf.Bytes(), &gotStd))
+			require.NoError(t, json.Unmarshal(s.Bytes(), &gotStd))
 			require.Equal(t, tt.Input, gotStd)
 
-			i := DecodeBytes(buf.Bytes())
+			i := DecodeBytes(s.Bytes())
 			got, err := i.String()
 			require.NoError(t, err)
-			require.Equal(t, tt.Input, got, "%s\n%s", buf, hexEnc.Dump(buf.Bytes()))
+			require.Equal(t, tt.Input, got, "%s\n%s", s, hexEnc.Dump(s.Bytes()))
 		})
 	}
 }

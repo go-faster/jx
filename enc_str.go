@@ -217,8 +217,8 @@ var safeSet = [utf8.RuneSelf]bool{
 
 const hex = "0123456789abcdef"
 
-// StringEscape encodes string with html special characters escaping.
-func (e *Encoder) StringEscape(v string) {
+// StrEscape encodes string with html special characters escaping.
+func (e *Encoder) StrEscape(v string) {
 	length := len(v)
 	e.buf = append(e.buf, '"')
 	// Fast path, probably does not require escaping.
@@ -307,8 +307,8 @@ func (e *Encoder) strEscape(i int, v string, valLen int) {
 	e.byte('"')
 }
 
-// String write string to stream without html escape
-func (e *Encoder) String(v string) {
+// Str write string to stream without html escape
+func (e *Encoder) Str(v string) {
 	length := len(v)
 	e.buf = append(e.buf, '"')
 	// write string, the fast path, without utf8 and escape support

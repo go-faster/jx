@@ -7,20 +7,18 @@ import (
 )
 
 func TestEncoder_StringEscape(t *testing.T) {
-	s := NewEncoder(nil, 0)
+	s := NewEncoder()
 	const data = `<html>Hello\\\n\r\\` + "\n\rWorld\u2028</html>"
-	s.StringEscape(data)
-	require.NoError(t, s.Flush())
+	s.StrEscape(data)
 	requireCompat(t, s.Bytes(), data)
 	const expected = `"\u003chtml\u003eHello\\\\\\n\\r\\\\\n\rWorld\u2028\u003c/html\u003e"`
 	require.Equal(t, expected, string(s.Bytes()))
 }
 
 func TestEncoder_String(t *testing.T) {
-	s := NewEncoder(nil, 0)
+	s := NewEncoder()
 	const data = `\nH\tel\tl\ro\\World\r` + "\n\rHello\r\tHi"
-	s.String(data)
-	require.NoError(t, s.Flush())
+	s.Str(data)
 	const expected = `"\\nH\\tel\\tl\\ro\\\\World\\r\n\rHello\r\tHi"`
 	require.Equal(t, expected, string(s.Bytes()))
 	requireCompat(t, s.Bytes(), data)

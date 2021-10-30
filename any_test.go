@@ -1,7 +1,6 @@
 package jx
 
 import (
-	"bytes"
 	hexEnc "encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -132,7 +131,7 @@ func (v *Any) Read(d *Decoder) error {
 		v.Type = AnyBool
 	case Object:
 		v.Type = AnyObj
-		if err := d.Object(func(r *Decoder, s string) error {
+		if err := d.Obj(func(r *Decoder, s string) error {
 			var elem Any
 			if err := elem.Read(r); err != nil {
 				return xerrors.Errorf("elem: %w", err)
@@ -147,7 +146,7 @@ func (v *Any) Read(d *Decoder) error {
 		return nil
 	case Array:
 		v.Type = AnyArr
-		if err := d.Array(func(r *Decoder) error {
+		if err := d.Arr(func(r *Decoder) error {
 			var elem Any
 			if err := elem.Read(r); err != nil {
 				return xerrors.Errorf("elem: %w", err)
@@ -171,7 +170,7 @@ func (v Any) Write(w *Encoder) error {
 	}
 	switch v.Type {
 	case AnyStr:
-		w.String(v.Str)
+		w.Str(v.Str)
 	case AnyFloat:
 		if err := w.Float64(v.Float); err != nil {
 			return err
@@ -256,18 +255,16 @@ func (v Any) String() string {
 }
 
 func TestAny_Read(t *testing.T) {
-	t.Run("Object", func(t *testing.T) {
+	t.Run("Obj", func(t *testing.T) {
 		var v Any
 		const input = `{"foo":{"bar":1,"baz":[1,2,3.14],"200":null}}`
-		r := DecodeString(input)
+		r := DecodeStr(input)
 		assert.NoError(t, v.Read(r))
 		assert.Equal(t, `{foo: {bar: 1, baz: [1, 2, f3.14], 200: null}}`, v.String())
 
-		buf := new(bytes.Buffer)
-		w := NewEncoder(buf, 1024)
-		require.NoError(t, w.Any(v))
-		require.NoError(t, w.Flush())
-		require.Equal(t, input, buf.String(), "encoded value should equal to input")
+		e := NewEncoder()
+		require.NoError(t, e.Any(v))
+		require.Equal(t, input, e.String(), "encoded value should equal to input")
 	})
 	t.Run("Inputs", func(t *testing.T) {
 		for _, tt := range []struct {
@@ -282,19 +279,17 @@ func TestAny_Read(t *testing.T) {
 				r := DecodeBytes(input)
 				require.NoError(t, v.Read(r))
 
-				buf := new(bytes.Buffer)
-				s := NewEncoder(buf, 1024)
-				require.NoError(t, v.Write(s))
-				require.NoError(t, s.Flush())
-				require.Equal(t, tt.Input, buf.String(), "encoded value should equal to input")
+				e := NewEncoder()
+				require.NoError(t, v.Write(e))
+				require.Equal(t, tt.Input, e.String(), "encoded value should equal to input")
 
 				var otherValue Any
-				r.ResetBytes(buf.Bytes())
+				r.ResetBytes(e.Bytes())
 
 				if err := otherValue.Read(r); err != nil {
 					t.Error(err)
 					t.Log(hexEnc.Dump(input))
-					t.Log(hexEnc.Dump(buf.Bytes()))
+					t.Log(hexEnc.Dump(e.Bytes()))
 				}
 			})
 		}

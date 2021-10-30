@@ -7,7 +7,7 @@ import (
 )
 
 func Test_skip_number_in_array(t *testing.T) {
-	iter := DecodeString(`[-0.12, "stream"]`)
+	iter := DecodeStr(`[-0.12, "stream"]`)
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
@@ -17,7 +17,7 @@ func Test_skip_number_in_array(t *testing.T) {
 }
 
 func Test_skip_string_in_array(t *testing.T) {
-	iter := DecodeString(`["hello", "stream"]`)
+	iter := DecodeStr(`["hello", "stream"]`)
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
@@ -27,7 +27,7 @@ func Test_skip_string_in_array(t *testing.T) {
 }
 
 func Test_skip_null(t *testing.T) {
-	iter := DecodeString(`[null , "stream"]`)
+	iter := DecodeStr(`[null , "stream"]`)
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
@@ -37,7 +37,7 @@ func Test_skip_null(t *testing.T) {
 }
 
 func Test_skip_true(t *testing.T) {
-	iter := DecodeString(`[true , "stream"]`)
+	iter := DecodeStr(`[true , "stream"]`)
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
@@ -47,7 +47,7 @@ func Test_skip_true(t *testing.T) {
 }
 
 func Test_skip_false(t *testing.T) {
-	iter := DecodeString(`[false , "stream"]`)
+	iter := DecodeStr(`[false , "stream"]`)
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
@@ -57,7 +57,7 @@ func Test_skip_false(t *testing.T) {
 }
 
 func Test_skip_array(t *testing.T) {
-	iter := DecodeString(`[[1, [2, [3], 4]], "stream"]`)
+	iter := DecodeStr(`[[1, [2, [3], 4]], "stream"]`)
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
@@ -67,7 +67,7 @@ func Test_skip_array(t *testing.T) {
 }
 
 func Test_skip_empty_array(t *testing.T) {
-	iter := DecodeString(`[ [ ], "stream"]`)
+	iter := DecodeStr(`[ [ ], "stream"]`)
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
@@ -77,7 +77,7 @@ func Test_skip_empty_array(t *testing.T) {
 }
 
 func Test_skip_nested(t *testing.T) {
-	iter := DecodeString(`[ {"a" : [{"stream": "c"}], "d": 102 }, "stream"]`)
+	iter := DecodeStr(`[ {"a" : [{"stream": "c"}], "d": 102 }, "stream"]`)
 	if _, err := iter.Elem(); err != nil {
 		t.Fatal(err)
 	}
@@ -91,6 +91,6 @@ func Test_skip_nested(t *testing.T) {
 }
 
 func Test_skip_simple_nested(t *testing.T) {
-	iter := DecodeString(`["foo", "bar", "baz"]`)
+	iter := DecodeStr(`["foo", "bar", "baz"]`)
 	require.NoError(t, iter.Skip())
 }

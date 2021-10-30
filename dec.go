@@ -127,8 +127,8 @@ func DecodeBytes(input []byte) *Decoder {
 	}
 }
 
-// DecodeString creates a Decoder that reads string as json.
-func DecodeString(input string) *Decoder {
+// DecodeStr creates a Decoder that reads string as json.
+func DecodeStr(input string) *Decoder {
 	return DecodeBytes([]byte(input))
 }
 
@@ -222,7 +222,7 @@ func (d *Decoder) unread() { d.head-- }
 // limit maximum depth of nesting, as allowed by https://tools.ietf.org/html/rfc7159#section-9
 const maxDepth = 10000
 
-func (d *Decoder) incrementDepth() error {
+func (d *Decoder) incDepth() error {
 	d.depth++
 	if d.depth > maxDepth {
 		return xerrors.New("max depth")
@@ -230,7 +230,7 @@ func (d *Decoder) incrementDepth() error {
 	return nil
 }
 
-func (d *Decoder) decrementDepth() error {
+func (d *Decoder) decDepth() error {
 	d.depth--
 	if d.depth < 0 {
 		return xerrors.New("negative depth")

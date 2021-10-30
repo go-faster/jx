@@ -2,16 +2,15 @@ package jx
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"strconv"
 	"testing"
 )
 
 func Benchmark_encode_int(b *testing.B) {
-	stream := NewEncoder(ioutil.Discard, 64)
+	e := NewEncoder()
 	for n := 0; n < b.N; n++ {
-		stream.Reset(nil)
-		stream.Uint64(0xffffffff)
+		e.Reset()
+		e.Uint64(0xffffffff)
 	}
 }
 

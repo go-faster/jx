@@ -1,7 +1,6 @@
 package jx
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -9,16 +8,14 @@ import (
 
 func Test_write_null(t *testing.T) {
 	should := require.New(t)
-	buf := &bytes.Buffer{}
-	stream := NewEncoder(buf, 4096)
-	stream.Null()
-	should.NoError(stream.Flush())
-	should.Equal("null", buf.String())
+	e := NewEncoder()
+	e.Null()
+	should.Equal("null", e.String())
 }
 
 func Test_decode_null_array_element(t *testing.T) {
 	should := require.New(t)
-	iter := DecodeString(`[null,"a"]`)
+	iter := DecodeStr(`[null,"a"]`)
 	should.True(iter.Elem())
 	should.NoError(iter.Null())
 	should.True(iter.Elem())
@@ -29,7 +26,7 @@ func Test_decode_null_array_element(t *testing.T) {
 
 func Test_decode_null_string(t *testing.T) {
 	should := require.New(t)
-	iter := DecodeString(`[null,"a"]`)
+	iter := DecodeStr(`[null,"a"]`)
 	should.True(iter.Elem())
 	should.NoError(iter.Null())
 	should.True(iter.Elem())
@@ -39,7 +36,7 @@ func Test_decode_null_string(t *testing.T) {
 }
 
 func Test_decode_null_skip(t *testing.T) {
-	iter := DecodeString(`[null,"a"]`)
+	iter := DecodeStr(`[null,"a"]`)
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
