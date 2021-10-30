@@ -27,16 +27,6 @@ type value struct {
 	ignore bool
 }
 
-func (v value) direct(b []byte) value {
-	if v.ignore {
-		return v
-	}
-	if v.raw {
-		return value{buf: b}
-	}
-	return v.append(b)
-}
-
 func (v value) rune(r rune) value {
 	if v.ignore {
 		return v
@@ -53,16 +43,6 @@ func (v value) byte(b byte) value {
 	}
 	return value{
 		buf: append(v.buf, b),
-		raw: v.raw,
-	}
-}
-
-func (v value) append(b []byte) value {
-	if v.ignore {
-		return v
-	}
-	return value{
-		buf: append(v.buf, b...),
 		raw: v.raw,
 	}
 }
@@ -94,7 +74,13 @@ func (d *Decoder) str(v value) (value, error) {
 			// End of string in fast path.
 			str := d.buf[d.head:i]
 			d.head = i + 1
-			return v.direct(str), nil
+			if v.ignore {
+				return value{}, nil
+			}
+			if v.raw {
+				return value{buf: str}, nil
+			}
+			return value{buf: append(v.buf, str...)}, nil
 		}
 		if c < ' ' {
 			return value{}, xerrors.Errorf("control character: %w", badToken(c))

@@ -33,8 +33,13 @@ func (d *Decoder) Elem() (ok bool, err error) {
 	}
 }
 
+func skipArr(d *Decoder) error { return d.Skip() }
+
 // Arr reads array and calls f on each array element.
 func (d *Decoder) Arr(f func(d *Decoder) error) error {
+	if f == nil {
+		f = skipArr
+	}
 	if err := d.expectNext('['); err != nil {
 		return xerrors.Errorf("start: %w", err)
 	}

@@ -6,10 +6,18 @@ import (
 	"golang.org/x/xerrors"
 )
 
+func skipObjBytes(d *Decoder, _ []byte) error { return d.Skip() }
+
 // ObjBytes calls f for every key in object, using byte slice as key.
 //
 // The key value is valid only until f is not returned.
 func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
+	skip := f == nil
+	if skip {
+		// No callback is provided, skipping object.
+		// Drop keys, skip values.
+		f = skipObjBytes
+	}
 	if err := d.expectNext('{'); err != nil {
 		return xerrors.Errorf("start: %w", err)
 	}
@@ -25,7 +33,7 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 	}
 	d.unread()
 
-	k, err := d.str(value{})
+	k, err := d.str(value{ignore: skip})
 	if err != nil {
 		return xerrors.Errorf("str: %w", err)
 	}
@@ -44,7 +52,7 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 		return xerrors.Errorf("next: %w", err)
 	}
 	for c == ',' {
-		k, err := d.str(value{})
+		k, err := d.str(value{ignore: skip})
 		if err != nil {
 			return xerrors.Errorf("str: %w", err)
 		}
@@ -68,6 +76,10 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 //
 // Use ObjBytes to reduce heap allocations for keys.
 func (d *Decoder) Obj(f func(d *Decoder, key string) error) error {
+	if f == nil {
+		// Skipping object.
+		return d.ObjBytes(nil)
+	}
 	return d.ObjBytes(func(d *Decoder, key []byte) error {
 		return f(d, string(key))
 	})
