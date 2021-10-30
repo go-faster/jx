@@ -32,7 +32,7 @@ func (e *Encoder) Float32Lossy(val float32) error {
 		return xerrors.Errorf("bad value %v", val)
 	}
 	if val < 0 {
-		e.byte(tMinus)
+		e.byte('-')
 		val = -val
 	}
 	if val > 0x4ffffff {
@@ -46,12 +46,12 @@ func (e *Encoder) Float32Lossy(val float32) error {
 	if fval == 0 {
 		return nil
 	}
-	e.byte(tDot)
+	e.byte('.')
 	for p := precision - 1; p > 0 && fval < pow10[p]; p-- {
-		e.byte(tZero)
+		e.byte('0')
 	}
 	e.Uint64(fval)
-	for e.buf[len(e.buf)-1] == tZero {
+	for e.buf[len(e.buf)-1] == '0' {
 		e.buf = e.buf[:len(e.buf)-1]
 	}
 	return nil
@@ -78,12 +78,12 @@ func (e *Encoder) Float64(val float64) error {
 
 	// Ensure that we are still float.
 	for _, c := range e.buf[start:] {
-		if c == tDot {
+		if c == '.' {
 			return nil
 		}
 	}
-	e.buf = appendRune(e.buf, tDot)
-	e.buf = appendRune(e.buf, tZero)
+	e.buf = appendRune(e.buf, '.')
+	e.buf = appendRune(e.buf, '0')
 	return nil
 }
 
@@ -93,7 +93,7 @@ func (e *Encoder) Float64Lossy(val float64) error {
 		return xerrors.Errorf("unsupported value: %f", val)
 	}
 	if val < 0 {
-		e.byte(tMinus)
+		e.byte('-')
 		val = -val
 	}
 	if val > 0x4ffffff {
@@ -107,12 +107,12 @@ func (e *Encoder) Float64Lossy(val float64) error {
 	if fval == 0 {
 		return nil
 	}
-	e.byte(tDot)
+	e.byte('.')
 	for p := precision - 1; p > 0 && fval < pow10[p]; p-- {
-		e.byte(tZero)
+		e.byte('0')
 	}
 	e.Uint64(fval)
-	for e.buf[len(e.buf)-1] == tZero {
+	for e.buf[len(e.buf)-1] == '0' {
 		e.buf = e.buf[:len(e.buf)-1]
 	}
 	return nil

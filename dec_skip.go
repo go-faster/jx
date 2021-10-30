@@ -115,7 +115,7 @@ func (d *Decoder) skipNumberFast() (ok bool, err error) {
 		c := d.buf[i]
 		switch c {
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-		case tDot:
+		case '.':
 			if dotFound {
 				return false, xerrors.New("more than one dot")
 			}
