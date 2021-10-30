@@ -1,37 +1,62 @@
 package jx
 
 import (
+	"bytes"
 	"encoding/json"
 	"strconv"
 	"testing"
 )
 
-func Benchmark_encode_int(b *testing.B) {
-	e := NewEncoder()
-	for n := 0; n < b.N; n++ {
-		e.Reset()
-		e.Uint64(0xffffffff)
-	}
+func BenchmarkEncoder_Int(b *testing.B) {
+	const v = 0xffffffff
+	b.Run("Strconv", func(b *testing.B) {
+		b.ReportAllocs()
+		var buf []byte
+		for i := 0; i < b.N; i++ {
+			buf = buf[:0]
+			buf = strconv.AppendInt(buf, v, 10)
+		}
+	})
+	b.Run("Std", func(b *testing.B) {
+		b.ReportAllocs()
+		buf := new(bytes.Buffer)
+		e := json.NewEncoder(buf)
+		for i := 0; i < b.N; i++ {
+			buf.Reset()
+			if err := e.Encode(v); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+	b.Run("JX", func(b *testing.B) {
+		b.ReportAllocs()
+		e := NewEncoder()
+		for i := 0; i < b.N; i++ {
+			e.Reset()
+			e.Uint64(v)
+		}
+	})
 }
 
-func Benchmark_itoa(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		strconv.FormatInt(0xffffffff, 10)
-	}
-}
-
-func Benchmark_int(b *testing.B) {
-	iter := NewDecoder()
+func BenchmarkDecoder_Int64(b *testing.B) {
 	input := []byte(`100`)
-	for n := 0; n < b.N; n++ {
-		iter.ResetBytes(input)
-		iter.Int64()
-	}
-}
-
-func Benchmark_std_int(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		result := int64(0)
-		_ = json.Unmarshal([]byte(`-100`), &result)
-	}
+	b.Run("Std", func(b *testing.B) {
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			result := int64(0)
+			if err := json.Unmarshal(input, &result); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+	b.Run("JX", func(b *testing.B) {
+		b.ReportAllocs()
+		d := NewDecoder()
+		for i := 0; i < b.N; i++ {
+			d.ResetBytes(input)
+			if _, err := d.Int64(); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
 }
