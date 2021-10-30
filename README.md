@@ -31,16 +31,16 @@ func TestDecoder_Capture(t *testing.T) {
 }
 ```
 
-## ObjBytes
+## ObjectBytes
 
-The `Reader.ObjBytes` method tries not to allocate memory for keys, reusing existing buffer:
+The `Decoder.ObjectBytes` method tries not to allocate memory for keys, reusing existing buffer:
 ```go
-r := ParseString(`{"id":1,"randomNumber":10}`)
-i.ObjBytes(func(i *Iter, key []byte) error {
+d := DecodeString(`{"id":1,"randomNumber":10}`)
+d.ObjectBytes(func(d *Decoder, key []byte) error {
     switch string(key) {
     case "id":
     case "randomNumber":
     }
-    return i.Skip()
+    return d.Skip()
 })
 ```
