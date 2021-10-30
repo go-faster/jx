@@ -18,8 +18,8 @@ This is useful for multi-pass parsing:
 func TestDecoder_Capture(t *testing.T) {
 	d := DecodeString(`["foo", "bar", "baz"]`)
 	var elems int
-	if err := d.Capture(func(d *Reader) error {
-		return d.Arr(func(d *Reader) error {
+	if err := d.Capture(func(d *Decoder) error {
+		return d.Arr(func(d *Decoder) error {
 			elems++
 			return d.Skip()
 		})
