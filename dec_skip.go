@@ -180,7 +180,5 @@ func (d *Decoder) skipObj() error {
 
 func (d *Decoder) skipArr() error {
 	d.unread()
-	return d.Arr(func(d *Decoder) error {
-		return d.Skip()
-	})
+	return d.Arr(nil)
 }
