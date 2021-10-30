@@ -11,6 +11,12 @@ type Encoder struct {
 	curIdent int
 }
 
+// Write implements io.Writer.
+func (e *Encoder) Write(p []byte) (n int, err error) {
+	e.buf = append(e.buf, p...)
+	return len(p), nil
+}
+
 // WriteTo implements io.WriterTo.
 func (e *Encoder) WriteTo(w io.Writer) (n int64, err error) {
 	wrote, err := w.Write(e.buf)
