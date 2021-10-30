@@ -72,11 +72,12 @@ func (d *Decoder) str(v value) (value, error) {
 		}
 		if c == '"' {
 			// End of string in fast path.
-			str := d.buf[d.head:i]
-			d.head = i + 1
 			if v.ignore {
+				d.head = i + 1
 				return value{}, nil
 			}
+			str := d.buf[d.head:i]
+			d.head = i + 1
 			if v.raw {
 				return value{buf: str}, nil
 			}

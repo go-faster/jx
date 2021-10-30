@@ -15,9 +15,7 @@ func Benchmark_large_file(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		d.ResetBytes(data)
-		if err := d.Arr(func(d *Decoder) error {
-			return d.Skip()
-		}); err != nil {
+		if err := d.Arr(nil); err != nil {
 			b.Fatal(err)
 		}
 	}

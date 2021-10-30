@@ -40,7 +40,7 @@ func (d *Decoder) Skip() error {
 	}
 	switch c {
 	case '"':
-		if err := d.strSkip(); err != nil {
+		if err := d.skipStr(); err != nil {
 			return xerrors.Errorf("str: %w", err)
 		}
 		return nil
@@ -57,12 +57,12 @@ func (d *Decoder) Skip() error {
 	case '-', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		return d.skipNumber()
 	case '[':
-		if err := d.skipArray(); err != nil {
+		if err := d.skipArr(); err != nil {
 			return xerrors.Errorf("array: %w", err)
 		}
 		return nil
 	case '{':
-		if err := d.skipObject(); err != nil {
+		if err := d.skipObj(); err != nil {
 			return xerrors.Errorf("object: %w", err)
 		}
 		return nil
@@ -144,8 +144,8 @@ func (d *Decoder) skipNumberFast() (ok bool, err error) {
 	return false, nil
 }
 
-func (d *Decoder) strSkip() error {
-	ok, err := d.strFastSkip()
+func (d *Decoder) skipStr() error {
+	ok, err := d.skipStrFast()
 	if err != nil || ok {
 		return err
 	}
@@ -157,7 +157,7 @@ func (d *Decoder) strSkip() error {
 	return nil
 }
 
-func (d *Decoder) strFastSkip() (ok bool, err error) {
+func (d *Decoder) skipStrFast() (ok bool, err error) {
 	for i := d.head; i < d.tail; i++ {
 		c := d.buf[i]
 		switch {
@@ -173,12 +173,12 @@ func (d *Decoder) strFastSkip() (ok bool, err error) {
 	return false, nil
 }
 
-func (d *Decoder) skipObject() error {
+func (d *Decoder) skipObj() error {
 	d.unread()
 	return d.Obj(nil)
 }
 
-func (d *Decoder) skipArray() error {
+func (d *Decoder) skipArr() error {
 	d.unread()
 	return d.Arr(func(d *Decoder) error {
 		return d.Skip()
