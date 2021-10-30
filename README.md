@@ -20,13 +20,13 @@ func TestDecoder_Capture(t *testing.T) {
 	if err := d.Capture(func(d *Reader) error {
 		return d.Arr(func(d *Reader) error {
 			elems++
-			return r.Skip()
+			return d.Skip()
 		})
 	}); err != nil {
 		t.Fatal(err)
 	}
 	// Buffer is rolled back to state before "Capture" call:
-	require.Equal(t, Array, r.Next())
+	require.Equal(t, Array, d.Next())
 	require.Equal(t, 3, elems)
 }
 ```
