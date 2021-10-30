@@ -32,27 +32,27 @@ func FuzzDecEnc(f *testing.F) {
 		r.ResetBytes(data)
 		defer PutReader(r)
 
-		// Parsing to v.
-		var v Value
-		if parseVal(r, &v) != nil {
+		v, err := r.Any()
+		if err != nil {
 			t.Skip()
 		}
-		if v.Type == ValInvalid {
+		if v.Type == AnyInvalid {
 			t.Skip()
 		}
-		// Writing v to buf.
 		var buf bytes.Buffer
 		w := GetWriter()
 		w.Reset(&buf)
-		v.Write(w)
+		if err := w.Any(v); err != nil {
+			t.Fatal(err)
+		}
 		if err := w.Flush(); err != nil {
 			t.Fatal(err)
 		}
 
 		// Parsing from buf to new value.
 		r.ResetBytes(buf.Bytes())
-		var parsed Value
-		if err := parseVal(r, &parsed); err != nil {
+		parsed, err := r.Any()
+		if err != nil {
 			t.Fatalf("%v:\nBuf:   %s\nValue: %s\nData:  %s",
 				err, buf.Bytes(), v, data)
 		}
