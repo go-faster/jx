@@ -1,6 +1,6 @@
 # jx [![Go Reference](https://img.shields.io/badge/go-pkg-00ADD8)](https://pkg.go.dev/github.com/ogen-go/jx#section-documentation) [![codecov](https://img.shields.io/codecov/c/github/ogen-go/jx?label=cover)](https://codecov.io/gh/ogen-go/jx)
 
-Fast json streaming in go: buffered encoding and decoding of json values.
+Fast json streaming in go. Buffered encoding and decoding of json values.
 Lightweight fork of [jsoniter](https://github.com/json-iterator/go).
 
 ## Features
