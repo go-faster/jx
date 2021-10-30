@@ -10,6 +10,12 @@ Lightweight fork of [jsoniter](https://github.com/json-iterator/go).
   * Explicit error returns
   * No `Config` or `API`
 
+## Why
+
+Most of [jsoniter](https://github.com/json-iterator/go) issues are caused by necessity
+to be drop-in replacement for standard `encoding/json`. Removing such constrains greatly
+simplified implementation and reduced scope, allowing to focus on json stream processing.
+
 ## Capture
 
 The `Decoder.Capture` method allows to unread everything is read in callback.
