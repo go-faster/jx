@@ -138,6 +138,16 @@ func (d *Decoder) Reset(reader io.Reader) *Decoder {
 	d.head = 0
 	d.tail = 0
 	d.depth = 0
+
+	// Reads from reader need buffer.
+	if d.buf == nil || cap(d.buf) == 0 {
+		// Allocate new buffer if none.
+		d.buf = make([]byte, 1024)
+	}
+	if len(d.buf) == 0 {
+		// Set buffer to full capacity if needed.
+		d.buf = d.buf[:cap(d.buf)]
+	}
 	return d
 }
 
