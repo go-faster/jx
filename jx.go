@@ -1,6 +1,6 @@
 // Package jx implements encoding and decoding of json as per RFC 4627.
 //
-// The Reader provides a way to iterate over bytes/string/reader
+// The Decoder provides a way to iterate over bytes/string/reader
 // and yield parsed elements one by one, fast.
 package jx
 
@@ -8,43 +8,44 @@ import "sync"
 
 // Valid reports whether json in data is valid.
 func Valid(data []byte) bool {
-	i := GetReader()
-	defer PutReader(i)
-	i.ResetBytes(data)
-	return i.Skip() == nil
+	d := GetDecoder()
+	defer PutDecoder(d)
+	d.ResetBytes(data)
+	return d.Skip() == nil
 }
 
 var (
-	writePool = &sync.Pool{
+	encPool = &sync.Pool{
 		New: func() interface{} {
-			return NewWriter(nil, 256)
+			return NewEncoder(nil, 256)
 		},
 	}
-	readPool = &sync.Pool{
+	decPool = &sync.Pool{
 		New: func() interface{} {
-			return NewReader()
+			return NewDecoder()
 		},
 	}
 )
 
-// GetReader gets *Reader from pool.
-func GetReader() *Reader {
-	return readPool.Get().(*Reader)
+// GetDecoder gets *Decoder from pool.
+func GetDecoder() *Decoder {
+	return decPool.Get().(*Decoder)
 }
 
-// PutReader puts *Reader into pool.
-func PutReader(i *Reader) {
+// PutDecoder puts *Decoder into pool.
+func PutDecoder(i *Decoder) {
 	i.Reset(nil)
-	readPool.Put(i)
+	decPool.Put(i)
 }
 
-// GetWriter returns *Writer from pool.
-func GetWriter() *Writer {
-	return writePool.Get().(*Writer)
+// GetWriter returns *Encoder from pool.
+func GetWriter() *Encoder {
+	return encPool.Get().(*Encoder)
 }
 
-// PutWriter puts *Writer to pool
-func PutWriter(s *Writer) {
+// PutWriter puts *Encoder to pool
+func PutWriter(s *Encoder) {
 	s.Reset(nil)
-	writePool.Put(s)
+	s.buf = s.buf[:0]
+	encPool.Put(s)
 }

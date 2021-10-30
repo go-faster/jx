@@ -34,8 +34,8 @@ func init() {
 }
 
 // BigFloat read big.Float
-func (r *Reader) BigFloat() (*big.Float, error) {
-	str, err := r.number(nil)
+func (d *Decoder) BigFloat() (*big.Float, error) {
+	str, err := d.number(nil)
 	if err != nil {
 		return nil, xerrors.Errorf("number: %w", err)
 	}
@@ -51,8 +51,8 @@ func (r *Reader) BigFloat() (*big.Float, error) {
 }
 
 // BigInt read big.Int
-func (r *Reader) BigInt() (*big.Int, error) {
-	str, err := r.number(nil)
+func (d *Decoder) BigInt() (*big.Int, error) {
+	str, err := d.number(nil)
 	if err != nil {
 		return nil, xerrors.Errorf("number: %w", err)
 	}
@@ -65,15 +65,15 @@ func (r *Reader) BigInt() (*big.Int, error) {
 }
 
 // Float32 reads float32 value.
-func (r *Reader) Float32() (float32, error) {
-	c, err := r.next()
+func (d *Decoder) Float32() (float32, error) {
+	c, err := d.next()
 	if err != nil {
 		return 0, xerrors.Errorf("next: %w", err)
 	}
 	if c != '-' {
-		r.unread()
+		d.unread()
 	}
-	v, err := r.positiveFloat32()
+	v, err := d.positiveFloat32()
 	if err != nil {
 		return 0, err
 	}
@@ -83,27 +83,27 @@ func (r *Reader) Float32() (float32, error) {
 	return v, nil
 }
 
-func (r *Reader) positiveFloat32() (float32, error) {
-	i := r.head
+func (d *Decoder) positiveFloat32() (float32, error) {
+	i := d.head
 	// First char.
-	if i == r.tail {
-		return r.f32Slow()
+	if i == d.tail {
+		return d.f32Slow()
 	}
-	c := r.buf[i]
+	c := d.buf[i]
 	i++
 	ind := floatDigits[c]
 	switch ind {
 	case invalidCharForNumber:
-		return r.f32Slow()
+		return d.f32Slow()
 	case endOfNumber:
 		return 0, xerrors.New("empty")
 	case dotInNumber:
 		return 0, xerrors.New("leading dot")
 	case 0:
-		if i == r.tail {
-			return r.f32Slow()
+		if i == d.tail {
+			return d.f32Slow()
 		}
-		c = r.buf[i]
+		c = d.buf[i]
 		switch c {
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 			return 0, xerrors.New("leading zero")
@@ -112,20 +112,20 @@ func (r *Reader) positiveFloat32() (float32, error) {
 	value := uint64(ind)
 	// Chars before dot.
 NonDecimalLoop:
-	for ; i < r.tail; i++ {
-		c = r.buf[i]
+	for ; i < d.tail; i++ {
+		c = d.buf[i]
 		ind := floatDigits[c]
 		switch ind {
 		case invalidCharForNumber:
-			return r.f32Slow()
+			return d.f32Slow()
 		case endOfNumber:
-			r.head = i
+			d.head = i
 			return float32(value), nil
 		case dotInNumber:
 			break NonDecimalLoop
 		}
 		if value > uint64SafeToMultiple10 {
-			return r.f32Slow()
+			return d.f32Slow()
 		}
 		value = (value << 3) + (value << 1) + uint64(ind) // value = value * 10 + ind;
 	}
@@ -133,47 +133,47 @@ NonDecimalLoop:
 	if c == tDot {
 		i++
 		decimalPlaces := 0
-		if i == r.tail {
-			return r.f32Slow()
+		if i == d.tail {
+			return d.f32Slow()
 		}
-		for ; i < r.tail; i++ {
-			c = r.buf[i]
+		for ; i < d.tail; i++ {
+			c = d.buf[i]
 			ind := floatDigits[c]
 			switch ind {
 			case endOfNumber:
 				if decimalPlaces > 0 && decimalPlaces < len(pow10) {
-					r.head = i
+					d.head = i
 					return float32(float64(value) / float64(pow10[decimalPlaces])), nil
 				}
 				// too many decimal places
-				return r.f32Slow()
+				return d.f32Slow()
 			case invalidCharForNumber, dotInNumber:
-				return r.f32Slow()
+				return d.f32Slow()
 			}
 			decimalPlaces++
 			if value > uint64SafeToMultiple10 {
-				return r.f32Slow()
+				return d.f32Slow()
 			}
 			value = (value << 3) + (value << 1) + uint64(ind)
 		}
 	}
-	return r.f32Slow()
+	return d.f32Slow()
 }
 
-func (r *Reader) number(b []byte) ([]byte, error) {
+func (d *Decoder) number(b []byte) ([]byte, error) {
 	for {
-		for i := r.head; i < r.tail; i++ {
-			switch c := r.buf[i]; c {
+		for i := d.head; i < d.tail; i++ {
+			switch c := d.buf[i]; c {
 			case '+', '-', '.', 'e', 'E', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 				b = append(b, c)
 				continue
 			default:
 				// End of number.
-				r.head = i
+				d.head = i
 				return b, nil
 			}
 		}
-		if err := r.read(); err != nil {
+		if err := d.read(); err != nil {
 			if err == io.EOF {
 				return b, nil
 			}
@@ -187,8 +187,8 @@ const (
 	size64 = 64
 )
 
-func (r *Reader) f32Slow() (float32, error) {
-	v, err := r.floatSlow(size32)
+func (d *Decoder) f32Slow() (float32, error) {
+	v, err := d.floatSlow(size32)
 	if err != nil {
 		return 0, err
 	}
@@ -196,43 +196,43 @@ func (r *Reader) f32Slow() (float32, error) {
 }
 
 // Float64 read float64
-func (r *Reader) Float64() (float64, error) {
-	c, err := r.next()
+func (d *Decoder) Float64() (float64, error) {
+	c, err := d.next()
 	if err != nil {
 		return 0, err
 	}
 	if c == '-' {
-		v, err := r.positiveFloat64()
+		v, err := d.positiveFloat64()
 		if err != nil {
 			return 0, err
 		}
 		return -v, err
 	}
-	r.unread()
-	return r.positiveFloat64()
+	d.unread()
+	return d.positiveFloat64()
 }
 
-func (r *Reader) positiveFloat64() (float64, error) {
-	i := r.head
+func (d *Decoder) positiveFloat64() (float64, error) {
+	i := d.head
 	// First char.
-	if i == r.tail {
-		return r.float64Slow()
+	if i == d.tail {
+		return d.float64Slow()
 	}
-	c := r.buf[i]
+	c := d.buf[i]
 	i++
 	ind := floatDigits[c]
 	switch ind {
 	case invalidCharForNumber:
-		return r.float64Slow()
+		return d.float64Slow()
 	case endOfNumber:
 		return 0, xerrors.New("empty")
 	case dotInNumber:
 		return 0, xerrors.New("leading dot")
 	case 0:
-		if i == r.tail {
-			return r.float64Slow()
+		if i == d.tail {
+			return d.float64Slow()
 		}
-		c = r.buf[i]
+		c = d.buf[i]
 		switch c {
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 			return 0, xerrors.New("leading zero")
@@ -241,20 +241,20 @@ func (r *Reader) positiveFloat64() (float64, error) {
 	value := uint64(ind)
 	// Chars before dot.
 NonDecimal:
-	for ; i < r.tail; i++ {
-		c = r.buf[i]
+	for ; i < d.tail; i++ {
+		c = d.buf[i]
 		ind := floatDigits[c]
 		switch ind {
 		case invalidCharForNumber:
-			return r.float64Slow()
+			return d.float64Slow()
 		case endOfNumber:
-			r.head = i
+			d.head = i
 			return float64(value), nil
 		case dotInNumber:
 			break NonDecimal
 		}
 		if value > uint64SafeToMultiple10 {
-			return r.float64Slow()
+			return d.float64Slow()
 		}
 		value = (value << 3) + (value << 1) + uint64(ind) // value = value * 10 + ind;
 	}
@@ -262,40 +262,40 @@ NonDecimal:
 	if c == '.' {
 		i++
 		decimalPlaces := 0
-		if i == r.tail {
-			return r.float64Slow()
+		if i == d.tail {
+			return d.float64Slow()
 		}
-		for ; i < r.tail; i++ {
-			c = r.buf[i]
+		for ; i < d.tail; i++ {
+			c = d.buf[i]
 			ind := floatDigits[c]
 			switch ind {
 			case endOfNumber:
 				if decimalPlaces > 0 && decimalPlaces < len(pow10) {
-					r.head = i
+					d.head = i
 					return float64(value) / float64(pow10[decimalPlaces]), nil
 				}
 				// too many decimal places
-				return r.float64Slow()
+				return d.float64Slow()
 			case invalidCharForNumber, dotInNumber:
-				return r.float64Slow()
+				return d.float64Slow()
 			}
 			decimalPlaces++
 			if value > uint64SafeToMultiple10 {
-				return r.float64Slow()
+				return d.float64Slow()
 			}
 			value = (value << 3) + (value << 1) + uint64(ind)
 			if value > maxFloat64 {
-				return r.float64Slow()
+				return d.float64Slow()
 			}
 		}
 	}
-	return r.float64Slow()
+	return d.float64Slow()
 }
 
-func (r *Reader) floatSlow(size int) (float64, error) {
+func (d *Decoder) floatSlow(size int) (float64, error) {
 	var buf [32]byte
 
-	str, err := r.number(buf[:0])
+	str, err := d.number(buf[:0])
 	if err != nil {
 		return 0, xerrors.Errorf("number: %w", err)
 	}
@@ -311,7 +311,7 @@ func (r *Reader) floatSlow(size int) (float64, error) {
 	return val, nil
 }
 
-func (r *Reader) float64Slow() (float64, error) { return r.floatSlow(size64) }
+func (d *Decoder) float64Slow() (float64, error) { return d.floatSlow(size64) }
 
 func validateFloat(str []byte) error {
 	// strconv.ParseFloat is not validating `1.` or `1.e1`
@@ -336,8 +336,8 @@ func validateFloat(str []byte) error {
 }
 
 // Number reads json.Number.
-func (r *Reader) Number() (json.Number, error) {
-	str, err := r.number(nil)
+func (d *Decoder) Number() (json.Number, error) {
+	str, err := d.number(nil)
 	if err != nil {
 		return "", err
 	}

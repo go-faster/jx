@@ -8,8 +8,8 @@ import (
 )
 
 func Test_empty_object(t *testing.T) {
-	iter := ReadString(`{}`)
-	require.NoError(t, iter.Obj(func(iter *Reader, field string) error {
+	iter := DecodeString(`{}`)
+	require.NoError(t, iter.Object(func(iter *Decoder, field string) error {
 		t.Error("should not call")
 		return nil
 	}))
@@ -17,8 +17,8 @@ func Test_empty_object(t *testing.T) {
 
 func Test_one_field(t *testing.T) {
 	should := require.New(t)
-	iter := ReadString(`{"a": "stream"}`)
-	should.NoError(iter.Obj(func(iter *Reader, field string) error {
+	iter := DecodeString(`{"a": "stream"}`)
+	should.NoError(iter.Object(func(iter *Decoder, field string) error {
 		should.Equal("a", field)
 		return iter.Skip()
 	}))
@@ -27,7 +27,7 @@ func Test_one_field(t *testing.T) {
 func Test_write_object(t *testing.T) {
 	should := require.New(t)
 	buf := &bytes.Buffer{}
-	s := NewWriter(buf, 4096)
+	s := NewEncoder(buf, 4096)
 	s.SetIdent(2)
 	s.ObjStart()
 	s.ObjField("hello")

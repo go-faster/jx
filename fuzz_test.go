@@ -28,9 +28,9 @@ func FuzzDecEnc(f *testing.F) {
 	f.Add([]byte(`null`))
 	f.Add([]byte(`{"foo": {"bar": 1, "baz": [1, 2, 3]}}`))
 	f.Fuzz(func(t *testing.T, data []byte) {
-		r := GetReader()
+		r := GetDecoder()
 		r.ResetBytes(data)
-		defer PutReader(r)
+		defer PutDecoder(r)
 
 		v, err := r.Any()
 		if err != nil {
@@ -87,26 +87,26 @@ func FuzzValues(f *testing.F) {
 		w.ArrStart()
 		w.Int64(n)
 		w.More()
-		w.Str(str)
+		w.String(str)
 		w.ArrEnd()
 
 		if err := w.Flush(); err != nil {
 			t.Fatal(err)
 		}
 
-		i := GetReader()
+		i := GetDecoder()
 		i.ResetBytes(buf.Bytes())
 		var (
 			nGot int64
 			sGot string
 		)
-		if err := i.Array(func(i *Reader) error {
+		if err := i.Array(func(i *Decoder) error {
 			var err error
 			switch i.Next() {
 			case Number:
 				nGot, err = i.Int64()
 			case String:
-				sGot, err = i.Str()
+				sGot, err = i.String()
 			default:
 				err = errors.New("unexpected")
 			}

@@ -66,26 +66,26 @@ func (v Any) Obj(f func(k string, v Any)) {
 	}
 }
 
-// Any reads Any value from r.
-func (r *Reader) Any() (Any, error) {
+// Any reads Any value.
+func (d *Decoder) Any() (Any, error) {
 	var v Any
-	if err := v.Read(r); err != nil {
+	if err := v.Read(d); err != nil {
 		return Any{}, err
 	}
 	return v, nil
 }
 
-// Any writes Any value to w.
-func (w *Writer) Any(a Any) error {
-	return a.Write(w)
+// Any writes Any value.
+func (e *Encoder) Any(a Any) error {
+	return a.Write(e)
 }
 
-func (v *Any) Read(r *Reader) error {
-	switch r.Next() {
+func (v *Any) Read(d *Decoder) error {
+	switch d.Next() {
 	case Invalid:
 		return xerrors.New("invalid")
 	case Number:
-		n, err := r.Number()
+		n, err := d.Number()
 		if err != nil {
 			return xerrors.Errorf("number: %w", err)
 		}
@@ -106,19 +106,19 @@ func (v *Any) Read(r *Reader) error {
 			v.Type = AnyInt
 		}
 	case String:
-		s, err := r.Str()
+		s, err := d.String()
 		if err != nil {
 			return xerrors.Errorf("str: %w", err)
 		}
 		v.Str = s
 		v.Type = AnyStr
 	case Nil:
-		if err := r.Null(); err != nil {
+		if err := d.Null(); err != nil {
 			return xerrors.Errorf("null: %w", err)
 		}
 		v.Type = AnyNull
 	case Bool:
-		b, err := r.Bool()
+		b, err := d.Bool()
 		if err != nil {
 			return xerrors.Errorf("bool: %w", err)
 		}
@@ -126,7 +126,7 @@ func (v *Any) Read(r *Reader) error {
 		v.Type = AnyBool
 	case Object:
 		v.Type = AnyObj
-		if err := r.Obj(func(r *Reader, s string) error {
+		if err := d.Object(func(r *Decoder, s string) error {
 			var elem Any
 			if err := elem.Read(r); err != nil {
 				return xerrors.Errorf("elem: %w", err)
@@ -141,7 +141,7 @@ func (v *Any) Read(r *Reader) error {
 		return nil
 	case Array:
 		v.Type = AnyArr
-		if err := r.Array(func(r *Reader) error {
+		if err := d.Array(func(r *Decoder) error {
 			var elem Any
 			if err := elem.Read(r); err != nil {
 				return xerrors.Errorf("elem: %w", err)
@@ -153,19 +153,19 @@ func (v *Any) Read(r *Reader) error {
 		}
 		return nil
 	default:
-		return xerrors.Errorf("unexpected type %s", r.Next())
+		return xerrors.Errorf("unexpected type %s", d.Next())
 	}
 	return nil
 }
 
-// Write json representation of Any to Writer.
-func (v Any) Write(w *Writer) error {
+// Write json representation of Any to Encoder.
+func (v Any) Write(w *Encoder) error {
 	if v.KeyValid {
 		w.ObjField(v.Key)
 	}
 	switch v.Type {
 	case AnyStr:
-		w.Str(v.Str)
+		w.String(v.Str)
 	case AnyFloat:
 		if err := w.Float64(v.Float); err != nil {
 			return err

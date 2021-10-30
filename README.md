@@ -11,14 +11,14 @@ Fast json for go. Lightweight fork of [jsoniter](https://github.com/json-iterato
 
 ## Capture
 
-The `Reader.Capture` method allows to unread everything is read in callback.
+The `Decoder.Capture` method allows to unread everything is read in callback.
 This is useful for multi-pass parsing:
 ```go
-func TestReader_Capture(t *testing.T) {
-	r := ParseString(`["foo", "bar", "baz"]`)
+func TestDecoder_Capture(t *testing.T) {
+	d := DecodeString(`["foo", "bar", "baz"]`)
 	var elems int
-	if err := r.Capture(func(r *Reader) error {
-		return r.Array(func(r *Reader) error {
+	if err := d.Capture(func(d *Reader) error {
+		return d.Arr(func(d *Reader) error {
 			elems++
 			return r.Skip()
 		})

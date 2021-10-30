@@ -8,14 +8,14 @@ import (
 	"golang.org/x/xerrors"
 )
 
-// StrAppend reads string and appends it to byte slice.
-func (r *Reader) StrAppend(b []byte) ([]byte, error) {
+// StringAppend reads string and appends it to byte slice.
+func (d *Decoder) StringAppend(b []byte) ([]byte, error) {
 	v := value{
 		buf: b,
 		raw: false,
 	}
 	var err error
-	if v, err = r.str(v); err != nil {
+	if v, err = d.str(v); err != nil {
 		return b, err
 	}
 	return v.buf, nil
@@ -80,52 +80,52 @@ func badToken(c byte) error {
 	return UnexpectedTokenErr{Token: c}
 }
 
-func (r *Reader) str(v value) (value, error) {
-	if err := r.expectNext('"'); err != nil {
+func (d *Decoder) str(v value) (value, error) {
+	if err := d.expectNext('"'); err != nil {
 		return value{}, xerrors.Errorf("start: %w", err)
 	}
-	for i := r.head; i < r.tail; i++ {
-		c := r.buf[i]
+	for i := d.head; i < d.tail; i++ {
+		c := d.buf[i]
 		if c == '\\' {
 			// Character is escaped, fallback to slow path.
 			break
 		}
 		if c == '"' {
 			// End of string in fast path.
-			str := r.buf[r.head:i]
-			r.head = i + 1
+			str := d.buf[d.head:i]
+			d.head = i + 1
 			return v.direct(str), nil
 		}
 		if c < ' ' {
 			return value{}, xerrors.Errorf("control character: %w", badToken(c))
 		}
 	}
-	return r.strSlow(v)
+	return d.strSlow(v)
 }
 
-// StrBytes returns string value as sub-slice of internal buffer.
+// StringBytes returns string value as sub-slice of internal buffer.
 //
-// Buf is valid only until next call to any Reader method.
-func (r *Reader) StrBytes() ([]byte, error) {
-	v, err := r.str(value{raw: true})
+// Bytes is valid only until next call to any Decoder method.
+func (d *Decoder) StringBytes() ([]byte, error) {
+	v, err := d.str(value{raw: true})
 	if err != nil {
 		return nil, err
 	}
 	return v.buf, nil
 }
 
-// Str reads string.
-func (r *Reader) Str() (string, error) {
-	s, err := r.StrBytes()
+// String reads string.
+func (d *Decoder) String() (string, error) {
+	s, err := d.StringBytes()
 	if err != nil {
 		return "", err
 	}
 	return string(s), nil
 }
 
-func (r *Reader) strSlow(v value) (value, error) {
+func (d *Decoder) strSlow(v value) (value, error) {
 	for {
-		c, err := r.byte()
+		c, err := d.byte()
 		if err == io.EOF {
 			return value{}, io.ErrUnexpectedEOF
 		}
@@ -137,14 +137,14 @@ func (r *Reader) strSlow(v value) (value, error) {
 			// End of string.
 			return v, nil
 		case '\\':
-			c, err := r.byte()
+			c, err := d.byte()
 			if err == io.EOF {
 				return value{}, io.ErrUnexpectedEOF
 			}
 			if err != nil {
 				return value{}, xerrors.Errorf("next: %w", err)
 			}
-			v, err = r.escapedChar(v, c)
+			v, err = d.escapedChar(v, c)
 			if err != nil {
 				return v, xerrors.Errorf("escape: %w", err)
 			}
@@ -154,15 +154,15 @@ func (r *Reader) strSlow(v value) (value, error) {
 	}
 }
 
-func (r *Reader) escapedChar(v value, c byte) (value, error) {
+func (d *Decoder) escapedChar(v value, c byte) (value, error) {
 	switch c {
 	case 'u':
-		r1, err := r.readU4()
+		r1, err := d.readU4()
 		if err != nil {
 			return value{}, xerrors.Errorf("read u4: %w", err)
 		}
 		if utf16.IsSurrogate(r1) {
-			c, err := r.byte()
+			c, err := d.byte()
 			if err == io.EOF {
 				return value{}, io.ErrUnexpectedEOF
 			}
@@ -170,10 +170,10 @@ func (r *Reader) escapedChar(v value, c byte) (value, error) {
 				return value{}, err
 			}
 			if c != '\\' {
-				r.unread()
+				d.unread()
 				return v.rune(r1), nil
 			}
-			c, err = r.byte()
+			c, err = d.byte()
 			if err == io.EOF {
 				return value{}, io.ErrUnexpectedEOF
 			}
@@ -181,9 +181,9 @@ func (r *Reader) escapedChar(v value, c byte) (value, error) {
 				return value{}, err
 			}
 			if c != 'u' {
-				return r.escapedChar(v.rune(r1), c)
+				return d.escapedChar(v.rune(r1), c)
 			}
-			r2, err := r.readU4()
+			r2, err := d.readU4()
 			if err != nil {
 				return value{}, err
 			}
@@ -218,10 +218,10 @@ func (r *Reader) escapedChar(v value, c byte) (value, error) {
 	return v, nil
 }
 
-func (r *Reader) readU4() (rune, error) {
+func (d *Decoder) readU4() (rune, error) {
 	var v rune
 	for i := 0; i < 4; i++ {
-		c, err := r.byte()
+		c, err := d.byte()
 		if err == io.EOF {
 			return 0, io.ErrUnexpectedEOF
 		}

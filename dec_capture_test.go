@@ -20,17 +20,17 @@ func TestIterator_Capture(t *testing.T) {
 		}
 	]
 }`
-	i := GetReader()
+	i := GetDecoder()
 	i.ResetBytes([]byte(input))
-	err := i.Obj(func(i *Reader, key string) error {
-		return i.Array(func(i *Reader) error {
+	err := i.Object(func(i *Decoder, key string) error {
+		return i.Array(func(i *Decoder) error {
 			// Reading "type" field value first.
 			var typ string
-			if err := i.Capture(func(i *Reader) error {
-				return i.Obj(func(i *Reader, key string) error {
+			if err := i.Capture(func(i *Decoder) error {
+				return i.Object(func(i *Decoder, key string) error {
 					switch key {
 					case "type":
-						s, err := i.Str()
+						s, err := i.String()
 						if err != nil {
 							return err
 						}
@@ -44,9 +44,9 @@ func TestIterator_Capture(t *testing.T) {
 				return err
 			}
 			// Reading objects depending on type.
-			return i.Obj(func(i *Reader, key string) error {
+			return i.Object(func(i *Decoder, key string) error {
 				if key == "type" {
-					s, err := i.Str()
+					s, err := i.String()
 					if err != nil {
 						return err
 					}
@@ -55,7 +55,7 @@ func TestIterator_Capture(t *testing.T) {
 				}
 				switch typ {
 				case "foo":
-					_, _ = i.Str()
+					_, _ = i.String()
 				case "bar":
 					_, err := i.Int()
 					return err
@@ -69,12 +69,12 @@ func TestIterator_Capture(t *testing.T) {
 
 func BenchmarkIterator_Skip(b *testing.B) {
 	var input = []byte(`{"type": "foo", "foo": "string"}`)
-	it := GetReader()
+	it := GetDecoder()
 	b.ReportAllocs()
 
 	for i := 0; i < b.N; i++ {
 		it.ResetBytes(input)
-		if err := it.Capture(func(i *Reader) error {
+		if err := it.Capture(func(i *Decoder) error {
 			return i.Skip()
 		}); err != nil {
 			b.Fatal(err)
@@ -82,11 +82,11 @@ func BenchmarkIterator_Skip(b *testing.B) {
 	}
 }
 
-func TestIter_Capture(t *testing.T) {
-	i := ReadString(`["foo", "bar", "baz"]`)
+func TestDecoder_Capture(t *testing.T) {
+	i := DecodeString(`["foo", "bar", "baz"]`)
 	var elems int
-	if err := i.Capture(func(i *Reader) error {
-		return i.Array(func(i *Reader) error {
+	if err := i.Capture(func(i *Decoder) error {
+		return i.Array(func(i *Decoder) error {
 			elems++
 			return i.Skip()
 		})

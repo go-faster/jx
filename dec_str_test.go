@@ -7,9 +7,9 @@ import (
 )
 
 func TestIterator_Str(t *testing.T) {
-	i := GetReader()
+	i := GetDecoder()
 	i.ResetBytes([]byte(`"hello, world!"`))
-	s, err := i.Str()
+	s, err := i.String()
 	require.NoError(t, err)
 	require.Equal(t, "hello, world!", s)
 }

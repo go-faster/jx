@@ -6,33 +6,33 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestStream_byte_should_grow_buffer(t *testing.T) {
+func TestEncoder_byte_should_grow_buffer(t *testing.T) {
 	should := require.New(t)
-	stream := NewWriter(nil, 1)
+	stream := NewEncoder(nil, 1)
 	stream.byte('1')
-	should.Equal("1", string(stream.Buf()))
+	should.Equal("1", string(stream.Bytes()))
 	should.Equal(1, len(stream.buf))
 	stream.byte('2')
-	should.Equal("12", string(stream.Buf()))
+	should.Equal("12", string(stream.Bytes()))
 	should.Equal(2, len(stream.buf))
 	stream.threeBytes('3', '4', '5')
-	should.Equal("12345", string(stream.Buf()))
+	should.Equal("12345", string(stream.Bytes()))
 }
 
-func TestStream_Raw_should_grow_buffer(t *testing.T) {
+func TestEncoder_Raw_should_grow_buffer(t *testing.T) {
 	should := require.New(t)
-	stream := NewWriter(nil, 1)
+	stream := NewEncoder(nil, 1)
 	stream.Raw("123")
 	should.NoError(stream.Flush())
-	should.Equal("123", string(stream.Buf()))
+	should.Equal("123", string(stream.Bytes()))
 }
 
-func TestStream_Str_should_grow_buffer(t *testing.T) {
+func TestEncoder_Str_should_grow_buffer(t *testing.T) {
 	should := require.New(t)
-	stream := NewWriter(nil, 0)
-	stream.Str("123")
+	stream := NewEncoder(nil, 0)
+	stream.String("123")
 	should.NoError(stream.Flush())
-	should.Equal(`"123"`, string(stream.Buf()))
+	should.Equal(`"123"`, string(stream.Bytes()))
 }
 
 type NopWriter struct {
@@ -44,10 +44,10 @@ func (w *NopWriter) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-func TestStream_Flush_should_stop_grow_buffer(t *testing.T) {
+func TestEncoder_Flush_should_stop_grow_buffer(t *testing.T) {
 	// GetWriter an array of a zillion zeros.
 	writer := new(NopWriter)
-	stream := NewWriter(writer, 512)
+	stream := NewEncoder(writer, 512)
 	stream.ArrStart()
 	for i := 0; i < 10000000; i++ {
 		stream.Int(0)
@@ -67,14 +67,14 @@ func TestStream_Flush_should_stop_grow_buffer(t *testing.T) {
 	should.Equal(512, writer.bufferSize)
 }
 
-func TestStream_ArrEmpty(t *testing.T) {
-	s := NewWriter(nil, 0)
+func TestEncoder_ArrEmpty(t *testing.T) {
+	s := NewEncoder(nil, 0)
 	s.ArrEmpty()
-	require.Equal(t, "[]", string(s.Buf()))
+	require.Equal(t, "[]", string(s.Bytes()))
 }
 
-func TestStream_ObjEmpty(t *testing.T) {
-	s := NewWriter(nil, 0)
+func TestEncoder_ObjEmpty(t *testing.T) {
+	s := NewEncoder(nil, 0)
 	s.ObjEmpty()
-	require.Equal(t, "{}", string(s.Buf()))
+	require.Equal(t, "{}", string(s.Bytes()))
 }

@@ -11,15 +11,15 @@ import (
 )
 
 func TestAny_Read(t *testing.T) {
-	t.Run("Obj", func(t *testing.T) {
+	t.Run("Object", func(t *testing.T) {
 		var v Any
 		const input = `{"foo":{"bar":1,"baz":[1,2,3.14],"200":null}}`
-		r := ReadString(input)
+		r := DecodeString(input)
 		assert.NoError(t, v.Read(r))
 		assert.Equal(t, `{foo: {bar: 1, baz: [1, 2, f3.14], 200: null}}`, v.String())
 
 		buf := new(bytes.Buffer)
-		w := NewWriter(buf, 1024)
+		w := NewEncoder(buf, 1024)
 		require.NoError(t, w.Any(v))
 		require.NoError(t, w.Flush())
 		require.Equal(t, input, buf.String(), "encoded value should equal to input")
@@ -34,11 +34,11 @@ func TestAny_Read(t *testing.T) {
 			t.Run(tt.Input, func(t *testing.T) {
 				var v Any
 				input := []byte(tt.Input)
-				r := ReadBytes(input)
+				r := DecodeBytes(input)
 				require.NoError(t, v.Read(r))
 
 				buf := new(bytes.Buffer)
-				s := NewWriter(buf, 1024)
+				s := NewEncoder(buf, 1024)
 				require.NoError(t, v.Write(s))
 				require.NoError(t, s.Flush())
 				require.Equal(t, tt.Input, buf.String(), "encoded value should equal to input")
@@ -58,7 +58,7 @@ func TestAny_Read(t *testing.T) {
 
 func BenchmarkAny(b *testing.B) {
 	data := []byte(`[true, null, false, 100, "false"]`)
-	r := NewReader()
+	r := NewDecoder()
 
 	b.ReportAllocs()
 	b.SetBytes(int64(len(data)))

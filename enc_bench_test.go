@@ -8,7 +8,7 @@ import (
 
 func Benchmark_stream_encode_big_object(b *testing.B) {
 	var buf bytes.Buffer
-	var stream = NewWriter(&buf, 100)
+	var stream = NewEncoder(&buf, 100)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		stream.Reset(&buf)
@@ -18,7 +18,7 @@ func Benchmark_stream_encode_big_object(b *testing.B) {
 	}
 }
 
-func encodeObject(w *Writer) error {
+func encodeObject(w *Encoder) error {
 	w.ObjStart()
 
 	w.ObjField("objectId")
@@ -26,7 +26,7 @@ func encodeObject(w *Writer) error {
 
 	w.More()
 	w.ObjField("name")
-	w.Str("Jane Doe")
+	w.String("Jane Doe")
 
 	w.More()
 	w.ObjField("address")
@@ -36,7 +36,7 @@ func encodeObject(w *Writer) error {
 			w.More()
 		}
 		w.ObjField(field.key)
-		w.Str(field.val)
+		w.String(field.val)
 	}
 
 	w.More()
@@ -63,7 +63,7 @@ func encodeObject(w *Writer) error {
 		if i != 0 {
 			w.More()
 		}
-		w.Str(s)
+		w.String(s)
 	}
 	w.ArrEnd()
 
@@ -73,7 +73,7 @@ func encodeObject(w *Writer) error {
 			w.More()
 		}
 		w.ObjField("longText" + strconv.Itoa(i))
-		w.Str(text)
+		w.String(text)
 	}
 
 	for i := 0; i < 25; i++ {

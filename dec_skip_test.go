@@ -7,77 +7,77 @@ import (
 )
 
 func Test_skip_number_in_array(t *testing.T) {
-	iter := ReadString(`[-0.12, "stream"]`)
+	iter := DecodeString(`[-0.12, "stream"]`)
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
-	if s, _ := iter.Str(); s != "stream" {
+	if s, _ := iter.String(); s != "stream" {
 		t.FailNow()
 	}
 }
 
 func Test_skip_string_in_array(t *testing.T) {
-	iter := ReadString(`["hello", "stream"]`)
+	iter := DecodeString(`["hello", "stream"]`)
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
-	if s, _ := iter.Str(); s != "stream" {
+	if s, _ := iter.String(); s != "stream" {
 		t.FailNow()
 	}
 }
 
 func Test_skip_null(t *testing.T) {
-	iter := ReadString(`[null , "stream"]`)
+	iter := DecodeString(`[null , "stream"]`)
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
-	if s, _ := iter.Str(); s != "stream" {
+	if s, _ := iter.String(); s != "stream" {
 		t.FailNow()
 	}
 }
 
 func Test_skip_true(t *testing.T) {
-	iter := ReadString(`[true , "stream"]`)
+	iter := DecodeString(`[true , "stream"]`)
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
-	if s, _ := iter.Str(); s != "stream" {
+	if s, _ := iter.String(); s != "stream" {
 		t.FailNow()
 	}
 }
 
 func Test_skip_false(t *testing.T) {
-	iter := ReadString(`[false , "stream"]`)
+	iter := DecodeString(`[false , "stream"]`)
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
-	if s, _ := iter.Str(); s != "stream" {
+	if s, _ := iter.String(); s != "stream" {
 		t.FailNow()
 	}
 }
 
 func Test_skip_array(t *testing.T) {
-	iter := ReadString(`[[1, [2, [3], 4]], "stream"]`)
+	iter := DecodeString(`[[1, [2, [3], 4]], "stream"]`)
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
-	if s, _ := iter.Str(); s != "stream" {
+	if s, _ := iter.String(); s != "stream" {
 		t.FailNow()
 	}
 }
 
 func Test_skip_empty_array(t *testing.T) {
-	iter := ReadString(`[ [ ], "stream"]`)
+	iter := DecodeString(`[ [ ], "stream"]`)
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
-	if s, _ := iter.Str(); s != "stream" {
+	if s, _ := iter.String(); s != "stream" {
 		t.FailNow()
 	}
 }
 
 func Test_skip_nested(t *testing.T) {
-	iter := ReadString(`[ {"a" : [{"stream": "c"}], "d": 102 }, "stream"]`)
+	iter := DecodeString(`[ {"a" : [{"stream": "c"}], "d": 102 }, "stream"]`)
 	if _, err := iter.Elem(); err != nil {
 		t.Fatal(err)
 	}
@@ -85,12 +85,12 @@ func Test_skip_nested(t *testing.T) {
 	if _, err := iter.Elem(); err != nil {
 		t.Fatal(err)
 	}
-	s, err := iter.Str()
+	s, err := iter.String()
 	require.NoError(t, err)
 	require.Equal(t, "stream", s)
 }
 
 func Test_skip_simple_nested(t *testing.T) {
-	iter := ReadString(`["foo", "bar", "baz"]`)
+	iter := DecodeString(`["foo", "bar", "baz"]`)
 	require.NoError(t, iter.Skip())
 }

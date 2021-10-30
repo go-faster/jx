@@ -6,28 +6,28 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestStream_WriteStringWithHTMLEscaped(t *testing.T) {
-	s := NewWriter(nil, 0)
+func TestEncoder_StringEscape(t *testing.T) {
+	s := NewEncoder(nil, 0)
 	const data = `<html>Hello\\\n\r\\` + "\n\rWorld\u2028</html>"
-	s.StrHTMLEscaped(data)
+	s.StringEscape(data)
 	require.NoError(t, s.Flush())
-	requireCompat(t, s.Buf(), data)
+	requireCompat(t, s.Bytes(), data)
 	const expected = `"\u003chtml\u003eHello\\\\\\n\\r\\\\\n\rWorld\u2028\u003c/html\u003e"`
-	require.Equal(t, expected, string(s.Buf()))
+	require.Equal(t, expected, string(s.Bytes()))
 }
 
-func TestStream_WriteString(t *testing.T) {
-	s := NewWriter(nil, 0)
+func TestEncoder_String(t *testing.T) {
+	s := NewEncoder(nil, 0)
 	const data = `\nH\tel\tl\ro\\World\r` + "\n\rHello\r\tHi"
-	s.Str(data)
+	s.String(data)
 	require.NoError(t, s.Flush())
 	const expected = `"\\nH\\tel\\tl\\ro\\\\World\\r\n\rHello\r\tHi"`
-	require.Equal(t, expected, string(s.Buf()))
-	requireCompat(t, s.Buf(), data)
-	t.Run("Read", func(t *testing.T) {
-		i := NewReader()
-		i.ResetBytes(s.Buf())
-		s, err := i.Str()
+	require.Equal(t, expected, string(s.Bytes()))
+	requireCompat(t, s.Bytes(), data)
+	t.Run("Decode", func(t *testing.T) {
+		i := NewDecoder()
+		i.ResetBytes(s.Bytes())
+		s, err := i.String()
 		require.NoError(t, err)
 		require.Equal(t, data, s)
 	})

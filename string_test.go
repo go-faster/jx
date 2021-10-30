@@ -27,8 +27,8 @@ func Test_read_string(t *testing.T) {
 	}
 
 	for _, input := range badInputs {
-		i := ReadString(input)
-		_, err := i.Str()
+		i := DecodeString(input)
+		_, err := i.String()
 		assert.Error(t, err, "input: %q", input)
 	}
 
@@ -62,8 +62,8 @@ func Test_read_string(t *testing.T) {
 	for _, tc := range goodInputs {
 		testReadString(t, tc.input, tc.expectValue, false, "json.Unmarshal", json.Unmarshal)
 
-		i := ReadString(tc.input)
-		s, err := i.Str()
+		i := DecodeString(tc.input)
+		s, err := i.String()
 		assert.NoError(t, err)
 		assert.Equal(t, tc.expectValue, s)
 	}
@@ -83,7 +83,7 @@ func testReadString(t *testing.T, input string, expectValue string, expectError 
 	}
 }
 
-func TestIter_Str(t *testing.T) {
+func TestDecoder_Str(t *testing.T) {
 	for _, tt := range []struct {
 		Name  string
 		Input string
@@ -93,10 +93,10 @@ func TestIter_Str(t *testing.T) {
 	} {
 		t.Run(tt.Name, func(t *testing.T) {
 			buf := new(bytes.Buffer)
-			s := NewWriter(buf, 128)
+			s := NewEncoder(buf, 128)
 			t.Logf("%v", []rune(tt.Input))
 
-			s.Str(tt.Input)
+			s.String(tt.Input)
 			require.NoError(t, s.Flush())
 			t.Logf("%v", []rune(buf.String()))
 
@@ -106,8 +106,8 @@ func TestIter_Str(t *testing.T) {
 			require.NoError(t, json.Unmarshal(buf.Bytes(), &gotStd))
 			require.Equal(t, tt.Input, gotStd)
 
-			i := ReadBytes(buf.Bytes())
-			got, err := i.Str()
+			i := DecodeBytes(buf.Bytes())
+			got, err := i.String()
 			require.NoError(t, err)
 			require.Equal(t, tt.Input, got, "%s\n%s", buf, hexEnc.Dump(buf.Bytes()))
 		})

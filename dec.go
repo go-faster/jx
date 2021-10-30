@@ -87,10 +87,10 @@ func init() {
 	types['{'] = Object
 }
 
-// Reader is an io.Reader like object, with json specific read functions.
+// Decoder is streaming json decoder.
 //
-// Error is not returned as return value, but rather stored as Error field.
-type Reader struct {
+// Can read from io.Reader or byte slice directly.
+type Decoder struct {
 	reader io.Reader
 
 	// buf is current buffer.
@@ -104,63 +104,62 @@ type Reader struct {
 	depth int
 }
 
-// NewReader creates an empty Reader instance.
-func NewReader() *Reader {
-	return &Reader{}
+// NewDecoder creates an empty Decoder.
+//
+// Use Decoder.Reset or Decoder.ResetBytes.
+func NewDecoder() *Decoder {
+	return &Decoder{}
 }
 
-// Read creates an Reader instance from io.Reader
-func Read(reader io.Reader, bufSize int) *Reader {
-	return &Reader{
+// Decode creates a Decoder that reads json from io.Reader.
+func Decode(reader io.Reader, bufSize int) *Decoder {
+	return &Decoder{
 		reader: reader,
 		buf:    make([]byte, bufSize),
 	}
 }
 
-// ReadBytes creates a Reader instance from byte slice.
-func ReadBytes(input []byte) *Reader {
-	return &Reader{
-		reader: nil,
-		buf:    input,
-		head:   0,
-		tail:   len(input),
-		depth:  0,
+// DecodeBytes creates a Decoder that reads json from byte slice.
+func DecodeBytes(input []byte) *Decoder {
+	return &Decoder{
+		buf:  input,
+		tail: len(input),
 	}
 }
 
-// ReadString creates a Reader instance from string.
-func ReadString(input string) *Reader {
-	return ReadBytes([]byte(input))
+// DecodeString creates a Decoder that reads string as json.
+func DecodeString(input string) *Decoder {
+	return DecodeBytes([]byte(input))
 }
 
 // Reset reuse iterator instance by specifying another reader
-func (r *Reader) Reset(reader io.Reader) *Reader {
-	r.reader = reader
-	r.head = 0
-	r.tail = 0
-	r.depth = 0
-	return r
+func (d *Decoder) Reset(reader io.Reader) *Decoder {
+	d.reader = reader
+	d.head = 0
+	d.tail = 0
+	d.depth = 0
+	return d
 }
 
 // ResetBytes reuse iterator instance by specifying another byte array as input
-func (r *Reader) ResetBytes(input []byte) *Reader {
-	r.reader = nil
-	r.buf = input
-	r.head = 0
-	r.tail = len(input)
-	r.depth = 0
-	return r
+func (d *Decoder) ResetBytes(input []byte) *Decoder {
+	d.reader = nil
+	d.buf = input
+	d.head = 0
+	d.tail = len(input)
+	d.depth = 0
+	return d
 }
 
 // Next gets Type of relatively next json element
-func (r *Reader) Next() Type {
-	v, _ := r.next()
-	r.unread()
+func (d *Decoder) Next() Type {
+	v, _ := d.next()
+	d.unread()
 	return types[v]
 }
 
-func (r *Reader) expectNext(c byte) error {
-	v, err := r.next()
+func (d *Decoder) expectNext(c byte) error {
+	v, err := d.next()
 	if err == io.EOF {
 		return io.ErrUnexpectedEOF
 	}
@@ -174,66 +173,66 @@ func (r *Reader) expectNext(c byte) error {
 }
 
 // next returns non-whitespace token or error.
-func (r *Reader) next() (byte, error) {
+func (d *Decoder) next() (byte, error) {
 	for {
-		for i := r.head; i < r.tail; i++ {
-			c := r.buf[i]
+		for i := d.head; i < d.tail; i++ {
+			c := d.buf[i]
 			switch c {
 			case ' ', '\n', '\t', '\r':
 				continue
 			}
-			r.head = i + 1
+			d.head = i + 1
 			return c, nil
 		}
-		if err := r.read(); err != nil {
+		if err := d.read(); err != nil {
 			return 0, err
 		}
 	}
 }
 
-func (r *Reader) byte() (byte, error) {
-	if r.head == r.tail {
-		if err := r.read(); err != nil {
+func (d *Decoder) byte() (byte, error) {
+	if d.head == d.tail {
+		if err := d.read(); err != nil {
 			return 0, err
 		}
 	}
-	c := r.buf[r.head]
-	r.head++
+	c := d.buf[d.head]
+	d.head++
 	return c, nil
 }
 
-func (r *Reader) read() error {
-	if r.reader == nil {
-		r.head = r.tail
+func (d *Decoder) read() error {
+	if d.reader == nil {
+		d.head = d.tail
 		return io.EOF
 	}
 
-	n, err := r.reader.Read(r.buf)
+	n, err := d.reader.Read(d.buf)
 	if err != nil {
 		return err
 	}
 
-	r.head = 0
-	r.tail = n
+	d.head = 0
+	d.tail = n
 	return nil
 }
 
-func (r *Reader) unread() { r.head-- }
+func (d *Decoder) unread() { d.head-- }
 
 // limit maximum depth of nesting, as allowed by https://tools.ietf.org/html/rfc7159#section-9
 const maxDepth = 10000
 
-func (r *Reader) incrementDepth() error {
-	r.depth++
-	if r.depth > maxDepth {
+func (d *Decoder) incrementDepth() error {
+	d.depth++
+	if d.depth > maxDepth {
 		return xerrors.New("max depth")
 	}
 	return nil
 }
 
-func (r *Reader) decrementDepth() error {
-	r.depth--
-	if r.depth < 0 {
+func (d *Decoder) decrementDepth() error {
+	d.depth--
+	if d.depth < 0 {
 		return xerrors.New("negative depth")
 	}
 	return nil

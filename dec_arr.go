@@ -8,19 +8,19 @@ import (
 
 // Elem reads array element and reports whether array has more
 // elements to read.
-func (r *Reader) Elem() (ok bool, err error) {
-	c, err := r.next()
+func (d *Decoder) Elem() (ok bool, err error) {
+	c, err := d.next()
 	if err != nil {
 		return false, err
 	}
 	switch c {
 	case '[':
-		c, err := r.next()
+		c, err := d.next()
 		if err != nil {
 			return false, xerrors.Errorf("next: %w", err)
 		}
 		if c != ']' {
-			r.unread()
+			d.unread()
 			return true, nil
 		}
 		return false, nil
@@ -33,15 +33,15 @@ func (r *Reader) Elem() (ok bool, err error) {
 	}
 }
 
-// Array reads array and call f on each element.
-func (r *Reader) Array(f func(r *Reader) error) error {
-	if err := r.expectNext('['); err != nil {
+// Array reads array and calls f on each array element.
+func (d *Decoder) Array(f func(d *Decoder) error) error {
+	if err := d.expectNext('['); err != nil {
 		return xerrors.Errorf("start: %w", err)
 	}
-	if err := r.incrementDepth(); err != nil {
+	if err := d.incrementDepth(); err != nil {
 		return xerrors.Errorf("inc: %w", err)
 	}
-	c, err := r.next()
+	c, err := d.next()
 	if err == io.EOF {
 		return io.ErrUnexpectedEOF
 	}
@@ -49,14 +49,14 @@ func (r *Reader) Array(f func(r *Reader) error) error {
 		return err
 	}
 	if c == ']' {
-		return r.decrementDepth()
+		return d.decrementDepth()
 	}
-	r.unread()
-	if err := f(r); err != nil {
+	d.unread()
+	if err := f(d); err != nil {
 		return xerrors.Errorf("callback: %w", err)
 	}
 
-	c, err = r.next()
+	c, err = d.next()
 	if err == io.EOF {
 		return io.ErrUnexpectedEOF
 	}
@@ -64,15 +64,15 @@ func (r *Reader) Array(f func(r *Reader) error) error {
 		return xerrors.Errorf("next: %w", err)
 	}
 	for c == ',' {
-		if err := f(r); err != nil {
+		if err := f(d); err != nil {
 			return xerrors.Errorf("callback: %w", err)
 		}
-		if c, err = r.next(); err != nil {
+		if c, err = d.next(); err != nil {
 			return xerrors.Errorf("next: %w", err)
 		}
 	}
 	if c != ']' {
 		return xerrors.Errorf("end: %w", badToken(c))
 	}
-	return r.decrementDepth()
+	return d.decrementDepth()
 }

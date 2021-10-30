@@ -15,11 +15,11 @@ var data []byte
 */
 func Benchmark_large_file(b *testing.B) {
 	b.ReportAllocs()
-	iter := Read(nil, 4096)
+	iter := Decode(nil, 4096)
 
 	for n := 0; n < b.N; n++ {
 		iter.ResetBytes(data)
-		if err := iter.Array(func(iter *Reader) error {
+		if err := iter.Array(func(iter *Decoder) error {
 			return iter.Skip()
 		}); err != nil {
 			b.Fatal(err)
