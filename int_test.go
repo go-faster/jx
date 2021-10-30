@@ -186,3 +186,111 @@ func Test_write_int64(t *testing.T) {
 	should.NoError(stream.Flush())
 	should.Equal("a4294967295", buf.String())
 }
+
+func intPow(n, m int64) int64 {
+	if m == 0 {
+		return 1
+	}
+	result := n
+	for i := int64(2); i <= m; i++ {
+		result *= n
+	}
+	return result
+}
+
+func TestDecoder_Int64(t *testing.T) {
+	// Generate some diverse numbers.
+	for i := int64(0); i < 20; i++ {
+		v := int64(3)
+		for k := int64(0); k < i; k++ {
+			// No special meaning, just trying to make digits more diverse.
+			v += i + 1
+			v += intPow(10, k) * (k%7 + 1)
+		}
+		t.Run(fmt.Sprintf("%d", v), func(t *testing.T) {
+			e := GetEncoder()
+			e.Int64(v)
+			e.More()
+
+			d := GetDecoder()
+			d.ResetBytes(e.Bytes())
+			got, err := d.Int64()
+			require.NoError(t, err)
+			require.Equal(t, v, got)
+		})
+	}
+}
+
+func uintPow(n, m uint64) uint64 {
+	if m == 0 {
+		return 1
+	}
+	result := n
+	for i := uint64(2); i <= m; i++ {
+		result *= n
+	}
+	return result
+}
+
+func TestDecoder_Uint64(t *testing.T) {
+	// Generate some diverse numbers.
+	for i := uint64(0); i < 28; i++ {
+		v := uint64(3)
+		for k := uint64(0); k < i; k++ {
+			// No special meaning, just trying to make digits more diverse.
+			v += i + 1
+			v += uintPow(10, k) * (k%7 + 1)
+		}
+		t.Run(fmt.Sprintf("%d", v), func(t *testing.T) {
+			e := GetEncoder()
+			e.Uint64(v)
+			e.More()
+
+			d := GetDecoder()
+			d.ResetBytes(e.Bytes())
+			got, err := d.Uint64()
+			require.NoError(t, err)
+			require.Equal(t, v, got)
+		})
+	}
+}
+
+func uint32Pow(n, m uint32) uint32 {
+	if m == 0 {
+		return 1
+	}
+	result := n
+	for i := uint32(2); i <= m; i++ {
+		result *= n
+	}
+	return result
+}
+
+func TestDecoder_Uint32(t *testing.T) {
+	// Generate some diverse numbers.
+	for i := uint32(0); i < 20; i++ {
+		v := uint32(3)
+		for k := uint32(0); k < i; k++ {
+			// No special meaning, just trying to make digits more diverse.
+			v += i + 1
+			v += uint32Pow(10, k) * (k%7 + 1)
+		}
+		t.Run(fmt.Sprintf("%d", v), func(t *testing.T) {
+			e := GetEncoder()
+			e.Uint32(v)
+			e.More()
+			e.Uint(uint(v))
+			e.More()
+
+			d := GetDecoder()
+			d.ResetBytes(e.Bytes())
+			got, err := d.Uint32()
+			require.NoError(t, err)
+			require.Equal(t, v, got)
+			_, _ = d.Elem()
+			gotUint, err := d.Uint()
+			require.NoError(t, err)
+			require.Equal(t, uint(v), gotUint)
+		})
+	}
+}
