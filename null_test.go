@@ -19,7 +19,7 @@ func Test_decode_null_array_element(t *testing.T) {
 	should.True(iter.Elem())
 	should.NoError(iter.Null())
 	should.True(iter.Elem())
-	s, err := iter.String()
+	s, err := iter.Str()
 	should.NoError(err)
 	should.Equal("a", s)
 }
@@ -30,7 +30,7 @@ func Test_decode_null_string(t *testing.T) {
 	should.True(iter.Elem())
 	should.NoError(iter.Null())
 	should.True(iter.Elem())
-	s, err := iter.String()
+	s, err := iter.Str()
 	should.NoError(err)
 	should.Equal("a", s)
 }
@@ -40,7 +40,7 @@ func Test_decode_null_skip(t *testing.T) {
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
-	if s, _ := iter.String(); s != "a" {
+	if s, _ := iter.Str(); s != "a" {
 		t.FailNow()
 	}
 }

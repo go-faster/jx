@@ -25,7 +25,7 @@ func TestEncoder_String(t *testing.T) {
 	t.Run("Decode", func(t *testing.T) {
 		i := NewDecoder()
 		i.ResetBytes(s.Bytes())
-		s, err := i.String()
+		s, err := i.Str()
 		require.NoError(t, err)
 		require.Equal(t, data, s)
 	})

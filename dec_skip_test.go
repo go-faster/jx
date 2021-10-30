@@ -11,7 +11,7 @@ func Test_skip_number_in_array(t *testing.T) {
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
-	if s, _ := iter.String(); s != "stream" {
+	if s, _ := iter.Str(); s != "stream" {
 		t.FailNow()
 	}
 }
@@ -21,7 +21,7 @@ func Test_skip_string_in_array(t *testing.T) {
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
-	if s, _ := iter.String(); s != "stream" {
+	if s, _ := iter.Str(); s != "stream" {
 		t.FailNow()
 	}
 }
@@ -31,7 +31,7 @@ func Test_skip_null(t *testing.T) {
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
-	if s, _ := iter.String(); s != "stream" {
+	if s, _ := iter.Str(); s != "stream" {
 		t.FailNow()
 	}
 }
@@ -41,7 +41,7 @@ func Test_skip_true(t *testing.T) {
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
-	if s, _ := iter.String(); s != "stream" {
+	if s, _ := iter.Str(); s != "stream" {
 		t.FailNow()
 	}
 }
@@ -51,7 +51,7 @@ func Test_skip_false(t *testing.T) {
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
-	if s, _ := iter.String(); s != "stream" {
+	if s, _ := iter.Str(); s != "stream" {
 		t.FailNow()
 	}
 }
@@ -61,7 +61,7 @@ func Test_skip_array(t *testing.T) {
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
-	if s, _ := iter.String(); s != "stream" {
+	if s, _ := iter.Str(); s != "stream" {
 		t.FailNow()
 	}
 }
@@ -71,7 +71,7 @@ func Test_skip_empty_array(t *testing.T) {
 	iter.Elem()
 	iter.Skip()
 	iter.Elem()
-	if s, _ := iter.String(); s != "stream" {
+	if s, _ := iter.Str(); s != "stream" {
 		t.FailNow()
 	}
 }
@@ -85,7 +85,7 @@ func Test_skip_nested(t *testing.T) {
 	if _, err := iter.Elem(); err != nil {
 		t.Fatal(err)
 	}
-	s, err := iter.String()
+	s, err := iter.Str()
 	require.NoError(t, err)
 	require.Equal(t, "stream", s)
 }

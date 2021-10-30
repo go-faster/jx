@@ -1,6 +1,7 @@
 package jx
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -35,4 +36,29 @@ func Test_write_object(t *testing.T) {
 	e.Int(2)
 	e.ObjEnd()
 	should.Equal("{\n  \"hello\": 1,\n  \"world\": 2\n}", e.String())
+}
+
+func TestDecoder_Obj(t *testing.T) {
+	// https://github.com/json-iterator/go/issues/549
+	b := []byte(`{"\u6D88\u606F":"\u6D88\u606F"}`)
+
+	v := struct {
+		Message string `json:"消息"`
+	}{}
+	require.NoError(t, json.Unmarshal(b, &v))
+	require.Equal(t, "消息", v.Message)
+
+	var gotKey, gotVal string
+	require.NoError(t, DecodeBytes(b).Obj(func(d *Decoder, key string) error {
+		str, err := d.Str()
+		if err != nil {
+			return err
+		}
+		gotKey = key
+		gotVal = str
+		return nil
+	}))
+
+	require.Equal(t, v.Message, gotVal)
+	require.Equal(t, v.Message, gotKey)
 }

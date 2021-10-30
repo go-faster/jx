@@ -91,7 +91,7 @@ func FuzzValues(f *testing.F) {
 			case Number:
 				nGot, err = i.Int64()
 			case String:
-				sGot, err = i.String()
+				sGot, err = i.Str()
 			default:
 				err = errors.New("unexpected")
 			}

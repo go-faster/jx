@@ -111,7 +111,7 @@ func (v *Any) Read(d *Decoder) error {
 			v.Type = AnyInt
 		}
 	case String:
-		s, err := d.String()
+		s, err := d.Str()
 		if err != nil {
 			return xerrors.Errorf("str: %w", err)
 		}

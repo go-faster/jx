@@ -30,7 +30,7 @@ func TestIterator_Capture(t *testing.T) {
 				return i.Obj(func(i *Decoder, key string) error {
 					switch key {
 					case "type":
-						s, err := i.String()
+						s, err := i.Str()
 						if err != nil {
 							return err
 						}
@@ -46,7 +46,7 @@ func TestIterator_Capture(t *testing.T) {
 			// Reading objects depending on type.
 			return i.Obj(func(i *Decoder, key string) error {
 				if key == "type" {
-					s, err := i.String()
+					s, err := i.Str()
 					if err != nil {
 						return err
 					}
@@ -55,7 +55,7 @@ func TestIterator_Capture(t *testing.T) {
 				}
 				switch typ {
 				case "foo":
-					_, _ = i.String()
+					_, _ = i.Str()
 				case "bar":
 					_, err := i.Int()
 					return err

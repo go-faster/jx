@@ -8,8 +8,8 @@ import (
 	"golang.org/x/xerrors"
 )
 
-// StringAppend reads string and appends it to byte slice.
-func (d *Decoder) StringAppend(b []byte) ([]byte, error) {
+// StrAppend reads string and appends it to byte slice.
+func (d *Decoder) StrAppend(b []byte) ([]byte, error) {
 	v := value{
 		buf: b,
 		raw: false,
@@ -103,10 +103,10 @@ func (d *Decoder) str(v value) (value, error) {
 	return d.strSlow(v)
 }
 
-// StringBytes returns string value as sub-slice of internal buffer.
+// StrBytes returns string value as sub-slice of internal buffer.
 //
 // Bytes is valid only until next call to any Decoder method.
-func (d *Decoder) StringBytes() ([]byte, error) {
+func (d *Decoder) StrBytes() ([]byte, error) {
 	v, err := d.str(value{raw: true})
 	if err != nil {
 		return nil, err
@@ -114,9 +114,9 @@ func (d *Decoder) StringBytes() ([]byte, error) {
 	return v.buf, nil
 }
 
-// String reads string.
-func (d *Decoder) String() (string, error) {
-	s, err := d.StringBytes()
+// Str reads string.
+func (d *Decoder) Str() (string, error) {
+	s, err := d.StrBytes()
 	if err != nil {
 		return "", err
 	}

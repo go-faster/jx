@@ -27,7 +27,7 @@ func Test_read_string(t *testing.T) {
 
 	for _, input := range badInputs {
 		i := DecodeStr(input)
-		_, err := i.String()
+		_, err := i.Str()
 		assert.Error(t, err, "input: %q", input)
 	}
 
@@ -62,7 +62,7 @@ func Test_read_string(t *testing.T) {
 		testReadString(t, tc.input, tc.expectValue, false, "json.Unmarshal", json.Unmarshal)
 
 		i := DecodeStr(tc.input)
-		s, err := i.String()
+		s, err := i.Str()
 		assert.NoError(t, err)
 		assert.Equal(t, tc.expectValue, s)
 	}
@@ -82,13 +82,14 @@ func testReadString(t *testing.T, input string, expectValue string, expectError 
 	}
 }
 
-func TestDecoder_Str(t *testing.T) {
+func TestEncoder_Str(t *testing.T) {
 	for _, tt := range []struct {
 		Name  string
 		Input string
 	}{
 		{Name: "\\x00", Input: "\x00"},
 		{Name: "\\x00TrailingSpace", Input: "\x00 "},
+		{Name: "Hello", Input: `"hello, world!"`},
 	} {
 		t.Run(tt.Name, func(t *testing.T) {
 			s := NewEncoder()
@@ -103,7 +104,7 @@ func TestDecoder_Str(t *testing.T) {
 			require.Equal(t, tt.Input, gotStd)
 
 			i := DecodeBytes(s.Bytes())
-			got, err := i.String()
+			got, err := i.Str()
 			require.NoError(t, err)
 			require.Equal(t, tt.Input, got, "%s\n%s", s, hexEnc.Dump(s.Bytes()))
 		})
