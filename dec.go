@@ -158,7 +158,7 @@ func (d *Decoder) Next() Type {
 	return types[v]
 }
 
-func (d *Decoder) expectNext(c byte) error {
+func (d *Decoder) consume(c byte) error {
 	v, err := d.next()
 	if err == io.EOF {
 		return io.ErrUnexpectedEOF

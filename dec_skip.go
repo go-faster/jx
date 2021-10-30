@@ -7,7 +7,7 @@ import (
 // Null reads a json object as null and
 // returns whether it's a null or not.
 func (d *Decoder) Null() error {
-	if err := d.expectNext('n'); err != nil {
+	if err := d.consume('n'); err != nil {
 		return err
 	}
 	return d.skipThreeBytes('u', 'l', 'l') // null

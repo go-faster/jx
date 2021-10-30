@@ -18,7 +18,7 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 		// Drop keys, skip values.
 		f = skipObjBytes
 	}
-	if err := d.expectNext('{'); err != nil {
+	if err := d.consume('{'); err != nil {
 		return xerrors.Errorf("start: %w", err)
 	}
 	if err := d.incDepth(); err != nil {
@@ -37,7 +37,7 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 	if err != nil {
 		return xerrors.Errorf("str: %w", err)
 	}
-	if err := d.expectNext(':'); err != nil {
+	if err := d.consume(':'); err != nil {
 		return xerrors.Errorf("field: %w", err)
 	}
 	if err := f(d, k.buf); err != nil {
@@ -56,7 +56,7 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 		if err != nil {
 			return xerrors.Errorf("str: %w", err)
 		}
-		if err := d.expectNext(':'); err != nil {
+		if err := d.consume(':'); err != nil {
 			return xerrors.Errorf("field: %w", err)
 		}
 		if err := f(d, k.buf); err != nil {

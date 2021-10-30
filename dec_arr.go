@@ -40,7 +40,7 @@ func (d *Decoder) Arr(f func(d *Decoder) error) error {
 	if f == nil {
 		f = skipArr
 	}
-	if err := d.expectNext('['); err != nil {
+	if err := d.consume('['); err != nil {
 		return xerrors.Errorf("start: %w", err)
 	}
 	if err := d.incDepth(); err != nil {

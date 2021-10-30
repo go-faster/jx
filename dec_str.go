@@ -61,7 +61,7 @@ func badToken(c byte) error {
 }
 
 func (d *Decoder) str(v value) (value, error) {
-	if err := d.expectNext('"'); err != nil {
+	if err := d.consume('"'); err != nil {
 		return value{}, xerrors.Errorf("start: %w", err)
 	}
 	for i := d.head; i < d.tail; i++ {
