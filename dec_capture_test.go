@@ -1,6 +1,7 @@
 package jx
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -95,4 +96,13 @@ func TestDecoder_Capture(t *testing.T) {
 	}
 	require.Equal(t, Array, i.Next())
 	require.Equal(t, 3, elems)
+	t.Run("Nil", func(t *testing.T) {
+		require.NoError(t, i.Capture(nil))
+		require.Equal(t, Array, i.Next())
+	})
+}
+
+func TestDecoder_Capture_reader(t *testing.T) {
+	i := Decode(new(bytes.Buffer), 0)
+	require.Error(t, i.Capture(nil))
 }
