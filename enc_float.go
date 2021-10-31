@@ -9,7 +9,7 @@ import (
 
 var pow10 = []uint64{1, 10, 100, 1000, 10000, 100000, 1000000}
 
-// Float32 writes float32..
+// Float32 writes float32.
 func (e *Encoder) Float32(val float32) error {
 	if math.IsInf(float64(val), 0) || math.IsNaN(float64(val)) {
 		return xerrors.Errorf("bad value %v", val)
@@ -26,7 +26,7 @@ func (e *Encoder) Float32(val float32) error {
 	return nil
 }
 
-// Float64 writes float64 to stream.
+// Float64 writes float64.
 func (e *Encoder) Float64(val float64) error {
 	if math.IsInf(val, 0) || math.IsNaN(val) {
 		return xerrors.Errorf("unsupported value: %f", val)
