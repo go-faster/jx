@@ -21,3 +21,11 @@ func TestDecoder_StrAppend(t *testing.T) {
 	_, err = d.StrAppend(data)
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
+
+func TestUnexpectedTokenErr_Error(t *testing.T) {
+	e := &UnexpectedTokenErr{
+		Token: 'c',
+	}
+	s := error(e).Error()
+	require.Equal(t, "unexpected byte 99 'c'", s)
+}
