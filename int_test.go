@@ -3,6 +3,7 @@ package jx
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"strconv"
 	"testing"
 
@@ -182,9 +183,29 @@ func intPow(n, m int64) int64 {
 	return result
 }
 
+func requireArrEnd(t testing.TB, d *Decoder) {
+	t.Helper()
+	ok, err := d.Elem()
+	require.False(t, ok)
+	require.NoError(t, err)
+	requireEOF(t, d)
+}
+
+func requireElem(t testing.TB, d *Decoder) {
+	t.Helper()
+	ok, err := d.Elem()
+	require.True(t, ok)
+	require.NoError(t, err)
+}
+
+func requireEOF(t testing.TB, d *Decoder) {
+	t.Helper()
+	require.ErrorIs(t, d.Skip(), io.EOF)
+}
+
 func TestDecoder_Int64(t *testing.T) {
 	// Generate some diverse numbers.
-	for i := int64(0); i < 20; i++ {
+	for i := int64(0); i < 40; i++ {
 		v := int64(3)
 		for k := int64(0); k < i; k++ {
 			// No special meaning, just trying to make digits more diverse.
@@ -193,14 +214,64 @@ func TestDecoder_Int64(t *testing.T) {
 		}
 		t.Run(fmt.Sprintf("%d", v), func(t *testing.T) {
 			e := GetEncoder()
+			e.ArrStart()
 			e.Int64(v)
 			e.More()
+			e.Int64(-v)
+			e.ArrEnd()
 
-			d := GetDecoder()
-			d.ResetBytes(e.Bytes())
+			d := DecodeBytes(e.Bytes())
+			requireElem(t, d)
 			got, err := d.Int64()
 			require.NoError(t, err)
 			require.Equal(t, v, got)
+			requireElem(t, d)
+			got, err = d.Int64()
+			require.NoError(t, err)
+			require.Equal(t, -v, got)
+			requireArrEnd(t, d)
+		})
+	}
+}
+
+func int32Pow(n, m int32) int32 {
+	if m == 0 {
+		return 1
+	}
+	result := n
+	for i := int32(2); i <= m; i++ {
+		result *= n
+	}
+	return result
+}
+
+func TestDecoder_Int32(t *testing.T) {
+	// Generate some diverse numbers.
+	for i := int32(0); i < 10; i++ {
+		v := int32(3)
+		for k := int32(0); k < i; k++ {
+			// No special meaning, just trying to make digits more diverse.
+			v += i + 1
+			v += int32Pow(10, k) * (k%7 + 1)
+		}
+		t.Run(fmt.Sprintf("%d", v), func(t *testing.T) {
+			e := GetEncoder()
+			e.ArrStart()
+			e.Int32(v)
+			e.More()
+			e.Int32(-v)
+			e.ArrEnd()
+
+			d := DecodeBytes(e.Bytes())
+			requireElem(t, d)
+			got, err := d.Int32()
+			require.NoError(t, err)
+			require.Equal(t, v, got)
+			requireElem(t, d)
+			got, err = d.Int32()
+			require.NoError(t, err)
+			require.Equal(t, -v, got)
+			requireArrEnd(t, d)
 		})
 	}
 }
@@ -227,14 +298,17 @@ func TestDecoder_Uint64(t *testing.T) {
 		}
 		t.Run(fmt.Sprintf("%d", v), func(t *testing.T) {
 			e := GetEncoder()
+			e.ArrStart()
 			e.Uint64(v)
-			e.More()
+			e.ArrEnd()
 
 			d := GetDecoder()
 			d.ResetBytes(e.Bytes())
+			requireElem(t, d)
 			got, err := d.Uint64()
 			require.NoError(t, err)
 			require.Equal(t, v, got)
+			requireArrEnd(t, d)
 		})
 	}
 }
@@ -261,20 +335,23 @@ func TestDecoder_Uint32(t *testing.T) {
 		}
 		t.Run(fmt.Sprintf("%d", v), func(t *testing.T) {
 			e := GetEncoder()
+			e.ArrStart()
 			e.Uint32(v)
 			e.More()
 			e.Uint(uint(v))
-			e.More()
+			e.ArrEnd()
 
 			d := GetDecoder()
 			d.ResetBytes(e.Bytes())
+			requireElem(t, d)
 			got, err := d.Uint32()
 			require.NoError(t, err)
 			require.Equal(t, v, got)
-			_, _ = d.Elem()
+			requireElem(t, d)
 			gotUint, err := d.Uint()
 			require.NoError(t, err)
 			require.Equal(t, uint(v), gotUint)
+			requireArrEnd(t, d)
 		})
 	}
 }
