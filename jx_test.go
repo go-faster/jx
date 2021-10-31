@@ -45,6 +45,7 @@ func TestPutDecoder(t *testing.T) {
 				d := GetDecoder()
 				assert.Equal(t, d.Next(), Invalid)
 				d.Reset(bytes.NewBufferString("false"))
+				assert.Equal(t, d.Next(), Bool)
 				v, err := d.Bool()
 				assert.NoError(t, err)
 				assert.Equal(t, d.Next(), Invalid)
