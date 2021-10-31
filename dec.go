@@ -103,13 +103,6 @@ type Decoder struct {
 	depth int
 }
 
-// NewDecoder creates an empty Decoder.
-//
-// Use Decoder.Reset or Decoder.ResetBytes.
-func NewDecoder() *Decoder {
-	return &Decoder{}
-}
-
 // Decode creates a Decoder that reads json from io.Reader.
 func Decode(reader io.Reader, bufSize int) *Decoder {
 	return &Decoder{
@@ -141,7 +134,8 @@ func (d *Decoder) Reset(reader io.Reader) *Decoder {
 	// Reads from reader need buffer.
 	if d.buf == nil || cap(d.buf) == 0 {
 		// Allocate new buffer if none.
-		d.buf = make([]byte, 1024)
+		const defaultBuf = 512
+		d.buf = make([]byte, defaultBuf)
 	}
 	if len(d.buf) == 0 {
 		// Set buffer to full capacity if needed.

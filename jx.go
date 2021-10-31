@@ -30,12 +30,12 @@ func Valid(data []byte) bool {
 var (
 	encPool = &sync.Pool{
 		New: func() interface{} {
-			return NewEncoder()
+			return &Encoder{}
 		},
 	}
 	decPool = &sync.Pool{
 		New: func() interface{} {
-			return NewDecoder()
+			return &Decoder{}
 		},
 	}
 )

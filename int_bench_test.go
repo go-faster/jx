@@ -30,7 +30,7 @@ func BenchmarkEncoder_Int(b *testing.B) {
 	})
 	b.Run("JX", func(b *testing.B) {
 		b.ReportAllocs()
-		e := NewEncoder()
+		e := GetEncoder()
 		for i := 0; i < b.N; i++ {
 			e.Reset()
 			e.Uint64(v)
@@ -51,7 +51,7 @@ func BenchmarkDecoder_Int64(b *testing.B) {
 	})
 	b.Run("JX", func(b *testing.B) {
 		b.ReportAllocs()
-		d := NewDecoder()
+		d := GetDecoder()
 		for i := 0; i < b.N; i++ {
 			d.ResetBytes(input)
 			if _, err := d.Int64(); err != nil {

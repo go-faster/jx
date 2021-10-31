@@ -7,7 +7,6 @@ import (
 	"io"
 	"math"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -113,17 +112,17 @@ func Test_write_float32(t *testing.T) {
 	for _, val := range vals {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
-			w := NewEncoder()
-			should.NoError(w.Float32(val))
+			w := GetEncoder()
+			w.Float32(val)
 			output, err := json.Marshal(val)
 			should.Nil(err)
 			should.Equal(output, w.Bytes())
 		})
 	}
 	should := require.New(t)
-	e := NewEncoder()
-	should.NoError(e.Float32(float32(0.0000001)))
-	should.Equal("1e-07", string(e.Bytes()))
+	e := GetEncoder()
+	e.Float32(float32(0.0000001))
+	should.Equal("1e-7", string(e.Bytes()))
 }
 
 func Test_write_float64(t *testing.T) {
@@ -132,19 +131,16 @@ func Test_write_float64(t *testing.T) {
 	for _, val := range vals {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
-			w := NewEncoder()
-			should.NoError(w.Float64(val))
+			e := GetEncoder()
+			e.Float64(val)
 			s := strconv.FormatFloat(val, 'f', -1, 64)
-			if !strings.Contains(s, ".") {
-				s += ".0"
-			}
-			should.Equal(s, string(w.Bytes()))
+			should.Equal(s, string(e.Bytes()))
 		})
 	}
 	should := require.New(t)
-	e := NewEncoder()
-	should.NoError(e.Float64(0.0000001))
-	should.Equal("1e-07", e.String())
+	e := GetEncoder()
+	e.Float64(0.0000001)
+	should.Equal("1e-7", e.String())
 }
 
 func TestDecoder_FloatEOF(t *testing.T) {

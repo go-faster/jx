@@ -92,7 +92,7 @@ func TestEncoder_Str(t *testing.T) {
 		{Name: "Hello", Input: `"hello, world!"`},
 	} {
 		t.Run(tt.Name, func(t *testing.T) {
-			s := NewEncoder()
+			s := GetEncoder()
 			t.Logf("%v", []rune(tt.Input))
 
 			s.Str(tt.Input)

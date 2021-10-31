@@ -8,7 +8,7 @@ import (
 
 func Test_write_null(t *testing.T) {
 	should := require.New(t)
-	e := NewEncoder()
+	e := GetEncoder()
 	e.Null()
 	should.Equal("null", e.String())
 }

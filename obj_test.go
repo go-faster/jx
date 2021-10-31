@@ -26,7 +26,7 @@ func Test_one_field(t *testing.T) {
 
 func Test_write_object(t *testing.T) {
 	should := require.New(t)
-	e := NewEncoder()
+	e := GetEncoder()
 	e.SetIdent(2)
 	e.ObjStart()
 	e.ObjField("hello")

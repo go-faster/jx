@@ -5,9 +5,25 @@ import (
 	"testing"
 )
 
-func Benchmark_json_float(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		result := float64(0)
-		_ = json.Unmarshal([]byte(`1.1`), &result)
-	}
+func BenchmarkFloat(b *testing.B) {
+	data := []byte(`1.1`)
+	b.Run("Std", func(b *testing.B) {
+		b.ReportAllocs()
+		for n := 0; n < b.N; n++ {
+			var result float64
+			if err := json.Unmarshal([]byte(`1.1`), &result); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+	b.Run("JX", func(b *testing.B) {
+		b.ReportAllocs()
+		d := GetDecoder()
+		for n := 0; n < b.N; n++ {
+			d.ResetBytes(data)
+			if _, err := d.Float64(); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
 }

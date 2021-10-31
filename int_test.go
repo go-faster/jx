@@ -107,13 +107,13 @@ func Test_write_uint32(t *testing.T) {
 	for _, val := range vals {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
-			e := NewEncoder()
+			e := GetEncoder()
 			e.Uint32(val)
 			should.Equal(strconv.FormatUint(uint64(val), 10), e.String())
 		})
 	}
 	should := require.New(t)
-	e := NewEncoder()
+	e := GetEncoder()
 	e.Raw("a")
 	e.Uint32(0xffffffff) // should clear buffer
 	should.Equal("a4294967295", e.String())
@@ -124,13 +124,13 @@ func Test_write_int32(t *testing.T) {
 	for _, val := range vals {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
-			e := NewEncoder()
+			e := GetEncoder()
 			e.Int32(val)
 			should.Equal(strconv.FormatInt(int64(val), 10), e.String())
 		})
 	}
 	should := require.New(t)
-	e := NewEncoder()
+	e := GetEncoder()
 	e.Raw("a")
 	e.Int32(-0x7fffffff) // should clear buffer
 	should.Equal("a-2147483647", e.String())
@@ -143,13 +143,13 @@ func Test_write_uint64(t *testing.T) {
 	for _, val := range vals {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
-			e := NewEncoder()
+			e := GetEncoder()
 			e.Uint64(val)
 			should.Equal(strconv.FormatUint(val, 10), e.String())
 		})
 	}
 	should := require.New(t)
-	e := NewEncoder()
+	e := GetEncoder()
 	e.Raw("a")
 	e.Uint64(0xffffffff) // should clear buffer
 	should.Equal("a4294967295", e.String())
@@ -162,13 +162,13 @@ func Test_write_int64(t *testing.T) {
 	for _, val := range vals {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
-			e := NewEncoder()
+			e := GetEncoder()
 			e.Int64(val)
 			should.Equal(strconv.FormatInt(val, 10), e.String())
 		})
 	}
 	should := require.New(t)
-	e := NewEncoder()
+	e := GetEncoder()
 	e.Raw("a")
 	e.Int64(0xffffffff) // should clear buffer
 	should.Equal("a4294967295", e.String())
@@ -374,7 +374,7 @@ func TestDecoder_Uint32(t *testing.T) {
 
 func TestIntEOF(t *testing.T) {
 	t.Run("Start", func(t *testing.T) {
-		d := NewDecoder()
+		d := GetDecoder()
 		var err error
 		_, err = d.Int()
 		assert.Error(t, err, io.ErrUnexpectedEOF)

@@ -5,10 +5,12 @@ import (
 )
 
 // Encoder encodes json to underlying buffer.
+//
+// Zero value is valid.
 type Encoder struct {
-	buf      []byte
-	ident    int
-	curIdent int
+	buf    []byte // underlying buffer
+	ident  int    // indentation step
+	spaces int    // count of spaces
 }
 
 // Write implements io.Writer.
@@ -31,15 +33,6 @@ func (e *Encoder) SetIdent(n int) {
 // String returns string of underlying buffer.
 func (e *Encoder) String() string {
 	return string(e.Bytes())
-}
-
-// NewEncoder creates new encoder.
-func NewEncoder() *Encoder {
-	const defaultBuf = 256
-
-	return &Encoder{
-		buf: make([]byte, 0, defaultBuf),
-	}
 }
 
 // Reset resets underlying buffer.
@@ -84,17 +77,17 @@ func (e *Encoder) RawBytes(b []byte) {
 	e.buf = append(e.buf, b...)
 }
 
-// Null write null to stream.
+// Null writes null to stream.
 func (e *Encoder) Null() {
 	e.fourBytes('n', 'u', 'l', 'l')
 }
 
-// True write true to stream.
+// True writes true.
 func (e *Encoder) True() {
 	e.fourBytes('t', 'r', 'u', 'e')
 }
 
-// False writes false to stream.
+// False writes false.
 func (e *Encoder) False() {
 	e.fiveBytes('f', 'a', 'l', 's', 'e')
 }
@@ -108,68 +101,70 @@ func (e *Encoder) Bool(val bool) {
 	}
 }
 
-// ObjStart writes { with possible indention.
+// ObjStart writes object start, performing indentation if needed
 func (e *Encoder) ObjStart() {
-	e.curIdent += e.ident
+	e.spaces += e.ident
 	e.byte('{')
 	e.writeIdent(0)
 }
 
-// ObjField write "field": with possible indention.
+// ObjField writes field name and colon.
+//
+// For non-zero indentation also writes single space after colon.
 func (e *Encoder) ObjField(field string) {
 	e.Str(field)
-	if e.curIdent > 0 {
+	if e.spaces > 0 {
 		e.twoBytes(':', ' ')
 	} else {
 		e.byte(':')
 	}
 }
 
-// ObjEnd write } with possible indention
+// ObjEnd writes end of object token, performing indentation if needed.
 func (e *Encoder) ObjEnd() {
 	e.writeIdent(e.ident)
-	e.curIdent -= e.ident
+	e.spaces -= e.ident
 	e.byte('}')
 }
 
-// ObjEmpty write {}
+// ObjEmpty writes empty object.
 func (e *Encoder) ObjEmpty() {
 	e.byte('{')
 	e.byte('}')
 }
 
-// More write , with possible indention
+// More writes comma, performing indentation if needed.
 func (e *Encoder) More() {
 	e.byte(',')
 	e.writeIdent(0)
 }
 
-// ArrStart writes [ with possible indention.
+// ArrStart writes start of array, performing indentation if needed.
 func (e *Encoder) ArrStart() {
-	e.curIdent += e.ident
+	e.spaces += e.ident
 	e.byte('[')
 	e.writeIdent(0)
 }
 
-// ArrEmpty writes [].
+// ArrEmpty writes empty array.
 func (e *Encoder) ArrEmpty() {
 	e.twoBytes('[', ']')
 }
 
-// ArrEnd writes ] with possible indention.
+// ArrEnd writes end of array, performing indentation if needed.
 func (e *Encoder) ArrEnd() {
 	e.writeIdent(e.ident)
-	e.curIdent -= e.ident
+	e.spaces -= e.ident
 	e.byte(']')
 }
 
 func (e *Encoder) writeIdent(delta int) {
-	if e.curIdent == 0 {
+	if e.spaces == 0 {
 		return
 	}
 	e.byte('\n')
-	toWrite := e.curIdent - delta
-	for i := 0; i < toWrite; i++ {
+	spaces := e.spaces - delta
+	for i := 0; i < spaces; i++ {
 		e.buf = append(e.buf, ' ')
 	}
 }

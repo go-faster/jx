@@ -40,8 +40,8 @@ func TestAny_Read(t *testing.T) {
 		assert.NoError(t, v.Read(r))
 		assert.Equal(t, "{foo: {bar: 1, baz: [1, 2, f3.14], 200: null, f: 's', t: true, <blank>: ''}}", v.String())
 
-		e := NewEncoder()
-		require.NoError(t, e.Any(v))
+		e := GetEncoder()
+		e.Any(v)
 		require.Equal(t, input, e.String(), "encoded value should equal to input")
 	})
 	t.Run("Inputs", func(t *testing.T) {
@@ -49,7 +49,7 @@ func TestAny_Read(t *testing.T) {
 			Input string
 		}{
 			{Input: "1"},
-			{Input: "0.0"},
+			{Input: "0"},
 		} {
 			t.Run(tt.Input, func(t *testing.T) {
 				input := []byte(tt.Input)
@@ -57,8 +57,8 @@ func TestAny_Read(t *testing.T) {
 				v, err := r.Any()
 				require.NoError(t, err)
 
-				e := NewEncoder()
-				require.NoError(t, v.Write(e))
+				e := GetEncoder()
+				v.Write(e)
 				require.Equal(t, tt.Input, e.String(), "encoded value should equal to input")
 
 				var otherValue Any
@@ -76,7 +76,7 @@ func TestAny_Read(t *testing.T) {
 
 func BenchmarkAny(b *testing.B) {
 	data := []byte(`[true, null, false, 100, "false"]`)
-	r := NewDecoder()
+	r := GetDecoder()
 
 	b.ReportAllocs()
 	b.SetBytes(int64(len(data)))

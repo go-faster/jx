@@ -5,19 +5,21 @@ import (
 	"testing"
 )
 
-func Benchmark_stream_encode_big_object(b *testing.B) {
+func BenchmarkEncoderBigObject(b *testing.B) {
 	b.ReportAllocs()
 
 	e := GetEncoder()
+	encodeObject(e)
+	b.SetBytes(int64(len(e.Bytes())))
+
+	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		e.Reset()
-		if err := encodeObject(e); err != nil {
-			b.Fatal(err)
-		}
+		encodeObject(e)
 	}
 }
 
-func encodeObject(w *Encoder) error {
+func encodeObject(w *Encoder) {
 	w.ObjStart()
 
 	w.ObjField("objectId")
@@ -43,14 +45,10 @@ func encodeObject(w *Encoder) error {
 	{
 		w.ObjStart()
 		w.ObjField("latitude")
-		if err := w.Float64(-154.550817); err != nil {
-			return err
-		}
+		w.Float64(-154.550817)
 		w.More()
 		w.ObjField("longitude")
-		if err := w.Float64(-84.176159); err != nil {
-			return err
-		}
+		w.Float64(-84.176159)
 		w.ObjEnd()
 	}
 	w.ObjEnd()
@@ -83,7 +81,6 @@ func encodeObject(w *Encoder) error {
 	}
 
 	w.ObjEnd()
-	return nil
 }
 
 type field struct{ key, val string }

@@ -16,7 +16,7 @@ func TestPipe(t *testing.T) {
 	go func() {
 		defer close(done)
 		defer func() { _ = w.CloseWithError(io.EOF) }()
-		e := NewEncoder()
+		e := GetEncoder()
 		// Write objects to w.
 		for i := 0; i < objects; i++ {
 			e.Reset()
@@ -28,7 +28,7 @@ func TestPipe(t *testing.T) {
 		}
 	}()
 
-	d := NewDecoder()
+	d := GetDecoder()
 	d.Reset(r)
 	// Read exact count of objects.
 	for i := 0; i < objects; i++ {

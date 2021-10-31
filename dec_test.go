@@ -1,7 +1,10 @@
 package jx
 
 import (
+	"bytes"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestType_String(t *testing.T) {
@@ -19,4 +22,13 @@ func TestType_String(t *testing.T) {
 	if len(met) != 8 {
 		t.Error("unexpected met types")
 	}
+}
+
+func TestDecoder_Reset(t *testing.T) {
+	var d Decoder
+	d.ResetBytes([]byte{})
+	d.Reset(bytes.NewBufferString(`true`))
+	v, err := d.Bool()
+	require.NoError(t, err)
+	require.True(t, v)
 }

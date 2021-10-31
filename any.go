@@ -53,8 +53,8 @@ func (d *Decoder) Any() (Any, error) {
 }
 
 // Any writes Any value.
-func (e *Encoder) Any(a Any) error {
-	return a.Write(e)
+func (e *Encoder) Any(a Any) {
+	a.Write(e)
 }
 
 func (v *Any) Read(d *Decoder) error {
@@ -136,7 +136,7 @@ func (v *Any) Read(d *Decoder) error {
 }
 
 // Write json representation of Any to Encoder.
-func (v Any) Write(w *Encoder) error {
+func (v Any) Write(w *Encoder) {
 	if v.KeyValid {
 		w.ObjField(v.Key)
 	}
@@ -144,9 +144,7 @@ func (v Any) Write(w *Encoder) error {
 	case AnyStr:
 		w.Str(v.Str)
 	case AnyFloat:
-		if err := w.Float64(v.Float); err != nil {
-			return err
-		}
+		w.Float64(v.Float)
 	case AnyInt:
 		w.Int64(v.Int)
 	case AnyBool:
@@ -159,9 +157,7 @@ func (v Any) Write(w *Encoder) error {
 			if i != 0 {
 				w.More()
 			}
-			if err := c.Write(w); err != nil {
-				return err
-			}
+			c.Write(w)
 		}
 		w.ArrEnd()
 	case AnyObj:
@@ -170,15 +166,10 @@ func (v Any) Write(w *Encoder) error {
 			if i != 0 {
 				w.More()
 			}
-			if err := c.Write(w); err != nil {
-				return err
-			}
+			c.Write(w)
 		}
 		w.ObjEnd()
-	default:
-		return xerrors.Errorf("unexpected type %d", v.Type)
 	}
-	return nil
 }
 
 func (v Any) String() string {
