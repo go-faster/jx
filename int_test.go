@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"math"
 	"strconv"
 	"testing"
 
@@ -289,13 +290,18 @@ func uintPow(n, m uint64) uint64 {
 
 func TestDecoder_Uint64(t *testing.T) {
 	// Generate some diverse numbers.
+	var values []uint64
+	values = append(values, 0, math.MaxUint64)
 	for i := uint64(0); i < 28; i++ {
 		v := uint64(3)
 		for k := uint64(0); k < i; k++ {
 			// No special meaning, just trying to make digits more diverse.
 			v += i + 1
 			v += uintPow(10, k) * (k%7 + 1)
+			values = append(values, v)
 		}
+	}
+	for _, v := range values {
 		t.Run(fmt.Sprintf("%d", v), func(t *testing.T) {
 			e := GetEncoder()
 			e.ArrStart()
@@ -325,14 +331,18 @@ func uint32Pow(n, m uint32) uint32 {
 }
 
 func TestDecoder_Uint32(t *testing.T) {
-	// Generate some diverse numbers.
-	for i := uint32(0); i < 20; i++ {
+	var values []uint32
+	values = append(values, 0, math.MaxUint32)
+	for i := uint32(0); i < 28; i++ {
 		v := uint32(3)
 		for k := uint32(0); k < i; k++ {
 			// No special meaning, just trying to make digits more diverse.
 			v += i + 1
 			v += uint32Pow(10, k) * (k%7 + 1)
+			values = append(values, v)
 		}
+	}
+	for _, v := range values {
 		t.Run(fmt.Sprintf("%d", v), func(t *testing.T) {
 			e := GetEncoder()
 			e.ArrStart()
