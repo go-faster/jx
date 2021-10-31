@@ -54,7 +54,8 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 		if err := d.consume(':'); err != nil {
 			return xerrors.Errorf("field: %w", err)
 		}
-		if c, err = d.more(); err != nil {
+		// Check that value exists.
+		if _, err = d.more(); err != nil {
 			return xerrors.Errorf("more: %w", err)
 		}
 		d.unread()
