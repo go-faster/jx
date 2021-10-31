@@ -52,10 +52,10 @@ func TestAny_Read(t *testing.T) {
 			{Input: "0.0"},
 		} {
 			t.Run(tt.Input, func(t *testing.T) {
-				var v Any
 				input := []byte(tt.Input)
 				r := DecodeBytes(input)
-				require.NoError(t, v.Read(r))
+				v, err := r.Any()
+				require.NoError(t, err)
 
 				e := NewEncoder()
 				require.NoError(t, v.Write(e))
