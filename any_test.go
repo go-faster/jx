@@ -125,7 +125,6 @@ func TestAny_Equal(t *testing.T) {
 				b.Key = "1"
 				require.False(t, a.Equal(b))
 			})
-
 		}
 	})
 }
