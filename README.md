@@ -29,7 +29,7 @@ The `Decoder.Capture` method allows to unread everything is read in callback.
 This is useful for multi-pass parsing:
 ```go
 func TestDecoder_Capture(t *testing.T) {
-	d := DecodeString(`["foo", "bar", "baz"]`)
+	d := DecodeStr(`["foo", "bar", "baz"]`)
 	var elems int
 	if err := d.Capture(func(d *Decoder) error {
 		return d.Arr(func(d *Decoder) error {
@@ -49,8 +49,8 @@ func TestDecoder_Capture(t *testing.T) {
 
 The `Decoder.ObjectBytes` method tries not to allocate memory for keys, reusing existing buffer:
 ```go
-d := DecodeString(`{"id":1,"randomNumber":10}`)
-d.ObjectBytes(func(d *Decoder, key []byte) error {
+d := DecodeStr(`{"id":1,"randomNumber":10}`)
+d.ObjBytes(func(d *Decoder, key []byte) error {
     switch string(key) {
     case "id":
     case "randomNumber":
