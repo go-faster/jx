@@ -1,15 +1,10 @@
 package jx
 
 import (
-	hexEnc "encoding/hex"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
-	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"golang.org/x/xerrors"
 )
 
@@ -46,29 +41,6 @@ type Any struct {
 	KeyValid bool
 
 	Child []Any // AnyArr or AnyObj
-}
-
-// Reset Any value to reuse.
-func (v *Any) Reset() {
-	v.Type = AnyInvalid
-	v.Child = v.Child[:0]
-	v.KeyValid = false
-
-	v.Str = ""
-	v.Key = ""
-}
-
-// Obj calls f for any child that is field if v is AnyObj.
-func (v Any) Obj(f func(k string, v Any)) {
-	if v.Type != AnyObj {
-		return
-	}
-	for _, c := range v.Child {
-		if !c.KeyValid {
-			continue
-		}
-		f(c.Key, c)
-	}
 }
 
 // Any reads Any value.
@@ -220,7 +192,7 @@ func (v Any) String() string {
 	}
 	switch v.Type {
 	case AnyStr:
-		b.WriteString(`"` + v.Str + `"'`)
+		b.WriteString(`'` + v.Str + `'`)
 	case AnyFloat:
 		b.WriteRune('f')
 		b.WriteString(fmt.Sprintf("%v", v.Float))
@@ -252,77 +224,4 @@ func (v Any) String() string {
 		b.WriteString("<unknown>")
 	}
 	return b.String()
-}
-
-func TestAny_Read(t *testing.T) {
-	t.Run("Obj", func(t *testing.T) {
-		var v Any
-		const input = `{"foo":{"bar":1,"baz":[1,2,3.14],"200":null}}`
-		r := DecodeStr(input)
-		assert.NoError(t, v.Read(r))
-		assert.Equal(t, `{foo: {bar: 1, baz: [1, 2, f3.14], 200: null}}`, v.String())
-
-		e := NewEncoder()
-		require.NoError(t, e.Any(v))
-		require.Equal(t, input, e.String(), "encoded value should equal to input")
-	})
-	t.Run("Inputs", func(t *testing.T) {
-		for _, tt := range []struct {
-			Input string
-		}{
-			{Input: "1"},
-			{Input: "0.0"},
-		} {
-			t.Run(tt.Input, func(t *testing.T) {
-				var v Any
-				input := []byte(tt.Input)
-				r := DecodeBytes(input)
-				require.NoError(t, v.Read(r))
-
-				e := NewEncoder()
-				require.NoError(t, v.Write(e))
-				require.Equal(t, tt.Input, e.String(), "encoded value should equal to input")
-
-				var otherValue Any
-				r.ResetBytes(e.Bytes())
-
-				if err := otherValue.Read(r); err != nil {
-					t.Error(err)
-					t.Log(hexEnc.Dump(input))
-					t.Log(hexEnc.Dump(e.Bytes()))
-				}
-			})
-		}
-	})
-}
-
-func BenchmarkAny(b *testing.B) {
-	data := []byte(`[true, null, false, 100, "false"]`)
-	r := NewDecoder()
-
-	b.ReportAllocs()
-	b.SetBytes(int64(len(data)))
-
-	var v Any
-	for i := 0; i < b.N; i++ {
-		v.Reset()
-		r.ResetBytes(data)
-		if err := v.Read(r); err != nil {
-			b.Fatal(err)
-		}
-	}
-}
-
-func BenchmarkAnyStd(b *testing.B) {
-	data := []byte(`[true, null, false, 100, "false"]`)
-	b.ReportAllocs()
-	b.SetBytes(int64(len(data)))
-
-	var v []interface{}
-	for i := 0; i < b.N; i++ {
-		v = v[:0]
-		if err := json.Unmarshal(data, &v); err != nil {
-			b.Fatal(err)
-		}
-	}
 }
