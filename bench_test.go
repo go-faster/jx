@@ -1,3 +1,6 @@
+//go:build !gofuzz && go1.17
+// +build !gofuzz,go1.17
+
 package jx
 
 import (
