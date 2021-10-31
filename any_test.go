@@ -75,6 +75,61 @@ func TestAny_Read(t *testing.T) {
 	})
 }
 
+func TestAny_Equal(t *testing.T) {
+	t.Run("ZeroValues", func(t *testing.T) {
+		for _, typ := range []AnyType{
+			AnyInvalid,
+			AnyStr,
+			AnyNumber,
+			AnyNull,
+			AnyObj,
+			AnyArr,
+			AnyBool,
+		} {
+			a := Any{Type: typ}
+			t.Run("Equal", func(t *testing.T) {
+				b := Any{Type: typ}
+				require.True(t, a.Equal(b))
+				t.Run("Child", func(t *testing.T) {
+					aArr := Any{
+						Type:  AnyArr,
+						Child: []Any{a},
+					}
+					bArr := Any{
+						Type: AnyArr,
+					}
+					require.False(t, aArr.Equal(bArr))
+					bArr.Child = []Any{b}
+					require.True(t, aArr.Equal(bArr))
+				})
+			})
+			t.Run("NotEqual", func(t *testing.T) {
+				b := Any{Type: typ + 1}
+				require.False(t, a.Equal(b))
+				t.Run("Child", func(t *testing.T) {
+					aArr := Any{
+						Type:  AnyArr,
+						Child: []Any{a},
+					}
+					bArr := Any{
+						Type:  AnyArr,
+						Child: []Any{b},
+					}
+					require.False(t, aArr.Equal(bArr))
+				})
+			})
+			t.Run("Keys", func(t *testing.T) {
+				a.KeyValid = true
+				b := Any{Type: typ, KeyValid: true}
+				require.True(t, a.Equal(b))
+				b.Key = "1"
+				require.False(t, a.Equal(b))
+			})
+
+		}
+	})
+}
+
 func BenchmarkAny(b *testing.B) {
 	data := []byte(`[true, null, false, 100, "false"]`)
 	r := GetDecoder()

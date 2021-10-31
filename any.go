@@ -50,12 +50,10 @@ func (v Any) Equal(b Any) bool {
 		return false
 	}
 	switch v.Type {
-	case AnyNull:
+	case AnyNull, AnyInvalid:
 		return true
 	case AnyBool:
 		return v.Bool == b.Bool
-	case AnyInvalid:
-		return false
 	case AnyStr:
 		return v.Str == b.Str
 	case AnyNumber:
