@@ -6,7 +6,6 @@ package jx
 import (
 	"bytes"
 	"fmt"
-	"reflect"
 )
 
 func Fuzz(data []byte) int {
@@ -31,9 +30,7 @@ func FuzzAny(data []byte) int {
 	}
 
 	w.Reset()
-	if err := w.Any(v); err != nil {
-		panic(errMaxDepth)
-	}
+	w.Any(v)
 
 	// Parsing from buf to new value.
 	d.ResetBytes(w.Bytes())
@@ -43,16 +40,14 @@ func FuzzAny(data []byte) int {
 			err, w.Bytes(), v, data)
 		panic(err)
 	}
-	if !reflect.DeepEqual(parsed, v) {
-		fmt.Printf("%v:\nBuf:   %s\nValue: %s != %s \nData:  %s",
-			nil, w.Bytes(), parsed, v, data)
+	if !parsed.Equal(v) {
+		fmt.Printf("\nBuf:   %s\nValue: %s != %s \nData:  %s",
+			w.Bytes(), parsed, v, data)
 		panic("not equal")
 	}
 	b := w.Bytes()
 	w.SetBytes(nil)
-	if err := parsed.Write(w); err != nil {
-		panic(err)
-	}
+	parsed.Write(w)
 	if !bytes.Equal(w.Bytes(), b) {
 		panic(fmt.Sprintf("%s != %s", w, b))
 	}

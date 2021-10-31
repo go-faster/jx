@@ -6,7 +6,6 @@ package jx
 import (
 	"bytes"
 	"errors"
-	"reflect"
 	"testing"
 )
 
@@ -56,7 +55,7 @@ func FuzzDecEnc(f *testing.F) {
 			t.Fatalf("%v:\nBuf:   %s\nValue: %s\nData:  %s",
 				err, w.Bytes(), v, data)
 		}
-		if !reflect.DeepEqual(parsed, v) {
+		if !parsed.Equal(v) {
 			t.Fatalf("%v:\nBuf:   %s\nValue: %s != %s \nData:  %s",
 				nil, w.Bytes(), parsed, v, data)
 		}

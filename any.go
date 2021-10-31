@@ -2,6 +2,7 @@ package jx
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 
@@ -41,6 +42,65 @@ type Any struct {
 	KeyValid bool
 
 	Child []Any // AnyArr or AnyObj
+}
+
+func floatInt(f float64, n int64) bool {
+	if n == 0 && f == 0 {
+		return true
+	}
+	i, frac := math.Modf(f)
+	if frac != 0 {
+		return false
+	}
+	return int64(i) == n
+}
+
+func (v Any) equalNumber(b Any) bool {
+	if b.Type != AnyFloat && b.Type != AnyInt {
+		return false
+	}
+	eq := v.Type == b.Type
+	if eq && v.Type == AnyInt {
+		return v.Int == b.Int
+	}
+	if eq && v.Type == AnyFloat {
+		return v.Float == b.Float
+	}
+	if v.Type == AnyFloat {
+		return floatInt(v.Float, b.Int)
+	}
+	return floatInt(b.Float, v.Int)
+}
+
+func (v Any) Equal(b Any) bool {
+	if v.KeyValid && v.Key != b.Key {
+		return false
+	}
+	if v.Type == AnyFloat || v.Type == AnyInt {
+		return v.equalNumber(b)
+	}
+	if v.Type != b.Type {
+		return false
+	}
+	switch v.Type {
+	case AnyNull:
+		return true
+	case AnyBool:
+		return v.Bool == b.Bool
+	case AnyInvalid:
+		return false
+	case AnyStr:
+		return v.Str == b.Str
+	}
+	if len(v.Child) != len(b.Child) {
+		return false
+	}
+	for i := range v.Child {
+		if !v.Child[i].Equal(b.Child[i]) {
+			return false
+		}
+	}
+	return true
 }
 
 // Any reads Any value.
@@ -185,7 +245,6 @@ func (v Any) String() string {
 	case AnyStr:
 		b.WriteString(`'` + v.Str + `'`)
 	case AnyFloat:
-		b.WriteRune('f')
 		b.WriteString(fmt.Sprintf("%v", v.Float))
 	case AnyInt:
 		b.WriteString(strconv.FormatInt(v.Int, 10))

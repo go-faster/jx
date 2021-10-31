@@ -38,7 +38,7 @@ func TestAny_Read(t *testing.T) {
 		const input = `{"foo":{"bar":1,"baz":[1,2,3.14],"200":null,"f":"s","t":true,"":""}}`
 		r := DecodeStr(input)
 		assert.NoError(t, v.Read(r))
-		assert.Equal(t, "{foo: {bar: 1, baz: [1, 2, f3.14], 200: null, f: 's', t: true, <blank>: ''}}", v.String())
+		assert.Equal(t, "{foo: {bar: 1, baz: [1, 2, 3.14], 200: null, f: 's', t: true, <blank>: ''}}", v.String())
 
 		e := GetEncoder()
 		e.Any(v)
@@ -49,7 +49,7 @@ func TestAny_Read(t *testing.T) {
 			Input string
 		}{
 			{Input: "1"},
-			{Input: "0"},
+			{Input: "0.0"},
 		} {
 			t.Run(tt.Input, func(t *testing.T) {
 				input := []byte(tt.Input)
@@ -59,7 +59,6 @@ func TestAny_Read(t *testing.T) {
 
 				e := GetEncoder()
 				v.Write(e)
-				require.Equal(t, tt.Input, e.String(), "encoded value should equal to input")
 
 				var otherValue Any
 				r.ResetBytes(e.Bytes())
@@ -69,6 +68,8 @@ func TestAny_Read(t *testing.T) {
 					t.Log(hexEnc.Dump(input))
 					t.Log(hexEnc.Dump(e.Bytes()))
 				}
+
+				require.True(t, otherValue.Equal(v))
 			})
 		}
 	})
