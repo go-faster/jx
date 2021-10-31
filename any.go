@@ -142,8 +142,6 @@ func (v *Any) Read(d *Decoder) error {
 			return xerrors.Errorf("array: %w", err)
 		}
 		return nil
-	default:
-		return xerrors.Errorf("unexpected type %s", d.Next())
 	}
 	return nil
 }
@@ -220,7 +218,7 @@ func (v Any) String() string {
 		}
 		b.WriteString("}")
 	default:
-		b.WriteString("<unknown>")
+		b.WriteString("<invalid>")
 	}
 	return b.String()
 }

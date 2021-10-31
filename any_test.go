@@ -73,6 +73,41 @@ func TestAny_Read(t *testing.T) {
 			})
 		}
 	})
+	t.Run("Negative", func(t *testing.T) {
+		for _, s := range []string{
+			`foo`,
+			`bar`,
+			`tier`,
+			`{]`,
+			`[}`,
+			`[foo]`,
+			`[tier]`,
+			`{foo:"`,
+			`{"foo": tier`,
+			`"baz`,
+			`nil`,
+		} {
+			t.Run(s, func(t *testing.T) {
+				d := DecodeStr(s)
+				v, err := d.Any()
+				require.Error(t, err)
+				require.Equal(t, AnyInvalid, v.Type)
+				require.Equal(t, "<invalid>", v.String())
+			})
+		}
+		t.Run("Reader", func(t *testing.T) {
+			d := Decode(errReader{}, -1)
+			// Manually set internal buffer.
+			d.tail = 1
+			d.buf = []byte{'1'}
+
+			// Trigger reading of number start from buffer
+			// and call to reader.
+			v, err := d.Any()
+			require.Error(t, err)
+			require.Equal(t, AnyInvalid, v.Type)
+		})
+	})
 }
 
 func TestAny_Equal(t *testing.T) {
