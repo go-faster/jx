@@ -10,3 +10,5 @@ _bin/*
 
 *.out
 *.dump
+
+corpus
