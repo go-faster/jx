@@ -42,3 +42,7 @@ func TestDecoder_Reset(t *testing.T) {
 		require.True(t, v)
 	})
 }
+
+func TestDecoderNegativeDepth(t *testing.T) {
+	require.ErrorIs(t, GetDecoder().decDepth(), errNegativeDepth)
+}
