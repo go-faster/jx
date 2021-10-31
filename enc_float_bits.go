@@ -9,9 +9,19 @@ import (
 	"strconv"
 )
 
-// From go std sources, strconv/ftoa.go
-
 func (e *Encoder) float(v float64, bits int) {
+	if math.IsNaN(v) || math.IsInf(v, 0) {
+		// Like in ECMA:
+		// NaN and Infinity regardless of sign are represented
+		// as the String null.
+		//
+		// JSON.stringify({"foo":NaN}) -> {"foo":null}
+		e.Null()
+		return
+	}
+
+	// From go std sources, strconv/ftoa.go:
+
 	// Convert as if by ES6 number to string conversion.
 	// This matches most other JSON generators.
 	// See golang.org/issue/6384 and golang.org/issue/14135.

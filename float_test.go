@@ -149,3 +149,21 @@ func TestDecoder_FloatEOF(t *testing.T) {
 	_, err := d.Float32()
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
+
+func TestEncoder_FloatNanInf(t *testing.T) {
+	for _, f := range []float64{
+		math.NaN(),
+		math.Inf(-1),
+		math.Inf(1),
+	} {
+		var e Encoder
+		e.Float64(f)
+		e.More()
+		e.Float32(float32(f))
+
+		d := DecodeBytes(e.Bytes())
+		require.NoError(t, d.Null())
+		requireElem(t, d)
+		require.NoError(t, d.Null())
+	}
+}
