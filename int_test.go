@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -369,4 +370,37 @@ func TestDecoder_Uint32(t *testing.T) {
 			requireArrEnd(t, d)
 		})
 	}
+}
+
+func TestIntEOF(t *testing.T) {
+	t.Run("Start", func(t *testing.T) {
+		d := NewDecoder()
+		var err error
+		_, err = d.Int()
+		assert.Error(t, err, io.ErrUnexpectedEOF)
+		_, err = d.Int64()
+		assert.Error(t, err, io.ErrUnexpectedEOF)
+		_, err = d.Int32()
+		assert.Error(t, err, io.ErrUnexpectedEOF)
+		_, err = d.Uint()
+		assert.Error(t, err, io.ErrUnexpectedEOF)
+		_, err = d.Uint64()
+		assert.Error(t, err, io.ErrUnexpectedEOF)
+		_, err = d.Uint32()
+		assert.Error(t, err, io.ErrUnexpectedEOF)
+	})
+	t.Run("Minus", func(t *testing.T) {
+		d := DecodeStr(`-`)
+		var err error
+		_, err = d.Int()
+		assert.Error(t, err, io.ErrUnexpectedEOF)
+
+		d = DecodeStr(`-`)
+		_, err = d.Int64()
+		assert.Error(t, err, io.ErrUnexpectedEOF)
+
+		d = DecodeStr(`-`)
+		_, err = d.Int32()
+		assert.Error(t, err, io.ErrUnexpectedEOF)
+	})
 }
