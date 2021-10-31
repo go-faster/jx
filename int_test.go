@@ -205,14 +205,17 @@ func requireEOF(t testing.TB, d *Decoder) {
 }
 
 func TestDecoder_Int64(t *testing.T) {
-	// Generate some diverse numbers.
-	for i := int64(0); i < 40; i++ {
+	var values []int64
+	values = append(values, 0, math.MaxInt64, math.MinInt64)
+	for i := int64(0); i < 28; i++ {
 		v := int64(3)
 		for k := int64(0); k < i; k++ {
-			// No special meaning, just trying to make digits more diverse.
 			v += i + 1
 			v += intPow(10, k) * (k%7 + 1)
+			values = append(values, v)
 		}
+	}
+	for _, v := range values {
 		t.Run(fmt.Sprintf("%d", v), func(t *testing.T) {
 			e := GetEncoder()
 			e.ArrStart()
@@ -247,14 +250,17 @@ func int32Pow(n, m int32) int32 {
 }
 
 func TestDecoder_Int32(t *testing.T) {
-	// Generate some diverse numbers.
-	for i := int32(0); i < 10; i++ {
+	var values []int32
+	values = append(values, 0, math.MaxInt32, math.MinInt32)
+	for i := int32(0); i < 28; i++ {
 		v := int32(3)
 		for k := int32(0); k < i; k++ {
-			// No special meaning, just trying to make digits more diverse.
 			v += i + 1
 			v += int32Pow(10, k) * (k%7 + 1)
+			values = append(values, v)
 		}
+	}
+	for _, v := range values {
 		t.Run(fmt.Sprintf("%d", v), func(t *testing.T) {
 			e := GetEncoder()
 			e.ArrStart()
@@ -295,7 +301,6 @@ func TestDecoder_Uint64(t *testing.T) {
 	for i := uint64(0); i < 28; i++ {
 		v := uint64(3)
 		for k := uint64(0); k < i; k++ {
-			// No special meaning, just trying to make digits more diverse.
 			v += i + 1
 			v += uintPow(10, k) * (k%7 + 1)
 			values = append(values, v)
