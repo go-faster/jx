@@ -24,9 +24,8 @@ to be drop-in replacement for standard `encoding/json`. Removing such constrains
 simplified implementation and reduced scope, allowing to focus on json stream processing.
 
 ## Capture
-
 The `Decoder.Capture` method allows to unread everything is read in callback.
-This is useful for multi-pass parsing:
+This is useful for multi-pass parsing.
 ```go
 func TestDecoder_Capture(t *testing.T) {
 	d := DecodeStr(`["foo", "bar", "baz"]`)
@@ -45,9 +44,9 @@ func TestDecoder_Capture(t *testing.T) {
 }
 ```
 
-## ObjectBytes
+## ObjBytes
 
-The `Decoder.ObjectBytes` method tries not to allocate memory for keys, reusing existing buffer:
+The `Decoder.ObjBytes` method tries not to allocate memory for keys, reusing existing buffer.
 ```go
 d := DecodeStr(`{"id":1,"randomNumber":10}`)
 d.ObjBytes(func(d *Decoder, key []byte) error {
