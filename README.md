@@ -3,6 +3,10 @@
 Fast json streaming in go. Buffered encoding and decoding of json values.
 Lightweight fork of [jsoniter](https://github.com/json-iterator/go).
 
+```console
+go get github.com/ogen-go/jx
+```
+
 ## Features
 * Reduced scope
   * No reflection
