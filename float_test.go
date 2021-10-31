@@ -114,21 +114,16 @@ func Test_write_float32(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
 			w := NewEncoder()
-			should.NoError(w.Float32Lossy(val))
+			should.NoError(w.Float32(val))
 			output, err := json.Marshal(val)
 			should.Nil(err)
 			should.Equal(output, w.Bytes())
 		})
 	}
 	should := require.New(t)
-	w := NewEncoder()
-	w.Raw("abcdefg")
-	should.NoError(w.Float32Lossy(1.123456))
-	should.Equal("abcdefg1.123456", string(w.Bytes()))
-
-	w = NewEncoder()
-	should.NoError(w.WriteFloat32(float32(0.0000001)))
-	should.Equal("1e-07", string(w.Bytes()))
+	e := NewEncoder()
+	should.NoError(e.Float32(float32(0.0000001)))
+	should.Equal("1e-07", string(e.Bytes()))
 }
 
 func Test_write_float64(t *testing.T) {
@@ -148,11 +143,6 @@ func Test_write_float64(t *testing.T) {
 	}
 	should := require.New(t)
 	e := NewEncoder()
-	e.Raw("abcdefg")
-	should.NoError(e.Float64Lossy(1.123456))
-	should.Equal("abcdefg1.123456", e.String())
-
-	e.Reset()
 	should.NoError(e.Float64(0.0000001))
 	should.Equal("1e-07", e.String())
 }
