@@ -103,8 +103,13 @@ type Decoder struct {
 	depth int
 }
 
+const defaultBuf = 512
+
 // Decode creates a Decoder that reads json from io.Reader.
 func Decode(reader io.Reader, bufSize int) *Decoder {
+	if bufSize <= 0 {
+		bufSize = defaultBuf
+	}
 	return &Decoder{
 		reader: reader,
 		buf:    make([]byte, bufSize),
@@ -134,7 +139,6 @@ func (d *Decoder) Reset(reader io.Reader) *Decoder {
 	// Reads from reader need buffer.
 	if d.buf == nil || cap(d.buf) == 0 {
 		// Allocate new buffer if none.
-		const defaultBuf = 512
 		d.buf = make([]byte, defaultBuf)
 	}
 	if len(d.buf) == 0 {
