@@ -150,6 +150,27 @@ func TestDecoder_FloatEOF(t *testing.T) {
 	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
 
+func TestDecoder_FloatLeadingDot(t *testing.T) {
+	v := `.0`
+	_, err := DecodeStr(v).Float32()
+	require.Error(t, err)
+	_, err = DecodeStr(v).Float64()
+	require.Error(t, err)
+}
+
+func TestDecoder_FloatReaderErr(t *testing.T) {
+	getDecoder := func() *Decoder {
+		d := Decode(errReader{}, -1)
+		d.tail = 1
+		d.buf = []byte{'-'}
+		return d
+	}
+	_, err := getDecoder().Float32()
+	require.Error(t, err)
+	_, err = getDecoder().Float64()
+	require.Error(t, err)
+}
+
 func TestEncoder_FloatNanInf(t *testing.T) {
 	for _, f := range []float64{
 		math.NaN(),
