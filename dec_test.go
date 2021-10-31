@@ -25,10 +25,20 @@ func TestType_String(t *testing.T) {
 }
 
 func TestDecoder_Reset(t *testing.T) {
-	var d Decoder
-	d.ResetBytes([]byte{})
-	d.Reset(bytes.NewBufferString(`true`))
-	v, err := d.Bool()
-	require.NoError(t, err)
-	require.True(t, v)
+	t.Run("Default", func(t *testing.T) {
+		var d Decoder
+		d.ResetBytes([]byte{})
+		d.Reset(bytes.NewBufferString(`true`))
+		v, err := d.Bool()
+		require.NoError(t, err)
+		require.True(t, v)
+	})
+	t.Run("ZeroLen", func(t *testing.T) {
+		var d Decoder
+		d.ResetBytes(make([]byte, 0, 100))
+		d.Reset(bytes.NewBufferString(`true`))
+		v, err := d.Bool()
+		require.NoError(t, err)
+		require.True(t, v)
+	})
 }
