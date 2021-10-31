@@ -41,7 +41,24 @@ func TestDecoder_ObjectBytes(t *testing.T) {
 		require.ErrorIs(t, d.ObjBytes(nil), errMaxDepth)
 	})
 	t.Run("Invalid", func(t *testing.T) {
-		d := DecodeStr(`invalid`)
-		require.Error(t, d.ObjBytes(nil))
+		for _, s := range []string{
+			`invalid`,
+			`{`,
+			`{"foo"`,
+			`{"foo"bar`,
+			`{"foo": "bar",`,
+			`{"foo": "bar", true`,
+			`{"foo": "bar", "bar":`,
+			`{"foo": "bar", "bar":t`,
+			`{"foo": "bar", "bar":true`,
+			`{"foo": "bar", "bar"false`,
+			`{"foo": "bar", "bar": "bar"""`,
+			`{"foo":`,
+			`{"foo": "bar"`,
+			`{"foo": "bar`,
+		} {
+			d := DecodeStr(s)
+			require.Error(t, d.ObjBytes(nil))
+		}
 	})
 }
