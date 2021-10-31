@@ -168,20 +168,26 @@ func (d *Decoder) Next() Type {
 }
 
 func (d *Decoder) consume(c byte) error {
-	v, err := d.next()
-	if err == io.EOF {
-		return io.ErrUnexpectedEOF
-	}
+	got, err := d.more()
 	if err != nil {
 		return err
 	}
-	if c != v {
-		return badToken(v)
+	if c != got {
+		return badToken(got)
 	}
 	return nil
 }
 
-// next returns non-whitespace token or error.
+// more is next but io.EOF is unexpected.
+func (d *Decoder) more() (byte, error) {
+	c, err := d.next()
+	if err == io.EOF {
+		err = io.ErrUnexpectedEOF
+	}
+	return c, err
+}
+
+// next reads next non-whitespace token or error.
 func (d *Decoder) next() (byte, error) {
 	for {
 		for i := d.head; i < d.tail; i++ {
@@ -201,7 +207,11 @@ func (d *Decoder) next() (byte, error) {
 
 func (d *Decoder) byte() (byte, error) {
 	if d.head == d.tail {
-		if err := d.read(); err != nil {
+		err := d.read()
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
+		}
+		if err != nil {
 			return 0, err
 		}
 	}

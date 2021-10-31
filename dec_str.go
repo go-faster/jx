@@ -2,7 +2,6 @@ package jx
 
 import (
 	"fmt"
-	"io"
 	"unicode/utf16"
 
 	"golang.org/x/xerrors"
@@ -113,9 +112,6 @@ func (d *Decoder) Str() (string, error) {
 func (d *Decoder) strSlow(v value) (value, error) {
 	for {
 		c, err := d.byte()
-		if err == io.EOF {
-			return value{}, io.ErrUnexpectedEOF
-		}
 		if err != nil {
 			return value{}, xerrors.Errorf("next: %w", err)
 		}
@@ -125,9 +121,6 @@ func (d *Decoder) strSlow(v value) (value, error) {
 			return v, nil
 		case '\\':
 			c, err := d.byte()
-			if err == io.EOF {
-				return value{}, io.ErrUnexpectedEOF
-			}
 			if err != nil {
 				return value{}, xerrors.Errorf("next: %w", err)
 			}
@@ -150,9 +143,6 @@ func (d *Decoder) escapedChar(v value, c byte) (value, error) {
 		}
 		if utf16.IsSurrogate(r1) {
 			c, err := d.byte()
-			if err == io.EOF {
-				return value{}, io.ErrUnexpectedEOF
-			}
 			if err != nil {
 				return value{}, err
 			}
@@ -161,9 +151,6 @@ func (d *Decoder) escapedChar(v value, c byte) (value, error) {
 				return v.rune(r1), nil
 			}
 			c, err = d.byte()
-			if err == io.EOF {
-				return value{}, io.ErrUnexpectedEOF
-			}
 			if err != nil {
 				return value{}, err
 			}
@@ -209,9 +196,6 @@ func (d *Decoder) readU4() (rune, error) {
 	var v rune
 	for i := 0; i < 4; i++ {
 		c, err := d.byte()
-		if err == io.EOF {
-			return 0, io.ErrUnexpectedEOF
-		}
 		if err != nil {
 			return 0, err
 		}

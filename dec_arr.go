@@ -1,8 +1,6 @@
 package jx
 
 import (
-	"io"
-
 	"golang.org/x/xerrors"
 )
 
@@ -15,10 +13,7 @@ func (d *Decoder) Elem() (ok bool, err error) {
 	}
 	switch c {
 	case '[':
-		c, err := d.next()
-		if err == io.EOF {
-			return false, io.ErrUnexpectedEOF
-		}
+		c, err := d.more()
 		if err != nil {
 			return false, xerrors.Errorf("next: %w", err)
 		}
@@ -49,10 +44,7 @@ func (d *Decoder) Arr(f func(d *Decoder) error) error {
 	if err := d.incDepth(); err != nil {
 		return xerrors.Errorf("inc: %w", err)
 	}
-	c, err := d.next()
-	if err == io.EOF {
-		return io.ErrUnexpectedEOF
-	}
+	c, err := d.more()
 	if err != nil {
 		return err
 	}
@@ -64,10 +56,7 @@ func (d *Decoder) Arr(f func(d *Decoder) error) error {
 		return xerrors.Errorf("callback: %w", err)
 	}
 
-	c, err = d.next()
-	if err == io.EOF {
-		return io.ErrUnexpectedEOF
-	}
+	c, err = d.more()
 	if err != nil {
 		return xerrors.Errorf("next: %w", err)
 	}

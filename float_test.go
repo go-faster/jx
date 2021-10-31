@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math"
 	"strconv"
 	"strings"
@@ -154,4 +155,11 @@ func Test_write_float64(t *testing.T) {
 	e.Reset()
 	should.NoError(e.Float64(0.0000001))
 	should.Equal("1e-07", e.String())
+}
+
+func TestDecoder_FloatEOF(t *testing.T) {
+	d := GetDecoder()
+
+	_, err := d.Float32()
+	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }

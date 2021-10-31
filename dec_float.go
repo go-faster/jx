@@ -66,9 +66,9 @@ func (d *Decoder) BigInt() (*big.Int, error) {
 
 // Float32 reads float32 value.
 func (d *Decoder) Float32() (float32, error) {
-	c, err := d.next()
+	c, err := d.more()
 	if err != nil {
-		return 0, xerrors.Errorf("next: %w", err)
+		return 0, xerrors.Errorf("byte: %w", err)
 	}
 	if c != '-' {
 		d.unread()
@@ -197,9 +197,9 @@ func (d *Decoder) f32Slow() (float32, error) {
 
 // Float64 read float64
 func (d *Decoder) Float64() (float64, error) {
-	c, err := d.next()
+	c, err := d.more()
 	if err != nil {
-		return 0, err
+		return 0, xerrors.Errorf("byte: %w", err)
 	}
 	if c == '-' {
 		v, err := d.positiveFloat64()

@@ -52,9 +52,9 @@ func (d *Decoder) Int() (int, error) {
 
 // Int32 reads int32 value.
 func (d *Decoder) Int32() (int32, error) {
-	c, err := d.next()
+	c, err := d.byte()
 	if err != nil {
-		return 0, err
+		return 0, xerrors.Errorf("byte: %w", err)
 	}
 	if c == '-' {
 		val, err := d.readUint32()
@@ -83,9 +83,9 @@ func (d *Decoder) Uint32() (uint32, error) {
 }
 
 func (d *Decoder) readUint32() (uint32, error) {
-	c, err := d.next()
+	c, err := d.byte()
 	if err != nil {
-		return 0, err
+		return 0, xerrors.Errorf("byte: %w", err)
 	}
 	ind := intDigits[c]
 	if ind == 0 {
@@ -175,9 +175,9 @@ func (d *Decoder) readUint32() (uint32, error) {
 
 // Int64 read int64
 func (d *Decoder) Int64() (int64, error) {
-	c, err := d.next()
+	c, err := d.byte()
 	if err != nil {
-		return 0, err
+		return 0, xerrors.Errorf("byte: %w", err)
 	}
 	if c == '-' {
 		c, err := d.next()
@@ -205,9 +205,9 @@ func (d *Decoder) Int64() (int64, error) {
 
 // Uint64 read uint64
 func (d *Decoder) Uint64() (uint64, error) {
-	c, err := d.next()
+	c, err := d.byte()
 	if err != nil {
-		return 0, err
+		return 0, xerrors.Errorf("byte: %w", err)
 	}
 	return d.readUint64(c)
 }

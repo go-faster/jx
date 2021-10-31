@@ -1,8 +1,6 @@
 package jx
 
 import (
-	"io"
-
 	"golang.org/x/xerrors"
 )
 
@@ -24,7 +22,7 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 	if err := d.incDepth(); err != nil {
 		return xerrors.Errorf("inc: %w", err)
 	}
-	c, err := d.next()
+	c, err := d.more()
 	if err != nil {
 		return xerrors.Errorf("next: %w", err)
 	}
@@ -44,10 +42,7 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 		return xerrors.Errorf("callback: %w", err)
 	}
 
-	c, err = d.next()
-	if err == io.EOF {
-		return io.ErrUnexpectedEOF
-	}
+	c, err = d.more()
 	if err != nil {
 		return xerrors.Errorf("next: %w", err)
 	}
@@ -59,10 +54,14 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 		if err := d.consume(':'); err != nil {
 			return xerrors.Errorf("field: %w", err)
 		}
+		if c, err = d.more(); err != nil {
+			return xerrors.Errorf("more: %w", err)
+		}
+		d.unread()
 		if err := f(d, k.buf); err != nil {
 			return xerrors.Errorf("callback: %w", err)
 		}
-		if c, err = d.next(); err != nil {
+		if c, err = d.more(); err != nil {
 			return xerrors.Errorf("next: %w", err)
 		}
 	}
