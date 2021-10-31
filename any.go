@@ -72,6 +72,7 @@ func (v Any) equalNumber(b Any) bool {
 	return floatInt(b.Float, v.Int)
 }
 
+// Equal reports whether v is equal to b.
 func (v Any) Equal(b Any) bool {
 	if v.KeyValid && v.Key != b.Key {
 		return false

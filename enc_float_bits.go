@@ -26,7 +26,7 @@ func (e *Encoder) float(v float64, bits int) {
 			fmt = 'e'
 		}
 	}
-	b = strconv.AppendFloat(b, v, fmt, -1, int(bits))
+	b = strconv.AppendFloat(b, v, fmt, -1, bits)
 	if fmt == 'e' {
 		// clean up e-09 to e-9
 		n := len(b)
