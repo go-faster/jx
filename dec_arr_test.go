@@ -24,6 +24,25 @@ func TestDecoder_Arr(t *testing.T) {
 		d := DecodeStr("[")
 		require.ErrorIs(t, d.Arr(nil), io.ErrUnexpectedEOF)
 	})
+	t.Run("Invalid", func(t *testing.T) {
+		for _, s := range []string{
+			"[true,f",
+			"[true,false",
+			"[true,false,",
+			"[true,false}",
+		} {
+			d := DecodeStr(s)
+			require.Error(t, d.Arr(nil))
+		}
+	})
+	t.Run("Depth", func(t *testing.T) {
+		var data []byte
+		for i := 0; i <= maxDepth; i++ {
+			data = append(data, '[')
+		}
+		d := DecodeBytes(data)
+		require.ErrorIs(t, d.Arr(nil), errMaxDepth)
+	})
 }
 
 func TestDecoder_Elem(t *testing.T) {
