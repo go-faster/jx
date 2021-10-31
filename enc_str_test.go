@@ -8,25 +8,37 @@ import (
 
 func TestEncoder_StringEscape(t *testing.T) {
 	s := GetEncoder()
-	const data = `<html>Hello\\\n\r\\` + "\n\rWorld\u2028</html>"
+	const data = `<html>Hello\\\n\r\\` + "\n\rW\torld\u2028</html>"
 	s.StrEscape(data)
 	requireCompat(t, s.Bytes(), data)
-	const expected = `"\u003chtml\u003eHello\\\\\\n\\r\\\\\n\rWorld\u2028\u003c/html\u003e"`
+	const expected = `"\u003chtml\u003eHello\\\\\\n\\r\\\\\n\rW\torld\u2028\u003c/html\u003e"`
 	require.Equal(t, expected, string(s.Bytes()))
 }
 
 func TestEncoder_String(t *testing.T) {
-	s := GetEncoder()
-	const data = `\nH\tel\tl\ro\\World\r` + "\n\rHello\r\tHi"
-	s.Str(data)
-	const expected = `"\\nH\\tel\\tl\\ro\\\\World\\r\n\rHello\r\tHi"`
-	require.Equal(t, expected, string(s.Bytes()))
-	requireCompat(t, s.Bytes(), data)
-	t.Run("Decode", func(t *testing.T) {
-		i := GetDecoder()
-		i.ResetBytes(s.Bytes())
-		s, err := i.Str()
-		require.NoError(t, err)
-		require.Equal(t, data, s)
+	t.Run("Escape", func(t *testing.T) {
+		e := GetEncoder()
+		const data = `\nH\tel\tl\ro\\World\r` + "\n\rHello\r\tHi"
+		e.Str(data)
+		const expected = `"\\nH\\tel\\tl\\ro\\\\World\\r\n\rHello\r\tHi"`
+		require.Equal(t, expected, string(e.Bytes()))
+		requireCompat(t, e.Bytes(), data)
+		t.Run("Decode", func(t *testing.T) {
+			i := GetDecoder()
+			i.ResetBytes(e.Bytes())
+			s, err := i.Str()
+			require.NoError(t, err)
+			require.Equal(t, data, s)
+		})
+	})
+	t.Run("StrEscapeFast", func(t *testing.T) {
+		e := GetEncoder()
+		e.StrEscape("Foo")
+		require.Equal(t, `"Foo"`, e.String())
+	})
+	t.Run("StrEscapeBad", func(t *testing.T) {
+		e := GetEncoder()
+		e.StrEscape("\uFFFD")
+		t.Logf("%v", e.Bytes())
 	})
 }
