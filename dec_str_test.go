@@ -1,6 +1,7 @@
 package jx
 
 import (
+	"io"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -16,4 +17,7 @@ func TestDecoder_StrAppend(t *testing.T) {
 	data, err = d.StrAppend(data)
 	require.NoError(t, err)
 	require.Equal(t, "Hello", string(data))
+
+	_, err = d.StrAppend(data)
+	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }
