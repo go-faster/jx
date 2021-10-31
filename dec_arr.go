@@ -16,6 +16,9 @@ func (d *Decoder) Elem() (ok bool, err error) {
 	switch c {
 	case '[':
 		c, err := d.next()
+		if err == io.EOF {
+			return false, io.ErrUnexpectedEOF
+		}
 		if err != nil {
 			return false, xerrors.Errorf("next: %w", err)
 		}
