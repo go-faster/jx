@@ -1,9 +1,8 @@
 package jx
 
 import (
+	"errors"
 	"io"
-
-	"golang.org/x/xerrors"
 )
 
 // Type the type for JSON element
@@ -232,18 +231,22 @@ func (d *Decoder) unread() { d.head-- }
 // limit maximum depth of nesting, as allowed by https://tools.ietf.org/html/rfc7159#section-9
 const maxDepth = 10000
 
+var errMaxDepth = errors.New("depth: maximum")
+
 func (d *Decoder) incDepth() error {
 	d.depth++
 	if d.depth > maxDepth {
-		return xerrors.New("max depth")
+		return errMaxDepth
 	}
 	return nil
 }
 
+var errNegativeDepth = errors.New("depth: negative")
+
 func (d *Decoder) decDepth() error {
 	d.depth--
 	if d.depth < 0 {
-		return xerrors.New("negative depth")
+		return errNegativeDepth
 	}
 	return nil
 }
