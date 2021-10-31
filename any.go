@@ -1,8 +1,7 @@
 package jx
 
 import (
-	"fmt"
-	"math"
+	"encoding/json"
 	"strconv"
 	"strings"
 
@@ -16,8 +15,7 @@ type AnyType byte
 const (
 	AnyInvalid AnyType = iota
 	AnyStr
-	AnyInt
-	AnyFloat
+	AnyNumber
 	AnyNull
 	AnyObj
 	AnyArr
@@ -28,10 +26,9 @@ const (
 type Any struct {
 	Type AnyType // zero value if AnyInvalid, can be AnyNull
 
-	Str   string  // AnyStr
-	Int   int64   // AnyInt
-	Float float64 // AnyFloat
-	Bool  bool    // AnyBool
+	Str    string      // AnyStr
+	Bool   bool        // AnyBool
+	Number json.Number // AnyNumber
 
 	// Key in object. Valid only if KeyValid.
 	Key string
@@ -44,41 +41,10 @@ type Any struct {
 	Child []Any // AnyArr or AnyObj
 }
 
-func floatInt(f float64, n int64) bool {
-	if n == 0 && f == 0 {
-		return true
-	}
-	i, frac := math.Modf(f)
-	if frac != 0 {
-		return false
-	}
-	return int64(i) == n
-}
-
-func (v Any) equalNumber(b Any) bool {
-	if b.Type != AnyFloat && b.Type != AnyInt {
-		return false
-	}
-	eq := v.Type == b.Type
-	if eq && v.Type == AnyInt {
-		return v.Int == b.Int
-	}
-	if eq && v.Type == AnyFloat {
-		return v.Float == b.Float
-	}
-	if v.Type == AnyFloat {
-		return floatInt(v.Float, b.Int)
-	}
-	return floatInt(b.Float, v.Int)
-}
-
 // Equal reports whether v is equal to b.
 func (v Any) Equal(b Any) bool {
 	if v.KeyValid && v.Key != b.Key {
 		return false
-	}
-	if v.Type == AnyFloat || v.Type == AnyInt {
-		return v.equalNumber(b)
 	}
 	if v.Type != b.Type {
 		return false
@@ -92,6 +58,8 @@ func (v Any) Equal(b Any) bool {
 		return false
 	case AnyStr:
 		return v.Str == b.Str
+	case AnyNumber:
+		return v.Number == b.Number
 	}
 	if len(v.Child) != len(b.Child) {
 		return false
@@ -127,22 +95,8 @@ func (v *Any) Read(d *Decoder) error {
 		if err != nil {
 			return xerrors.Errorf("number: %w", err)
 		}
-		idx := strings.Index(n.String(), ".")
-		if (idx > 0 && idx != len(n.String())-1) || strings.Contains(n.String(), "e") {
-			f, err := n.Float64()
-			if err != nil {
-				return xerrors.Errorf("float: %w", err)
-			}
-			v.Float = f
-			v.Type = AnyFloat
-		} else {
-			f, err := n.Int64()
-			if err != nil {
-				return xerrors.Errorf("int: %w", err)
-			}
-			v.Int = f
-			v.Type = AnyInt
-		}
+		v.Number = n
+		v.Type = AnyNumber
 	case String:
 		s, err := d.Str()
 		if err != nil {
@@ -204,10 +158,8 @@ func (v Any) Write(w *Encoder) {
 	switch v.Type {
 	case AnyStr:
 		w.Str(v.Str)
-	case AnyFloat:
-		w.Float64(v.Float)
-	case AnyInt:
-		w.Int64(v.Int)
+	case AnyNumber:
+		w.Raw(string(v.Number))
 	case AnyBool:
 		w.Bool(v.Bool)
 	case AnyNull:
@@ -245,10 +197,8 @@ func (v Any) String() string {
 	switch v.Type {
 	case AnyStr:
 		b.WriteString(`'` + v.Str + `'`)
-	case AnyFloat:
-		b.WriteString(fmt.Sprintf("%v", v.Float))
-	case AnyInt:
-		b.WriteString(strconv.FormatInt(v.Int, 10))
+	case AnyNumber:
+		b.WriteString(string(v.Number))
 	case AnyBool:
 		b.WriteString(strconv.FormatBool(v.Bool))
 	case AnyNull:
