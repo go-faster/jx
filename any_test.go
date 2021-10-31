@@ -35,10 +35,10 @@ func (v Any) Obj(f func(k string, v Any)) {
 func TestAny_Read(t *testing.T) {
 	t.Run("Obj", func(t *testing.T) {
 		var v Any
-		const input = `{"foo":{"bar":1,"baz":[1,2,3.14],"200":null,"f":"s","t":true}}`
+		const input = `{"foo":{"bar":1,"baz":[1,2,3.14],"200":null,"f":"s","t":true,"":""}}`
 		r := DecodeStr(input)
 		assert.NoError(t, v.Read(r))
-		assert.Equal(t, "{foo: {bar: 1, baz: [1, 2, f3.14], 200: null, f: 's', t: true}}", v.String())
+		assert.Equal(t, "{foo: {bar: 1, baz: [1, 2, f3.14], 200: null, f: 's', t: true, <blank>: ''}}", v.String())
 
 		e := NewEncoder()
 		require.NoError(t, e.Any(v))
