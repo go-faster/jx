@@ -1,5 +1,5 @@
 //go:build go1.18
-// +build !gofuzz,go1.17
+// +build go1.18
 
 package jx
 
