@@ -23,9 +23,20 @@ Most of [jsoniter](https://github.com/json-iterator/go) issues are caused by nec
 to be drop-in replacement for standard `encoding/json`. Removing such constrains greatly
 simplified implementation and reduced scope, allowing to focus on json stream processing.
 
-## Example
+## Examples
 
-### DecodeStr
+### Decode
+
+Use [jx.Decoder](https://pkg.go.dev/github.com/ogen-go/jx#Decoder) for json decoding, zero value is valid.
+  * [jx.Decode(reader io.Reader, bufSize int)](https://pkg.go.dev/github.com/ogen-go/jx#Decode) for `io.Reader`
+  * [jx.DecodeBytes([]byte)](https://pkg.go.dev/github.com/ogen-go/jx#Decode)  for byte slices
+  * [jx.DecodeStr(string)](https://pkg.go.dev/github.com/ogen-go/jx#Decode) for strings
+
+To reuse decoders and their buffers, use [jx.GetDecoder](https://pkg.go.dev/github.com/ogen-go/jx#GetDecoder)
+and [jx.PutDecoder](https://pkg.go.dev/github.com/ogen-go/jx#PutDecoder)
+* [jx.Decoder.Reset(io.Reader)](https://pkg.go.dev/github.com/ogen-go/jx#Decoder.Reset) to reset to new `io.Reader`
+* [jx.Decoder.ResetBytes([]byte)](https://pkg.go.dev/github.com/ogen-go/jx#Decoder.ResetBytes) to decode another byte slice
+
 ```go
 d := jx.DecodeStr(`{"values":[4,8,15,16,23,42]}`)
 
@@ -57,7 +68,7 @@ fmt.Println(values)
 // Output: [4 8 15 16 23 42]
 ```
 
-### Encoder
+### Encode
 ```go
 var e jx.Encoder
 e.ObjStart()         // {
