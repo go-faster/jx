@@ -52,11 +52,16 @@ func TestEncoder_String(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, "a�z", v)
 	})
-	t.Run("BadNonSelf", func(t *testing.T) {
+	t.Run("Emoji", func(t *testing.T) {
 		e := GetEncoder()
 		e.Str(string([]byte{240, 159, 144, 152}))
 		v, err := DecodeBytes(e.Bytes()).Str()
 		require.NoError(t, err)
 		require.Equal(t, "🐘", v)
+	})
+	t.Run("BadUnicodeAfterSafeEscape", func(t *testing.T) {
+		e := GetEncoder()
+		e.StrEscape("<f\xed\xa0\x80")
+		require.Equal(t, `"\u003cf\ufffd\ufffd\ufffd"`, e.String())
 	})
 }
