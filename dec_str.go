@@ -3,6 +3,7 @@ package jx
 import (
 	"fmt"
 	"unicode/utf16"
+	"unicode/utf8"
 
 	"golang.org/x/xerrors"
 )
@@ -213,56 +214,8 @@ func (d *Decoder) readU4() (rune, error) {
 	return v, nil
 }
 
-//nolint:unused,deadcode,varcheck
-const (
-	t1 = 0x00 // 0000 0000
-	tx = 0x80 // 1000 0000
-	t2 = 0xC0 // 1100 0000
-	t3 = 0xE0 // 1110 0000
-	t4 = 0xF0 // 1111 0000
-	t5 = 0xF8 // 1111 1000
-
-	maskx = 0x3F // 0011 1111
-	mask2 = 0x1F // 0001 1111
-	mask3 = 0x0F // 0000 1111
-	mask4 = 0x07 // 0000 0111
-
-	rune1Max = 1<<7 - 1
-	rune2Max = 1<<11 - 1
-	rune3Max = 1<<16 - 1
-
-	surrogateMin = 0xD800
-	surrogateMax = 0xDFFF
-
-	maxRune   = '\U0010FFFF' // Maximum valid Unicode code point.
-	runeError = '\uFFFD'     // the "error" Rune or "Unicode replacement character"
-)
-
 func appendRune(p []byte, r rune) []byte {
-	// Negative values are erroneous. Making it unsigned addresses the problem.
-	switch i := uint32(r); {
-	case i <= rune1Max:
-		return append(p, byte(r))
-	case i <= rune2Max:
-		return append(p,
-			t2|byte(r>>6),
-			tx|byte(r)&maskx,
-		)
-	case i > maxRune, surrogateMin <= i && i <= surrogateMax:
-		r = runeError
-		fallthrough
-	case i <= rune3Max:
-		return append(p,
-			t3|byte(r>>12),
-			tx|byte(r>>6)&maskx,
-			tx|byte(r)&maskx,
-		)
-	default:
-		return append(p,
-			t4|byte(r>>18),
-			tx|byte(r>>12)&maskx,
-			tx|byte(r>>6)&maskx,
-			tx|byte(r)&maskx,
-		)
-	}
+	buf := make([]byte, 4)
+	n := utf8.EncodeRune(buf, r)
+	return append(p, buf[:n]...)
 }

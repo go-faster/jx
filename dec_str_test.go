@@ -49,3 +49,12 @@ func TestDecoder_Str(t *testing.T) {
 		require.Error(t, err)
 	}
 }
+
+func Benchmark_appendRune(b *testing.B) {
+	b.ReportAllocs()
+	buf := make([]byte, 0, 4)
+	for i := 0; i < b.N; i++ {
+		buf = buf[:0]
+		buf = appendRune(buf, 'f')
+	}
+}
