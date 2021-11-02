@@ -20,13 +20,16 @@ func Test_read_uint64_invalid(t *testing.T) {
 }
 
 func TestDecoder_int_numbers(t *testing.T) {
-	for i := 1; i < 10; i++ {
+	for i := 1; i < 10; i++ { // 10 digits
 		var data []byte
 		v := 0
+		// Produce number like 123456, where 6 is i.
 		for j := 1; j <= i; j++ {
 			v = v*10 + j
 			data = append(data, byte('0')+byte(j))
 		}
+		// Ensure that buffer length is at least 15, and it
+		// has trialing comma.
 		for j := 0; j < 15-i; j++ {
 			data = append(data, ',')
 		}
