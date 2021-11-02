@@ -323,6 +323,9 @@ func validateFloat(str []byte) error {
 	if str[0] == '-' {
 		return xerrors.New("double minus")
 	}
+	if len(str) >= 2 && str[0] == '0' && str[1] == '0' {
+		return xerrors.New("leading zero")
+	}
 	dotPos := bytes.IndexByte(str, '.')
 	if dotPos != -1 {
 		if dotPos == len(str)-1 {
