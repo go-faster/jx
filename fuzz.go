@@ -5,11 +5,17 @@ package jx
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 )
 
 func Fuzz(data []byte) int {
-	_ = Valid(data)
+	got := Valid(data)
+	exp := json.Valid(data)
+	if !exp && got {
+		fmt.Printf("jx: %v\nencoding/json:%v\n", got, exp)
+		panic("mismatch")
+	}
 	return 1
 }
 
