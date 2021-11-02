@@ -129,7 +129,7 @@ func DecodeStr(input string) *Decoder {
 	return DecodeBytes([]byte(input))
 }
 
-// Reset reuse iterator instance by specifying another reader
+// Reset resets reader and underlying state, next reads will use provided io.Reader.
 func (d *Decoder) Reset(reader io.Reader) {
 	d.reader = reader
 	d.head = 0
@@ -137,7 +137,7 @@ func (d *Decoder) Reset(reader io.Reader) {
 	d.depth = 0
 
 	// Reads from reader need buffer.
-	if d.buf == nil || cap(d.buf) == 0 {
+	if cap(d.buf) == 0 {
 		// Allocate new buffer if none.
 		d.buf = make([]byte, defaultBuf)
 	}
@@ -147,7 +147,7 @@ func (d *Decoder) Reset(reader io.Reader) {
 	}
 }
 
-// ResetBytes reuse iterator instance by specifying another byte array as input
+// ResetBytes resets underlying state, next reads will use provided buffer.
 func (d *Decoder) ResetBytes(input []byte) {
 	d.reader = nil
 	d.buf = input
