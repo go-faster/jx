@@ -95,7 +95,7 @@ fmt.Println("Buffer len:", len(e.Bytes()))
 // Buffer len: 28
 ```
 
-## Valid
+## Validate
 
 Check that byte slice is valid json with [jx.Valid](https://pkg.go.dev/github.com/ogen-go/jx#Valid):
 
