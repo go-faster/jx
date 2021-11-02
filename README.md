@@ -23,7 +23,7 @@ Most of [jsoniter](https://github.com/json-iterator/go) issues are caused by nec
 to be drop-in replacement for standard `encoding/json`. Removing such constrains greatly
 simplified implementation and reduced scope, allowing to focus on json stream processing.
 
-## Examples
+## Usage
 
 ### Decode
 
