@@ -150,10 +150,11 @@ func (d *Decoder) Reset(reader io.Reader) {
 // ResetBytes resets underlying state, next reads will use provided buffer.
 func (d *Decoder) ResetBytes(input []byte) {
 	d.reader = nil
-	d.buf = input
 	d.head = 0
 	d.tail = len(input)
 	d.depth = 0
+
+	d.buf = input
 }
 
 // Next gets Type of relatively next json element
