@@ -25,6 +25,7 @@ func TestDecoder_Float(t *testing.T) {
 					func() *Decoder { return DecodeBytes([]byte(s)) },
 					func() *Decoder { return Decode(bytes.NewBufferString(s), defaultBuf) },
 					func() *Decoder { return Decode(bytes.NewBufferString(s), 1) },
+					func() *Decoder { return Decode(bytes.NewBufferString(s), 0) },
 				} {
 					t.Run("64", func(t *testing.T) {
 						d := f()
