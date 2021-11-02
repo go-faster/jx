@@ -7,7 +7,7 @@ import (
 // Capture calls f and then rolls back to state before call.
 //
 // Does not work with reader.
-func (d *Decoder) Capture(f func(i *Decoder) error) error {
+func (d *Decoder) Capture(f func(d *Decoder) error) error {
 	if d.reader != nil {
 		return xerrors.New("capture is not supported with reader")
 	}
