@@ -62,7 +62,7 @@ func (d *Decoder) Arr(f func(d *Decoder) error) error {
 	}
 	for c == ',' {
 		// Skip whitespace before reading element.
-		if c, err = d.next(); err != nil {
+		if _, err := d.next(); err != nil {
 			return xerrors.Errorf("next: %w", err)
 		}
 		d.unread()
