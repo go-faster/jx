@@ -24,30 +24,32 @@ func init() {
 	}
 }
 
-// Uint read uint.
-func (d *Decoder) Uint() (uint, error) {
-	if strconv.IntSize == 32 {
+func (d *Decoder) uint(size int) (uint, error) {
+	if size == 32 {
 		v, err := d.Uint32()
-		if err != nil {
-			return 0, err
-		}
-		return uint(v), nil
+		return uint(v), err
 	}
 	v, err := d.Uint64()
-	if err != nil {
-		return 0, err
-	}
-	return uint(v), nil
+	return uint(v), err
 }
 
-// Int reads integer.
-func (d *Decoder) Int() (int, error) {
-	if strconv.IntSize == 32 {
+// Uint read uint.
+func (d *Decoder) Uint() (uint, error) {
+	return d.uint(strconv.IntSize)
+}
+
+func (d *Decoder) int(size int) (int, error) {
+	if size == 32 {
 		v, err := d.Int32()
 		return int(v), err
 	}
 	v, err := d.Int64()
 	return int(v), err
+}
+
+// Int reads integer.
+func (d *Decoder) Int() (int, error) {
+	return d.int(strconv.IntSize)
 }
 
 // Int32 reads int32 value.
