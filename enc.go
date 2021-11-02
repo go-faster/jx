@@ -31,7 +31,7 @@ func (e *Encoder) SetIdent(n int) {
 }
 
 // String returns string of underlying buffer.
-func (e *Encoder) String() string {
+func (e Encoder) String() string {
 	return string(e.Bytes())
 }
 
@@ -41,7 +41,7 @@ func (e *Encoder) Reset() {
 }
 
 // Bytes returns underlying buffer.
-func (e *Encoder) Bytes() []byte { return e.buf }
+func (e Encoder) Bytes() []byte { return e.buf }
 
 // SetBytes sets underlying buffer.
 func (e *Encoder) SetBytes(buf []byte) { e.buf = buf }

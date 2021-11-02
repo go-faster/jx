@@ -57,6 +57,24 @@ fmt.Println(values)
 // Output: [4 8 15 16 23 42]
 ```
 
+### Encoder
+```go
+var e jx.Encoder // zero value is ok
+e.ObjStart()
+e.ObjField("values") // "values":
+e.ArrStart()
+for i, v := range []int{4, 8, 15, 16, 23, 42} {
+    if i != 0 {
+        e.More() // ,
+    }
+    e.Int(v)
+}
+e.ArrEnd()
+e.ObjEnd()
+fmt.Println(e)
+// Output: {"values":[4,8,15,16,23,42]}
+```
+
 ## Capture
 The `Decoder.Capture` method allows to unread everything is read in callback.
 This is useful for multi-pass parsing.
