@@ -15,8 +15,8 @@ go get github.com/ogen-go/jx
 * Validation
 
 See [usage](#Usage) for examples. Mostly suitable for fast low-level json manipulation
-with high control. Used in [ogen](https://github.com/ogen-go/ogen) for
-json (un)marshaling code generation.
+with high control. Used in [ogen](https://github.com/ogen-go/ogen) project for
+json (un)marshaling code generation based on json and OpenAPI schemas.
 
 ## Why
 
