@@ -64,3 +64,25 @@ func ExampleValid() {
 	// true
 	// false
 }
+
+func ExampleDecoder_Capture() {
+	d := jx.DecodeStr(`["foo", "bar", "baz"]`)
+	var elems int
+	// NB: Currently Capture does not support io.Reader, only buffers.
+	if err := d.Capture(func(d *jx.Decoder) error {
+		// Everything decoded in this callback will be rolled back.
+		return d.Arr(func(d *jx.Decoder) error {
+			elems++
+			return d.Skip()
+		})
+	}); err != nil {
+		panic(err)
+	}
+	// Decoder is rolled back to state before "Capture" call.
+	fmt.Println("Read", elems, "elements on first pass")
+	fmt.Println("Next element is", d.Next(), "again")
+
+	// Output:
+	// Read 3 elements on first pass
+	// Next element is array again
+}

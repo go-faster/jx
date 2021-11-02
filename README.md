@@ -106,24 +106,28 @@ fmt.Println(jx.Valid([]byte(`["foo"}`)))            // false
 ```
 
 ## Capture
-The `Decoder.Capture` method allows to unread everything is read in callback.
-This is useful for multi-pass parsing.
+The [jx.Decoder.Capture](https://pkg.go.dev/github.com/ogen-go/jx#Decoder.Capture) method allows to unread everything is read in callback.
+Useful for multi-pass parsing:
 ```go
-func TestDecoder_Capture(t *testing.T) {
-	d := DecodeStr(`["foo", "bar", "baz"]`)
-	var elems int
-	if err := d.Capture(func(d *Decoder) error {
-		return d.Arr(func(d *Decoder) error {
-			elems++
-			return d.Skip()
-		})
-	}); err != nil {
-		t.Fatal(err)
-	}
-	// Buffer is rolled back to state before "Capture" call:
-	require.Equal(t, Array, d.Next())
-	require.Equal(t, 3, elems)
+d := jx.DecodeStr(`["foo", "bar", "baz"]`)
+var elems int
+// NB: Currently Capture does not support io.Reader, only buffers.
+if err := d.Capture(func(d *jx.Decoder) error {
+	// Everything decoded in this callback will be rolled back.
+	return d.Arr(func(d *jx.Decoder) error {
+		elems++
+		return d.Skip()
+	})
+}); err != nil {
+	panic(err)
 }
+// Decoder is rolled back to state before "Capture" call.
+fmt.Println("Read", elems, "elements on first pass")
+fmt.Println("Next element is", d.Next(), "again")
+
+// Output:
+// Read 3 elements on first pass
+// Next element is array again
 ```
 
 ## ObjBytes
