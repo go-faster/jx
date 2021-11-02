@@ -46,9 +46,9 @@ func GetDecoder() *Decoder {
 }
 
 // PutDecoder puts *Decoder into pool.
-func PutDecoder(i *Decoder) {
-	i.Reset(nil)
-	decPool.Put(i)
+func PutDecoder(d *Decoder) {
+	d.Reset(nil)
+	decPool.Put(d)
 }
 
 // GetEncoder returns *Encoder from pool.
