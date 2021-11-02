@@ -27,15 +27,18 @@ simplified implementation and reduced scope, allowing to focus on json stream pr
 
 ### Decode
 
-Use [jx.Decoder](https://pkg.go.dev/github.com/ogen-go/jx#Decoder) for json decoding, zero value is valid.
+Use [jx.Decoder](https://pkg.go.dev/github.com/ogen-go/jx#Decoder) for json decoding. Zero value is valid,
+but constructors are available for convenience:
   * [jx.Decode(reader io.Reader, bufSize int)](https://pkg.go.dev/github.com/ogen-go/jx#Decode) for `io.Reader`
   * [jx.DecodeBytes([]byte)](https://pkg.go.dev/github.com/ogen-go/jx#Decode)  for byte slices
   * [jx.DecodeStr(string)](https://pkg.go.dev/github.com/ogen-go/jx#Decode) for strings
 
 To reuse decoders and their buffers, use [jx.GetDecoder](https://pkg.go.dev/github.com/ogen-go/jx#GetDecoder)
-and [jx.PutDecoder](https://pkg.go.dev/github.com/ogen-go/jx#PutDecoder)
+and [jx.PutDecoder](https://pkg.go.dev/github.com/ogen-go/jx#PutDecoder) alongside with reset functions:
 * [jx.Decoder.Reset(io.Reader)](https://pkg.go.dev/github.com/ogen-go/jx#Decoder.Reset) to reset to new `io.Reader`
 * [jx.Decoder.ResetBytes([]byte)](https://pkg.go.dev/github.com/ogen-go/jx#Decoder.ResetBytes) to decode another byte slice
+
+Decoder is getting reset on `PutDecoder`, so it is safe to just put used decoder.
 
 ```go
 d := jx.DecodeStr(`{"values":[4,8,15,16,23,42]}`)
