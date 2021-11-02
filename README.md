@@ -75,7 +75,7 @@ fmt.Println(values)
 Use [jx.Encoder](https://pkg.go.dev/github.com/ogen-go/jx#Encoder). Zero value is valid, reuse with
 [jx.GetEncoder](https://pkg.go.dev/github.com/ogen-go/jx#GetEncoder),
 [jx.PutEncoder](https://pkg.go.dev/github.com/ogen-go/jx#PutEncoder) and
-[jx.Encoder.Reset()](https://pkg.go.dev/github.com/ogen-go/jx#Encoder.Reset). Encoder is reset on PutEncoder.
+[jx.Encoder.Reset()](https://pkg.go.dev/github.com/ogen-go/jx#Encoder.Reset). Encoder is reset on `PutEncoder`.
 ```go
 var e jx.Encoder
 e.ObjStart()         // {
