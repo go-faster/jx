@@ -311,11 +311,11 @@ func (e *Encoder) strEscape(i int, v string, valLen int) {
 func (e *Encoder) Str(v string) {
 	length := len(v)
 	e.buf = append(e.buf, '"')
-	// write string, the fast path, without utf8 and escape support
+	// Fast path, without utf8 and escape support.
 	i := 0
 	for ; i < length; i++ {
 		c := v[i]
-		if c > 31 && c != '"' && c != '\\' {
+		if c > 31 && c != '"' && c != '\\' && c < utf8.RuneSelf {
 			e.buf = append(e.buf, c)
 		} else {
 			break

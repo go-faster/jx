@@ -41,4 +41,9 @@ func TestEncoder_String(t *testing.T) {
 		e.StrEscape("\uFFFD")
 		t.Logf("%v", e.Bytes())
 	})
+	t.Run("BadUnicode", func(t *testing.T) {
+		e := GetEncoder()
+		e.StrEscape("a\xc5z")
+		t.Logf("%q", e)
+	})
 }
