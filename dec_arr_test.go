@@ -35,6 +35,13 @@ func TestDecoder_Arr(t *testing.T) {
 			require.Error(t, d.Arr(nil))
 		}
 	})
+	t.Run("Whitespace", func(t *testing.T) {
+		d := DecodeStr(`[1 , 2,  3 ,45, 6]`)
+		require.NoError(t, d.Arr(func(d *Decoder) error {
+			_, err := d.Int()
+			return err
+		}))
+	})
 	t.Run("Depth", func(t *testing.T) {
 		var data []byte
 		for i := 0; i <= maxDepth; i++ {
