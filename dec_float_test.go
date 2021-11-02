@@ -102,13 +102,6 @@ func TestDecoder_Float32(t *testing.T) {
 }
 
 func TestDecoder_Float64(t *testing.T) {
-	t.Logf("%v", maxFloat64 < uint64SafeToMultiple10)
-	t.Logf("%v", (uint64SafeToMultiple10*10) > maxFloat64)
-	t.Run("64Str", func(t *testing.T) {
-		v, err := DecodeStr(`0.184467440737095517`).Float64()
-		require.InEpsilon(t, .184467440737095517, v, 1e-6)
-		require.NoError(t, err)
-	})
 	for _, tc := range []struct {
 		String string
 		Value  float64
