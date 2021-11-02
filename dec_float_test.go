@@ -83,3 +83,14 @@ func TestDecoder_Float(t *testing.T) {
 		})
 	})
 }
+
+func TestDecoder_BigFloat(t *testing.T) {
+	data := []byte{'1'}
+	for i := 0; i < 64; i++ {
+		data = append(data, '0')
+	}
+	data = append(data, ".0"...)
+	f, err := DecodeBytes(data).BigFloat()
+	require.NoError(t, err)
+	require.Equal(t, `1e+64`, f.String())
+}
