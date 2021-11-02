@@ -59,18 +59,18 @@ fmt.Println(values)
 
 ### Encoder
 ```go
-var e jx.Encoder // zero value is ok
-e.ObjStart()
+var e jx.Encoder
+e.ObjStart()         // {
 e.ObjField("values") // "values":
-e.ArrStart()
+e.ArrStart()         // [
 for i, v := range []int{4, 8, 15, 16, 23, 42} {
     if i != 0 {
         e.More() // ,
     }
     e.Int(v)
 }
-e.ArrEnd()
-e.ObjEnd()
+e.ArrEnd() // ]
+e.ObjEnd() // }
 fmt.Println(e)
 fmt.Println("Buffer len:", len(e.Bytes()))
 // Output: {"values":[4,8,15,16,23,42]}
