@@ -24,6 +24,17 @@ func Benchmark_large_file(b *testing.B) {
 	}
 }
 
+func BenchmarkValid(b *testing.B) {
+	b.ReportAllocs()
+	b.SetBytes(int64(len(data)))
+
+	for n := 0; n < b.N; n++ {
+		if !Valid(data) {
+			b.Fatal("invalid")
+		}
+	}
+}
+
 func Benchmark_std_large_file(b *testing.B) {
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
