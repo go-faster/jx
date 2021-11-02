@@ -39,11 +39,17 @@ func TestEncoder_String(t *testing.T) {
 	t.Run("StrEscapeBad", func(t *testing.T) {
 		e := GetEncoder()
 		e.StrEscape("\uFFFD")
-		t.Logf("%v", e.Bytes())
+		require.Equal(t, `"�"`, e.String())
+		v, err := DecodeBytes(e.Bytes()).Str()
+		require.NoError(t, err)
+		require.Equal(t, "�", v)
 	})
 	t.Run("BadUnicode", func(t *testing.T) {
 		e := GetEncoder()
 		e.StrEscape("a\xc5z")
-		t.Logf("%q", e)
+		require.Equal(t, `"a\ufffdz"`, e.String())
+		v, err := DecodeBytes(e.Bytes()).Str()
+		require.NoError(t, err)
+		require.Equal(t, "a�z", v)
 	})
 }
