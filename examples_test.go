@@ -51,5 +51,7 @@ func ExampleEncoder_String() {
 	e.ArrEnd()
 	e.ObjEnd()
 	fmt.Println(e)
+	fmt.Println("Buffer len:", len(e.Bytes()))
 	// Output: {"values":[4,8,15,16,23,42]}
+	// Buffer len: 28
 }

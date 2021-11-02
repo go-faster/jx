@@ -72,7 +72,9 @@ for i, v := range []int{4, 8, 15, 16, 23, 42} {
 e.ArrEnd()
 e.ObjEnd()
 fmt.Println(e)
+fmt.Println("Buffer len:", len(e.Bytes()))
 // Output: {"values":[4,8,15,16,23,42]}
+// Buffer len: 28
 ```
 
 ## Capture
