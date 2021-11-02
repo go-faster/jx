@@ -4,7 +4,7 @@ import (
 	"golang.org/x/xerrors"
 )
 
-// Capture calls f and then rolls back buffer to state before call.
+// Capture calls f and then rolls back to state before call.
 //
 // Does not work with reader.
 func (d *Decoder) Capture(f func(i *Decoder) error) error {
