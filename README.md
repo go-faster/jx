@@ -139,3 +139,11 @@ d.ObjBytes(func(d *Decoder, key []byte) error {
     return d.Skip()
 })
 ```
+
+# Roadmap
+- [ ] Rework `json.Number`
+- [ ] Rework `Any`
+- [ ] Support `Raw` decoding
+
+# License
+MIT, same as jsoniter
