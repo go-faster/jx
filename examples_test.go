@@ -55,3 +55,12 @@ func ExampleEncoder_String() {
 	// Output: {"values":[4,8,15,16,23,42]}
 	// Buffer len: 28
 }
+
+func ExampleValid() {
+	fmt.Println(jx.Valid([]byte(`{"field": "value"}`)))
+	fmt.Println(jx.Valid([]byte(`"Hello, world!"`)))
+	fmt.Println(jx.Valid([]byte(`["foo"}`)))
+	// Output: true
+	// true
+	// false
+}

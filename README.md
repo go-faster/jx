@@ -95,6 +95,16 @@ fmt.Println("Buffer len:", len(e.Bytes()))
 // Buffer len: 28
 ```
 
+## Valid
+
+Check that byte slice is valid json with [jx.Valid](https://pkg.go.dev/github.com/ogen-go/jx#Valid):
+
+```go
+fmt.Println(jx.Valid([]byte(`{"field": "value"}`))) // true
+fmt.Println(jx.Valid([]byte(`"Hello, world!"`)))    // true
+fmt.Println(jx.Valid([]byte(`["foo"}`)))            // false
+```
+
 ## Capture
 The `Decoder.Capture` method allows to unread everything is read in callback.
 This is useful for multi-pass parsing.
