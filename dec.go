@@ -130,7 +130,7 @@ func DecodeStr(input string) *Decoder {
 }
 
 // Reset reuse iterator instance by specifying another reader
-func (d *Decoder) Reset(reader io.Reader) *Decoder {
+func (d *Decoder) Reset(reader io.Reader) {
 	d.reader = reader
 	d.head = 0
 	d.tail = 0
@@ -145,17 +145,15 @@ func (d *Decoder) Reset(reader io.Reader) *Decoder {
 		// Set buffer to full capacity if needed.
 		d.buf = d.buf[:cap(d.buf)]
 	}
-	return d
 }
 
 // ResetBytes reuse iterator instance by specifying another byte array as input
-func (d *Decoder) ResetBytes(input []byte) *Decoder {
+func (d *Decoder) ResetBytes(input []byte) {
 	d.reader = nil
 	d.buf = input
 	d.head = 0
 	d.tail = len(input)
 	d.depth = 0
-	return d
 }
 
 // Next gets Type of relatively next json element
