@@ -1,6 +1,6 @@
 # jx [![Go Reference](https://img.shields.io/badge/go-pkg-00ADD8)](https://pkg.go.dev/github.com/ogen-go/jx#section-documentation) [![codecov](https://img.shields.io/codecov/c/github/ogen-go/jx?label=cover)](https://codecov.io/gh/ogen-go/jx)
 
-Fast json streaming in go. Buffered encoding and decoding of json values.
+Package jx implements encoding and decoding of json.
 Lightweight fork of [jsoniter](https://github.com/json-iterator/go).
 
 ```console
@@ -8,6 +8,22 @@ go get github.com/ogen-go/jx
 ```
 
 ## Features
+* Directly encode and decode json values
+* No reflect or `interface{}`
+* Pools and direct buffer access for less (or none) allocations
+* Multi-pass decoding
+* Validation
+
+See [usage](#Usage) for examples. Mostly suitable for low-level json manipulation
+with high performance and control. Used in [ogen](https://github.com/ogen-go/ogen) for
+json (un)marshaling code generation.
+
+## Why
+
+Most of [jsoniter](https://github.com/json-iterator/go) issues are caused by necessity
+to be drop-in replacement for standard `encoding/json`. Removing such constrains greatly
+simplified implementation and reduced scope, allowing to focus on json stream processing.
+
 * Reduced scope
   * No reflection
   * No `encoding/json` adapter
@@ -17,11 +33,6 @@ go get github.com/ogen-go/jx
   * Explicit error returns
   * No `Config` or `API`
 
-## Why
-
-Most of [jsoniter](https://github.com/json-iterator/go) issues are caused by necessity
-to be drop-in replacement for standard `encoding/json`. Removing such constrains greatly
-simplified implementation and reduced scope, allowing to focus on json stream processing.
 
 ## Usage
 
