@@ -49,3 +49,24 @@ func TestDecoder_uint_sizes(t *testing.T) {
 		require.Equal(t, uint(69315063), v)
 	}
 }
+
+func TestDecoder_Int(t *testing.T) {
+	r := errReader{}
+	get := func() *Decoder {
+		return &Decoder{
+			buf:    []byte{'1', '2'},
+			tail:   2,
+			reader: errReader{},
+		}
+	}
+	t.Run("32", func(t *testing.T) {
+		d := get()
+		_, err := d.Int32()
+		require.ErrorIs(t, err, r.Err())
+	})
+	t.Run("64", func(t *testing.T) {
+		d := get()
+		_, err := d.Int64()
+		require.ErrorIs(t, err, r.Err())
+	})
+}

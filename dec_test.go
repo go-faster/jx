@@ -96,6 +96,10 @@ func TestDecoderBig(t *testing.T) {
 
 type errReader struct{}
 
+func (errReader) Err() error {
+	return io.ErrNoProgress
+}
+
 func (e errReader) Read(p []byte) (n int, err error) {
-	return 0, io.ErrNoProgress
+	return 0, e.Err()
 }
