@@ -14,8 +14,8 @@ go get github.com/ogen-go/jx
 * Multi-pass decoding
 * Validation
 
-See [usage](#Usage) for examples. Mostly suitable for low-level json manipulation
-when high performance and control are needed. Used in [ogen](https://github.com/ogen-go/ogen) for
+See [usage](#Usage) for examples. Mostly suitable for fast low-level json manipulation
+with high control. Used in [ogen](https://github.com/ogen-go/ogen) for
 json (un)marshaling code generation.
 
 ## Why
