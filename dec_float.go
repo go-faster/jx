@@ -282,9 +282,9 @@ NonDecimal:
 				return d.float64Slow()
 			}
 			decimalPlaces++
-			if value > uint64SafeToMultiple10 {
-				return d.float64Slow()
-			}
+			// Not checking for uint64SafeToMultiple10 here because
+			// if condition is positive value multiplied by 10 is
+			// guaranteed to be bigger than maxFloat64.
 			value = (value << 3) + (value << 1) + uint64(ind)
 			if value > maxFloat64 {
 				return d.float64Slow()
