@@ -19,6 +19,56 @@ func Test_read_uint64_invalid(t *testing.T) {
 	should.Error(err)
 }
 
+func TestDecoder_int_numbers(t *testing.T) {
+	for i := 1; i < 10; i++ {
+		var data []byte
+		v := 0
+		for j := 1; j <= i; j++ {
+			v = v*10 + j
+			data = append(data, byte('0')+byte(j))
+		}
+		for j := 0; j < 15-i; j++ {
+			data = append(data, ',')
+		}
+		s := string(data)
+		t.Run("32", func(t *testing.T) {
+			decodeStr(t, s, func(d *Decoder) {
+				got, err := d.Int32()
+				require.NoError(t, err)
+				require.Equal(t, int32(v), got)
+			})
+		})
+		t.Run("64", func(t *testing.T) {
+			decodeStr(t, s, func(d *Decoder) {
+				got, err := d.Int32()
+				require.NoError(t, err)
+				require.Equal(t, int32(v), got)
+			})
+		})
+		t.Run("int", func(t *testing.T) {
+			decodeStr(t, s, func(d *Decoder) {
+				got, err := d.Int()
+				require.NoError(t, err)
+				require.Equal(t, v, got)
+			})
+		})
+		t.Run("uint", func(t *testing.T) {
+			decodeStr(t, s, func(d *Decoder) {
+				got, err := d.Uint()
+				require.NoError(t, err)
+				require.Equal(t, uint(v), got)
+			})
+		})
+		t.Run("uint32", func(t *testing.T) {
+			decodeStr(t, s, func(d *Decoder) {
+				got, err := d.Uint32()
+				require.NoError(t, err)
+				require.Equal(t, uint32(v), got)
+			})
+		})
+	}
+}
+
 func Test_read_int32(t *testing.T) {
 	inputs := []string{`1`, `12`, `123`, `1234`, `12345`, `123456`, `2147483647`, `-2147483648`}
 	for _, input := range inputs {
@@ -43,32 +93,75 @@ func Test_read_int32(t *testing.T) {
 	}
 }
 
-func Test_read_int_overflow(t *testing.T) {
-	for _, s := range []string{"1234232323232323235678912", "-1234567892323232323212"} {
-		t.Run(s, func(t *testing.T) {
-			should := require.New(t)
-			iter := DecodeStr(s)
-			_, err := iter.Int32()
-			should.Error(err)
+func TestDecoder_int_overflow(t *testing.T) {
+	t.Run("32", func(t *testing.T) {
+		for _, s := range []string{
+			"18446744073709551617",
+			"18446744073709551616",
+			"4294967296",
+			"-9223372036854775809",
+			"-18446744073709551617",
+		} {
+			t.Run(s, func(t *testing.T) {
+				should := require.New(t)
+				d := DecodeStr(s)
+				v, err := d.Int32()
+				should.Error(err, "%v", v)
 
-			iterUint := DecodeStr(s)
-			_, err = iterUint.Uint32()
-			should.Error(err)
-		})
-	}
+				d = DecodeStr(s)
+				vu, err := d.Uint32()
+				should.Error(err, "%v", vu)
 
-	for _, s := range []string{"123456789232323232321545111111111111111111111111111111145454545445", "-1234567892323232323212"} {
-		t.Run(s, func(t *testing.T) {
-			should := require.New(t)
-			iter := DecodeStr(s)
-			v, err := iter.Int64()
-			should.Error(err, "%v", v)
+				d = DecodeStr(s)
+				_, err = d.uint(32)
+				should.Error(err)
+			})
+		}
+		for _, s := range []string{
+			"-9223372036854775809",
+			"9223372036854775808",
+			"2147483648",
+			"-2147483649",
+			"-4294967295",
+		} {
+			t.Run(s, func(t *testing.T) {
+				should := require.New(t)
+				d := DecodeStr(s)
+				v, err := d.Int32()
+				should.Error(err, "%v", v)
+			})
+		}
+	})
+	t.Run("64", func(t *testing.T) {
+		for _, s := range []string{
+			"18446744073709551617",
+			"18446744073709551616",
+			"-9223372036854775809",
+			"-18446744073709551617",
+		} {
+			t.Run(s, func(t *testing.T) {
+				should := require.New(t)
+				d := DecodeStr(s)
+				v, err := d.Int64()
+				should.Error(err, "%v", v)
 
-			iterUint := DecodeStr(s)
-			vu, err := iterUint.Uint64()
-			should.Error(err, "%v", vu)
-		})
-	}
+				d = DecodeStr(s)
+				vu, err := d.Uint64()
+				should.Error(err, "%v", vu)
+			})
+		}
+		for _, s := range []string{
+			"-9223372036854775809",
+			"9223372036854775808",
+		} {
+			t.Run(s, func(t *testing.T) {
+				should := require.New(t)
+				d := DecodeStr(s)
+				v, err := d.Int64()
+				should.Error(err, "%v", v)
+			})
+		}
+	})
 }
 
 func Test_read_int64_overflow(t *testing.T) {
