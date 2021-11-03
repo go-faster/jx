@@ -166,6 +166,7 @@ d.ObjBytes(func(d *Decoder, key []byte) error {
 * Code generation for decoding or encoding
 * Replacement for `encoding/json`
 * Reflection or `interface{}` based encoding or decoding
+* Support for json path or similar
 
 This package should be kept as simple as possible and be used as
 low-level foundation for high-level projects like code generator.
