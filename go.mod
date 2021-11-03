@@ -3,7 +3,7 @@ module github.com/ogen-go/jx
 go 1.17
 
 require (
-	github.com/ogen-go/errors v0.2.1-0.20211103111424-77c8ae747aeb
+	github.com/ogen-go/errors v0.3.0
 	github.com/stretchr/testify v1.7.0
 )
 
