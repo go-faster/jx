@@ -47,17 +47,17 @@ func (v value) byte(b byte) value {
 	}
 }
 
-// UnexpectedTokenErr means that Token was unexpected while reading json.
-type UnexpectedTokenErr struct {
+// badTokenErr means that Token was unexpected while decoding.
+type badTokenErr struct {
 	Token byte
 }
 
-func (e UnexpectedTokenErr) Error() string {
+func (e badTokenErr) Error() string {
 	return fmt.Sprintf("unexpected byte %d '%s'", e.Token, []byte{e.Token})
 }
 
 func badToken(c byte) error {
-	return UnexpectedTokenErr{Token: c}
+	return badTokenErr{Token: c}
 }
 
 func (d *Decoder) str(v value) (value, error) {

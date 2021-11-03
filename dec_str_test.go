@@ -23,7 +23,7 @@ func TestDecoder_StrAppend(t *testing.T) {
 }
 
 func TestUnexpectedTokenErr_Error(t *testing.T) {
-	e := &UnexpectedTokenErr{
+	e := &badTokenErr{
 		Token: 'c',
 	}
 	s := error(e).Error()
