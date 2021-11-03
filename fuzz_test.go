@@ -5,8 +5,9 @@ package jx
 
 import (
 	"bytes"
-	"errors"
 	"testing"
+
+	"github.com/ogen-go/errors"
 )
 
 func FuzzValid(f *testing.F) {

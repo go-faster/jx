@@ -5,7 +5,7 @@ import (
 	"unicode/utf16"
 	"unicode/utf8"
 
-	"golang.org/x/xerrors"
+	"github.com/ogen-go/errors"
 )
 
 // StrAppend reads string and appends it to byte slice.
@@ -62,7 +62,7 @@ func badToken(c byte) error {
 
 func (d *Decoder) str(v value) (value, error) {
 	if err := d.consume('"'); err != nil {
-		return value{}, xerrors.Errorf("start: %w", err)
+		return value{}, errors.Wrap(err, "start")
 	}
 	for i := d.head; i < d.tail; i++ {
 		c := d.buf[i]
@@ -84,7 +84,7 @@ func (d *Decoder) str(v value) (value, error) {
 			return value{buf: append(v.buf, str...)}, nil
 		}
 		if c < ' ' {
-			return value{}, xerrors.Errorf("control character: %w", badToken(c))
+			return value{}, errors.Wrap(badToken(c), "control character")
 		}
 	}
 	return d.strSlow(v)
@@ -114,7 +114,7 @@ func (d *Decoder) strSlow(v value) (value, error) {
 	for {
 		c, err := d.byte()
 		if err != nil {
-			return value{}, xerrors.Errorf("next: %w", err)
+			return value{}, errors.Wrap(err, "next")
 		}
 		switch c {
 		case '"':
@@ -123,11 +123,11 @@ func (d *Decoder) strSlow(v value) (value, error) {
 		case '\\':
 			c, err := d.byte()
 			if err != nil {
-				return value{}, xerrors.Errorf("next: %w", err)
+				return value{}, errors.Wrap(err, "next")
 			}
 			v, err = d.escapedChar(v, c)
 			if err != nil {
-				return v, xerrors.Errorf("escape: %w", err)
+				return v, errors.Wrap(err, "escape")
 			}
 		default:
 			v = v.byte(c)
@@ -140,7 +140,7 @@ func (d *Decoder) escapedChar(v value, c byte) (value, error) {
 	case 'u':
 		r1, err := d.readU4()
 		if err != nil {
-			return value{}, xerrors.Errorf("read u4: %w", err)
+			return value{}, errors.Wrap(err, "read u4")
 		}
 		if utf16.IsSurrogate(r1) {
 			c, err := d.byte()
@@ -188,7 +188,7 @@ func (d *Decoder) escapedChar(v value, c byte) (value, error) {
 	case 't':
 		v = v.rune('\t')
 	default:
-		return v, xerrors.Errorf("bad escape: %w", badToken(c))
+		return v, errors.Wrap(badToken(c), "bad escape: %w")
 	}
 	return v, nil
 }

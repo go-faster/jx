@@ -1,7 +1,7 @@
 package jx
 
 import (
-	"golang.org/x/xerrors"
+	"github.com/ogen-go/errors"
 )
 
 // Elem reads array element and reports whether array has more
@@ -15,7 +15,7 @@ func (d *Decoder) Elem() (ok bool, err error) {
 	case '[':
 		c, err := d.more()
 		if err != nil {
-			return false, xerrors.Errorf("next: %w", err)
+			return false, errors.Wrap(err, "next")
 		}
 		if c != ']' {
 			d.unread()
@@ -27,7 +27,7 @@ func (d *Decoder) Elem() (ok bool, err error) {
 	case ',':
 		return true, nil
 	default:
-		return false, xerrors.Errorf(`"[" or "," or "]" expected: %w`, badToken(c))
+		return false, errors.Wrap(badToken(c), `"[" or "," or "]" expected`)
 	}
 }
 
@@ -39,10 +39,10 @@ func (d *Decoder) Arr(f func(d *Decoder) error) error {
 		f = skipArr
 	}
 	if err := d.consume('['); err != nil {
-		return xerrors.Errorf("start: %w", err)
+		return errors.Wrap(err, "start")
 	}
 	if err := d.incDepth(); err != nil {
-		return xerrors.Errorf("inc: %w", err)
+		return errors.Wrap(err, "inc")
 	}
 	c, err := d.more()
 	if err != nil {
@@ -53,28 +53,28 @@ func (d *Decoder) Arr(f func(d *Decoder) error) error {
 	}
 	d.unread()
 	if err := f(d); err != nil {
-		return xerrors.Errorf("callback: %w", err)
+		return errors.Wrap(err, "callback")
 	}
 
 	c, err = d.more()
 	if err != nil {
-		return xerrors.Errorf("next: %w", err)
+		return errors.Wrap(err, "next")
 	}
 	for c == ',' {
 		// Skip whitespace before reading element.
 		if _, err := d.next(); err != nil {
-			return xerrors.Errorf("next: %w", err)
+			return errors.Wrap(err, "next")
 		}
 		d.unread()
 		if err := f(d); err != nil {
-			return xerrors.Errorf("callback: %w", err)
+			return errors.Wrap(err, "callback")
 		}
 		if c, err = d.next(); err != nil {
-			return xerrors.Errorf("next: %w", err)
+			return errors.Wrap(err, "next")
 		}
 	}
 	if c != ']' {
-		return xerrors.Errorf("end: %w", badToken(c))
+		return errors.Wrap(badToken(c), "end")
 	}
 	return d.decDepth()
 }

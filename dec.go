@@ -1,8 +1,9 @@
 package jx
 
 import (
-	"errors"
 	"io"
+
+	"github.com/ogen-go/errors"
 )
 
 // Type the type for JSON element

@@ -1,7 +1,7 @@
 package jx
 
 import (
-	"golang.org/x/xerrors"
+	"github.com/ogen-go/errors"
 )
 
 // Null reads a json object as null and
@@ -41,7 +41,7 @@ func (d *Decoder) Skip() error {
 	switch c {
 	case '"':
 		if err := d.skipStr(); err != nil {
-			return xerrors.Errorf("str: %w", err)
+			return errors.Wrap(err, "str")
 		}
 		return nil
 	case 'n':
@@ -58,12 +58,12 @@ func (d *Decoder) Skip() error {
 		return d.skipNumber()
 	case '[':
 		if err := d.skipArr(); err != nil {
-			return xerrors.Errorf("array: %w", err)
+			return errors.Wrap(err, "array")
 		}
 		return nil
 	case '{':
 		if err := d.skipObj(); err != nil {
-			return xerrors.Errorf("object: %w", err)
+			return errors.Wrap(err, "object")
 		}
 		return nil
 	default:
@@ -117,7 +117,7 @@ func (d *Decoder) skipNumberFast() (ok bool, err error) {
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		case '.':
 			if dotFound {
-				return false, xerrors.New("more than one dot")
+				return false, errors.New("more than one dot")
 			}
 			if i+1 == d.tail {
 				return false, nil
@@ -126,7 +126,7 @@ func (d *Decoder) skipNumberFast() (ok bool, err error) {
 			switch c {
 			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 			default:
-				return false, xerrors.New("no digit after dot")
+				return false, errors.New("no digit after dot")
 			}
 			dotFound = true
 		default:

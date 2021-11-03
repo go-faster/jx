@@ -1,7 +1,7 @@
 package jx
 
 import (
-	"golang.org/x/xerrors"
+	"github.com/ogen-go/errors"
 )
 
 // Capture calls f and then rolls back to state before call.
@@ -9,7 +9,7 @@ import (
 // Does not work with reader.
 func (d *Decoder) Capture(f func(d *Decoder) error) error {
 	if d.reader != nil {
-		return xerrors.New("capture is not supported with reader")
+		return errors.New("capture is not supported with reader")
 	}
 	if f == nil {
 		return nil

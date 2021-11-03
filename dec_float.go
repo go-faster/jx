@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"strconv"
 
-	"golang.org/x/xerrors"
+	"github.com/ogen-go/errors"
 )
 
 var pow10 = []uint64{1, 10, 100, 1000, 10000, 100000, 1000000}
@@ -39,7 +39,7 @@ func init() {
 func (d *Decoder) BigFloat() (*big.Float, error) {
 	str, err := d.number(nil)
 	if err != nil {
-		return nil, xerrors.Errorf("number: %w", err)
+		return nil, errors.Wrap(err, "number")
 	}
 	prec := 64
 	if len(str) > prec {
@@ -47,7 +47,7 @@ func (d *Decoder) BigFloat() (*big.Float, error) {
 	}
 	val, _, err := big.ParseFloat(string(str), 10, uint(prec), big.ToZero)
 	if err != nil {
-		return nil, xerrors.Errorf("float: %w", err)
+		return nil, errors.Wrap(err, "float")
 	}
 	return val, nil
 }
@@ -56,12 +56,12 @@ func (d *Decoder) BigFloat() (*big.Float, error) {
 func (d *Decoder) BigInt() (*big.Int, error) {
 	str, err := d.number(nil)
 	if err != nil {
-		return nil, xerrors.Errorf("number: %w", err)
+		return nil, errors.Wrap(err, "number")
 	}
 	v := big.NewInt(0)
 	var ok bool
 	if v, ok = v.SetString(string(str), 10); !ok {
-		return nil, xerrors.New("invalid")
+		return nil, errors.New("invalid")
 	}
 	return v, nil
 }
@@ -70,7 +70,7 @@ func (d *Decoder) BigInt() (*big.Int, error) {
 func (d *Decoder) Float32() (float32, error) {
 	c, err := d.more()
 	if err != nil {
-		return 0, xerrors.Errorf("byte: %w", err)
+		return 0, errors.Wrap(err, "byte")
 	}
 	if c != '-' {
 		d.unread()
@@ -98,9 +98,9 @@ func (d *Decoder) positiveFloat32() (float32, error) {
 	case invalidCharForNumber:
 		return d.f32Slow()
 	case endOfNumber:
-		return 0, xerrors.New("empty")
+		return 0, errors.New("empty")
 	case dotInNumber:
-		return 0, xerrors.New("leading dot")
+		return 0, errors.New("leading dot")
 	case 0:
 		if i == d.tail {
 			return d.f32Slow()
@@ -108,7 +108,7 @@ func (d *Decoder) positiveFloat32() (float32, error) {
 		c = d.buf[i]
 		switch c {
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-			return 0, xerrors.New("leading zero")
+			return 0, errors.New("leading zero")
 		}
 	}
 	value := uint64(ind)
@@ -201,7 +201,7 @@ func (d *Decoder) f32Slow() (float32, error) {
 func (d *Decoder) Float64() (float64, error) {
 	c, err := d.more()
 	if err != nil {
-		return 0, xerrors.Errorf("byte: %w", err)
+		return 0, errors.Wrap(err, "byte")
 	}
 	if c == '-' {
 		v, err := d.positiveFloat64()
@@ -227,9 +227,9 @@ func (d *Decoder) positiveFloat64() (float64, error) {
 	case invalidCharForNumber:
 		return d.float64Slow()
 	case endOfNumber:
-		return 0, xerrors.New("empty")
+		return 0, errors.New("empty")
 	case dotInNumber:
-		return 0, xerrors.New("leading dot")
+		return 0, errors.New("leading dot")
 	case 0:
 		if i == d.tail {
 			return d.float64Slow()
@@ -237,7 +237,7 @@ func (d *Decoder) positiveFloat64() (float64, error) {
 		c = d.buf[i]
 		switch c {
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-			return 0, xerrors.New("leading zero")
+			return 0, errors.New("leading zero")
 		}
 	}
 	value := uint64(ind)
@@ -299,10 +299,10 @@ func (d *Decoder) floatSlow(size int) (float64, error) {
 
 	str, err := d.number(buf[:0])
 	if err != nil {
-		return 0, xerrors.Errorf("number: %w", err)
+		return 0, errors.Wrap(err, "number")
 	}
 	if err := validateFloat(str); err != nil {
-		return 0, xerrors.Errorf("invalid: %w", err)
+		return 0, errors.Wrap(err, "invalid")
 	}
 
 	val, err := strconv.ParseFloat(string(str), size)
@@ -318,23 +318,23 @@ func (d *Decoder) float64Slow() (float64, error) { return d.floatSlow(size64) }
 func validateFloat(str []byte) error {
 	// strconv.ParseFloat is not validating `1.` or `1.e1`
 	if len(str) == 0 {
-		return xerrors.New("empty")
+		return errors.New("empty")
 	}
 	if str[0] == '-' {
-		return xerrors.New("double minus")
+		return errors.New("double minus")
 	}
 	if len(str) >= 2 && str[0] == '0' && str[1] == '0' {
-		return xerrors.New("leading zero")
+		return errors.New("leading zero")
 	}
 	dotPos := bytes.IndexByte(str, '.')
 	if dotPos != -1 {
 		if dotPos == len(str)-1 {
-			return xerrors.New("dot as last char")
+			return errors.New("dot as last char")
 		}
 		switch str[dotPos+1] {
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		default:
-			return xerrors.New("no digit after dot")
+			return errors.New("no digit after dot")
 		}
 	}
 	return nil

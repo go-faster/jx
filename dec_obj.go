@@ -1,7 +1,7 @@
 package jx
 
 import (
-	"golang.org/x/xerrors"
+	"github.com/ogen-go/errors"
 )
 
 func skipObjBytes(d *Decoder, _ []byte) error { return d.Skip() }
@@ -17,14 +17,14 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 		f = skipObjBytes
 	}
 	if err := d.consume('{'); err != nil {
-		return xerrors.Errorf("start: %w", err)
+		return errors.Wrap(err, "start")
 	}
 	if err := d.incDepth(); err != nil {
-		return xerrors.Errorf("inc: %w", err)
+		return errors.Wrap(err, "inc")
 	}
 	c, err := d.more()
 	if err != nil {
-		return xerrors.Errorf("next: %w", err)
+		return errors.Wrap(err, "next")
 	}
 	if c == '}' {
 		return d.decDepth()
@@ -33,41 +33,41 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 
 	k, err := d.str(value{ignore: skip})
 	if err != nil {
-		return xerrors.Errorf("str: %w", err)
+		return errors.Wrap(err, "str")
 	}
 	if err := d.consume(':'); err != nil {
-		return xerrors.Errorf("field: %w", err)
+		return errors.Wrap(err, "field")
 	}
 	if err := f(d, k.buf); err != nil {
-		return xerrors.Errorf("callback: %w", err)
+		return errors.Wrap(err, "callback")
 	}
 
 	c, err = d.more()
 	if err != nil {
-		return xerrors.Errorf("next: %w", err)
+		return errors.Wrap(err, "next")
 	}
 	for c == ',' {
 		k, err := d.str(value{ignore: skip})
 		if err != nil {
-			return xerrors.Errorf("str: %w", err)
+			return errors.Wrap(err, "str")
 		}
 		if err := d.consume(':'); err != nil {
-			return xerrors.Errorf("field: %w", err)
+			return errors.Wrap(err, "field")
 		}
 		// Check that value exists.
 		if _, err = d.more(); err != nil {
-			return xerrors.Errorf("more: %w", err)
+			return errors.Wrap(err, "more")
 		}
 		d.unread()
 		if err := f(d, k.buf); err != nil {
-			return xerrors.Errorf("callback: %w", err)
+			return errors.Wrap(err, "callback")
 		}
 		if c, err = d.more(); err != nil {
-			return xerrors.Errorf("next: %w", err)
+			return errors.Wrap(err, "next")
 		}
 	}
 	if c != '}' {
-		return xerrors.Errorf("end: %w", badToken(c))
+		return errors.Wrap(badToken(c), "err")
 	}
 	return d.decDepth()
 }

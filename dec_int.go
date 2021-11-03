@@ -5,7 +5,7 @@ import (
 	"math"
 	"strconv"
 
-	"golang.org/x/xerrors"
+	"github.com/ogen-go/errors"
 )
 
 var intDigits []int8
@@ -56,7 +56,7 @@ func (d *Decoder) Int() (int, error) {
 func (d *Decoder) Int32() (int32, error) {
 	c, err := d.byte()
 	if err != nil {
-		return 0, xerrors.Errorf("byte: %w", err)
+		return 0, errors.Wrap(err, "byte")
 	}
 	if c == '-' {
 		val, err := d.readUint32()
@@ -64,7 +64,7 @@ func (d *Decoder) Int32() (int32, error) {
 			return 0, err
 		}
 		if val > math.MaxInt32+1 {
-			return 0, xerrors.New("overflow")
+			return 0, errors.New("overflow")
 		}
 		return -int32(val), nil
 	}
@@ -74,7 +74,7 @@ func (d *Decoder) Int32() (int32, error) {
 		return 0, err
 	}
 	if val > math.MaxInt32 {
-		return 0, xerrors.New("overflow")
+		return 0, errors.New("overflow")
 	}
 	return int32(val), nil
 }
@@ -87,14 +87,14 @@ func (d *Decoder) Uint32() (uint32, error) {
 func (d *Decoder) readUint32() (uint32, error) {
 	c, err := d.byte()
 	if err != nil {
-		return 0, xerrors.Errorf("byte: %w", err)
+		return 0, errors.Wrap(err, "byte")
 	}
 	ind := intDigits[c]
 	if ind == 0 {
 		return 0, nil
 	}
 	if ind == invalidCharForNumber {
-		return 0, xerrors.Errorf("bad token: %w", err)
+		return 0, errors.Wrap(err, "bad token")
 	}
 	value := uint32(ind)
 	if d.tail-d.head > 10 {
@@ -158,7 +158,7 @@ func (d *Decoder) readUint32() (uint32, error) {
 			if value > uint32SafeToMultiply10 {
 				value2 := (value << 3) + (value << 1) + uint32(ind)
 				if value2 < value {
-					return 0, xerrors.New("overflow")
+					return 0, errors.New("overflow")
 				}
 				value = value2
 				continue
@@ -179,7 +179,7 @@ func (d *Decoder) readUint32() (uint32, error) {
 func (d *Decoder) Int64() (int64, error) {
 	c, err := d.byte()
 	if err != nil {
-		return 0, xerrors.Errorf("byte: %w", err)
+		return 0, errors.Wrap(err, "byte")
 	}
 	if c == '-' {
 		c, err := d.next()
@@ -191,7 +191,7 @@ func (d *Decoder) Int64() (int64, error) {
 			return 0, err
 		}
 		if val > math.MaxInt64+1 {
-			return 0, xerrors.Errorf("%d overflows", val)
+			return 0, errors.Errorf("%d overflows", val)
 		}
 		return -int64(val), nil
 	}
@@ -200,7 +200,7 @@ func (d *Decoder) Int64() (int64, error) {
 		return 0, err
 	}
 	if val > math.MaxInt64 {
-		return 0, xerrors.Errorf("%d overflows", val)
+		return 0, errors.Errorf("%d overflows", val)
 	}
 	return int64(val), nil
 }
@@ -209,7 +209,7 @@ func (d *Decoder) Int64() (int64, error) {
 func (d *Decoder) Uint64() (uint64, error) {
 	c, err := d.byte()
 	if err != nil {
-		return 0, xerrors.Errorf("byte: %w", err)
+		return 0, errors.Wrap(err, "byte")
 	}
 	return d.readUint64(c)
 }
@@ -220,7 +220,7 @@ func (d *Decoder) readUint64(c byte) (uint64, error) {
 		return 0, nil // single zero
 	}
 	if ind == invalidCharForNumber {
-		return 0, xerrors.Errorf("invalid number: %w", badToken(c))
+		return 0, errors.Wrap(badToken(c), "invalid number")
 	}
 	value := uint64(ind)
 	if d.tail-d.head > 10 {
@@ -284,7 +284,7 @@ func (d *Decoder) readUint64(c byte) (uint64, error) {
 			if value > uint64SafeToMultiple10 {
 				value2 := (value << 3) + (value << 1) + uint64(ind)
 				if value2 < value {
-					return 0, xerrors.New("overflow")
+					return 0, errors.New("overflow")
 				}
 				value = value2
 				continue
@@ -296,7 +296,7 @@ func (d *Decoder) readUint64(c byte) (uint64, error) {
 			return value, nil
 		}
 		if err != nil {
-			return 0, xerrors.Errorf("read: %w", err)
+			return 0, errors.Wrap(err, "read")
 		}
 	}
 }

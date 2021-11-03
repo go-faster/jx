@@ -9,7 +9,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/xerrors"
+
+	"github.com/ogen-go/errors"
 )
 
 // NB: Any left intentionally unexported
@@ -93,30 +94,30 @@ func (e *Encoder) Any(a Any) {
 func (v *Any) Read(d *Decoder) error {
 	switch d.Next() {
 	case Invalid:
-		return xerrors.New("invalid")
+		return errors.New("invalid")
 	case Number:
 		n, err := d.Number()
 		if err != nil {
-			return xerrors.Errorf("number: %w", err)
+			return errors.Wrap(err, "number")
 		}
 		v.Number = n
 		v.Type = AnyNumber
 	case String:
 		s, err := d.Str()
 		if err != nil {
-			return xerrors.Errorf("str: %w", err)
+			return errors.Wrap(err, "str")
 		}
 		v.Str = s
 		v.Type = AnyStr
 	case Nil:
 		if err := d.Null(); err != nil {
-			return xerrors.Errorf("null: %w", err)
+			return errors.Wrap(err, "null")
 		}
 		v.Type = AnyNull
 	case Bool:
 		b, err := d.Bool()
 		if err != nil {
-			return xerrors.Errorf("bool: %w", err)
+			return errors.Wrap(err, "bool")
 		}
 		v.Bool = b
 		v.Type = AnyBool
@@ -125,14 +126,14 @@ func (v *Any) Read(d *Decoder) error {
 		if err := d.Obj(func(r *Decoder, s string) error {
 			var elem Any
 			if err := elem.Read(r); err != nil {
-				return xerrors.Errorf("elem: %w", err)
+				return errors.Wrap(err, "elem")
 			}
 			elem.Key = s
 			elem.KeyValid = true
 			v.Child = append(v.Child, elem)
 			return nil
 		}); err != nil {
-			return xerrors.Errorf("obj: %w", err)
+			return errors.Wrap(err, "obj")
 		}
 		return nil
 	case Array:
@@ -140,12 +141,12 @@ func (v *Any) Read(d *Decoder) error {
 		if err := d.Arr(func(r *Decoder) error {
 			var elem Any
 			if err := elem.Read(r); err != nil {
-				return xerrors.Errorf("elem: %w", err)
+				return errors.Wrap(err, "elem")
 			}
 			v.Child = append(v.Child, elem)
 			return nil
 		}); err != nil {
-			return xerrors.Errorf("array: %w", err)
+			return errors.Wrap(err, "array")
 		}
 		return nil
 	}
