@@ -38,6 +38,11 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 	if err := d.consume(':'); err != nil {
 		return errors.Wrap(err, "field")
 	}
+	// Skip whitespace.
+	if _, err = d.more(); err != nil {
+		return errors.Wrap(err, "more")
+	}
+	d.unread()
 	if err := f(d, k.buf); err != nil {
 		return errors.Wrap(err, "callback")
 	}
