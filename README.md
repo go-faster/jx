@@ -162,5 +162,13 @@ d.ObjBytes(func(d *Decoder, key []byte) error {
 - [ ] Support `Raw` for io.Reader
 - [ ] Support `Capture` for io.Reader
 
+# Non-goals
+* Code generation for decoding or encoding
+* Replacement for `encoding/json`
+* Reflection or `interface{}` based encoding or decoding
+
+This package should be kept as simple as possible and be used as
+low-level foundation for high-level projects like code generator.
+
 # License
 MIT, same as jsoniter
