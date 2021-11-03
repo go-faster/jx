@@ -75,7 +75,7 @@ func TestDecoder_int_numbers(t *testing.T) {
 func Test_read_int32(t *testing.T) {
 	inputs := []string{`1`, `12`, `123`, `1234`, `12345`, `123456`, `2147483647`, `-2147483648`}
 	for _, input := range inputs {
-		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
+		t.Run(input, func(t *testing.T) {
 			should := require.New(t)
 			iter := DecodeStr(input)
 			expected, err := strconv.ParseInt(input, 10, 32)
@@ -84,7 +84,7 @@ func Test_read_int32(t *testing.T) {
 			should.NoError(err)
 			should.Equal(int32(expected), v)
 		})
-		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
+		t.Run(input, func(t *testing.T) {
 			should := require.New(t)
 			iter := Decode(bytes.NewBufferString(input), 2)
 			expected, err := strconv.ParseInt(input, 10, 32)
@@ -177,7 +177,7 @@ func Test_read_int64_overflow(t *testing.T) {
 func Test_read_int64(t *testing.T) {
 	inputs := []string{`1`, `12`, `123`, `1234`, `12345`, `123456`, `9223372036854775807`, `-9223372036854775808`}
 	for _, input := range inputs {
-		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
+		t.Run(input, func(t *testing.T) {
 			should := require.New(t)
 			iter := DecodeStr(input)
 			expected, err := strconv.ParseInt(input, 10, 64)
@@ -186,7 +186,7 @@ func Test_read_int64(t *testing.T) {
 			should.NoError(err)
 			should.Equal(expected, v)
 		})
-		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
+		t.Run(input, func(t *testing.T) {
 			should := require.New(t)
 			iter := Decode(bytes.NewBufferString(input), 2)
 			expected, err := strconv.ParseInt(input, 10, 64)

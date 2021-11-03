@@ -65,7 +65,7 @@ func init() {
 		hexDigits[i] = byte((i - 'A') + 10)
 	}
 	types = make([]Type, 256)
-	for i := 0; i < len(types); i++ {
+	for i := range types {
 		types[i] = Invalid
 	}
 	types['"'] = String

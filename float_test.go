@@ -65,7 +65,7 @@ func Test_read_float(t *testing.T) {
 	}
 	for _, input := range inputs {
 		// non-streaming
-		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
+		t.Run(input, func(t *testing.T) {
 			should := require.New(t)
 			r := DecodeStr(input + ",")
 			expected, err := strconv.ParseFloat(input, 32)
@@ -74,7 +74,7 @@ func Test_read_float(t *testing.T) {
 			should.NoError(err)
 			should.Equal(float32(expected), got)
 		})
-		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
+		t.Run(input, func(t *testing.T) {
 			should := require.New(t)
 			r := DecodeStr(input + ",")
 			expected, err := strconv.ParseFloat(input, 64)
@@ -83,8 +83,7 @@ func Test_read_float(t *testing.T) {
 			should.NoError(err)
 			should.Equal(expected, got)
 		})
-		// streaming
-		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
+		t.Run(input, func(t *testing.T) {
 			should := require.New(t)
 			iter := Decode(bytes.NewBufferString(input+","), 2)
 			expected, err := strconv.ParseFloat(input, 32)
@@ -93,7 +92,7 @@ func Test_read_float(t *testing.T) {
 			should.NoError(err)
 			should.Equal(float32(expected), got)
 		})
-		t.Run(fmt.Sprintf("%v", input), func(t *testing.T) {
+		t.Run(input, func(t *testing.T) {
 			should := require.New(t)
 			iter := Decode(bytes.NewBufferString(input+","), 2)
 			val := float64(0)
