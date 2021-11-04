@@ -4,8 +4,8 @@ import "github.com/ogen-go/errors"
 
 // Raw is like Skip(), but saves and returns skipped value as raw json.
 //
-// Do not retain returned slice, it references underlying buffer.
-func (d *Decoder) Raw() ([]byte, error) {
+// Do not retain returned value, it references underlying buffer.
+func (d *Decoder) Raw() (Raw, error) {
 	if d.reader != nil {
 		return nil, errors.New("not implemented for io.Reader")
 	}
@@ -19,10 +19,19 @@ func (d *Decoder) Raw() ([]byte, error) {
 }
 
 // RawAppend is Raw that appends saved raw json value to buf.
-func (d *Decoder) RawAppend(buf []byte) ([]byte, error) {
+func (d *Decoder) RawAppend(buf Raw) (Raw, error) {
 	raw, err := d.Raw()
 	if err != nil {
 		return nil, err
 	}
 	return append(buf, raw...), err
+}
+
+// Raw json value.
+type Raw []byte
+
+// Type of Raw json value.
+func (r Raw) Type() Type {
+	d := Decoder{buf: r, tail: len(r)}
+	return d.Next()
 }

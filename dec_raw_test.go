@@ -82,3 +82,14 @@ func BenchmarkDecoder_Raw(b *testing.B) {
 		}
 	}
 }
+
+func BenchmarkRaw_Type(b *testing.B) {
+	v := Raw{'1'}
+
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		if v.Type() != Number {
+			b.Fatal("invalid")
+		}
+	}
+}

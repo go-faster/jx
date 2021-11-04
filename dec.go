@@ -6,7 +6,7 @@ import (
 	"github.com/ogen-go/errors"
 )
 
-// Type the type for JSON element
+// Type of json value.
 type Type int
 
 func (t Type) String() string {
