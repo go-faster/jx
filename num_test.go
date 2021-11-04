@@ -40,3 +40,36 @@ func TestNum(t *testing.T) {
 		})
 	})
 }
+
+func BenchmarkNum(b *testing.B) {
+	b.Run("Integer", func(b *testing.B) {
+		v := Num{
+			Format: NumFormatInt,
+			Value:  []byte{'1', '2', '3', '5', '7'},
+		}
+		b.Run("Positive", func(b *testing.B) {
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				if !v.Positive() {
+					b.Fatal("should be positive")
+				}
+			}
+		})
+		b.Run("Zero", func(b *testing.B) {
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				if v.Zero() {
+					b.Fatal("should be not zero")
+				}
+			}
+		})
+		b.Run("Encode", func(b *testing.B) {
+			b.ReportAllocs()
+			var e Encoder
+			for i := 0; i < b.N; i++ {
+				e.Num(v)
+				e.Reset()
+			}
+		})
+	})
+}
