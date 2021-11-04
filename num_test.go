@@ -67,7 +67,7 @@ func TestNum(t *testing.T) {
 			require.Equal(t, "12345", n.String())
 		})
 	})
-	t.Run("Integer", func(t *testing.T) {
+	t.Run("Float", func(t *testing.T) {
 		const (
 			s = `1.23`
 			f = 1.23
