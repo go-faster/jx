@@ -81,13 +81,23 @@ func TestNum(t *testing.T) {
 			})
 		})
 		t.Run("FloatAsInt", func(t *testing.T) {
-			v := Num{
-				Format: NumFormatFloat,
-				Value:  []byte{'1', '2', '3', '.', '0'},
-			}
-			n, err := v.Int()
-			require.NoError(t, err)
-			require.Equal(t, 123, n)
+			t.Run("Positive", func(t *testing.T) {
+				v := Num{
+					Format: NumFormatFloat,
+					Value:  []byte{'1', '2', '3', '.', '0'},
+				}
+				n, err := v.Int()
+				require.NoError(t, err)
+				require.Equal(t, 123, n)
+			})
+			t.Run("Negative", func(t *testing.T) {
+				v := Num{
+					Format: NumFormatFloat,
+					Value:  []byte{'1', '2', '3', '.', '0', '0', '1'},
+				}
+				_, err := v.Int()
+				require.Error(t, err)
+			})
 		})
 		t.Run("Decode", func(t *testing.T) {
 			n, err := DecodeStr("12345").NumTo(Num{})
