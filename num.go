@@ -5,7 +5,7 @@ import (
 )
 
 // NumFormat is format of Num.Value.
-type NumFormat byte
+type NumFormat uint8
 
 // Possible formats of Num.
 const (
@@ -23,7 +23,7 @@ func (f NumFormat) Float() bool {
 
 // Invalid reports whether format is invalid.
 func (f NumFormat) Invalid() bool {
-	return f <= NumFormatInvalid || f > NumFormatFloatStr
+	return f == NumFormatInvalid || f > NumFormatFloatStr
 }
 
 // Int reports whether format is integer.
