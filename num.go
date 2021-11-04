@@ -116,11 +116,11 @@ func (n Num) String() string {
 	}
 	var b strings.Builder
 	if n.Format.Str() {
-		b.WriteByte('\n')
+		b.WriteByte('"')
 	}
 	_, _ = b.Write(n.Value)
 	if n.Format.Str() {
-		b.WriteByte('\n')
+		b.WriteByte('"')
 	}
 	return b.String()
 }

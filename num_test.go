@@ -17,6 +17,34 @@ func TestEncoder_Num(t *testing.T) {
 }
 
 func TestNum(t *testing.T) {
+	t.Run("String", func(t *testing.T) {
+		for _, cc := range []struct {
+			Name   string
+			String string
+			Value  Num
+		}{
+			{
+				Name:   "Int",
+				String: "-12",
+				Value: Num{
+					Format: NumFormatInt,
+					Value:  []byte("-12"),
+				},
+			},
+			{
+				Name:   "IntStr",
+				String: `"-12"`,
+				Value: Num{
+					Format: NumFormatIntStr,
+					Value:  []byte("-12"),
+				},
+			},
+		} {
+			t.Run(cc.Name, func(t *testing.T) {
+				require.Equal(t, cc.String, cc.Value.String())
+			})
+		}
+	})
 	t.Run("ZeroValue", func(t *testing.T) {
 		// Zero value is invalid because there is no Nun.Value.
 		var v Num
@@ -25,6 +53,7 @@ func TestNum(t *testing.T) {
 		require.False(t, v.Zero())
 		require.False(t, v.Positive())
 		require.False(t, v.Negative())
+		require.Equal(t, "<invalid>", v.String())
 	})
 	t.Run("Integer", func(t *testing.T) {
 		t.Run("Int", func(t *testing.T) {
