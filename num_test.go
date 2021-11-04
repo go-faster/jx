@@ -46,7 +46,7 @@ func TestNum(t *testing.T) {
 		}
 	})
 	t.Run("ZeroValue", func(t *testing.T) {
-		// Zero value is invalid because there is no Nun.Value.
+		// Zero value is invalid because there is no Num.Value.
 		var v Num
 		require.Equal(t, NumFormatInvalid, v.Format)
 		require.True(t, v.Format.Invalid())
