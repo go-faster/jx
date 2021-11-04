@@ -3,6 +3,8 @@ package jx
 import (
 	"bytes"
 	"strings"
+
+	"github.com/ogen-go/errors"
 )
 
 // NumFormat is format of Num.Value.
@@ -62,6 +64,42 @@ type Num struct {
 	//
 	// If Num is string number, Value does not contain quotes.
 	Value []byte
+}
+
+func (n Num) dec() Decoder {
+	return Decoder{
+		buf:  n.Value,
+		tail: len(n.Value),
+	}
+}
+
+func (n Num) floatAsInt() error {
+	var dot bool
+	for _, c := range n.Value {
+		if c == '.' {
+			dot = true
+			continue
+		}
+		if !dot {
+			continue
+		}
+		if c != '0' {
+			return errors.Wrap(badToken(c), "non-zero digit after dot")
+		}
+	}
+	return nil
+}
+
+// Int decodes number as an integer. Works on floats with zero fractional part.
+func (n Num) Int() (int, error) {
+	if n.Format.Float() {
+		// Allow decoding floats with zero fractional, like 1.0 as 1.
+		if err := n.floatAsInt(); err != nil {
+			return 0, errors.Wrap(err, "float as int")
+		}
+	}
+	d := n.dec()
+	return d.Int()
 }
 
 // Equal reports whether numbers are strictly equal, including their formats.

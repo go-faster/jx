@@ -29,16 +29,36 @@ func TestNum(t *testing.T) {
 		require.False(t, v.Negative())
 	})
 	t.Run("Integer", func(t *testing.T) {
-		v := Num{
-			Format: NumFormatInt,
-			Value:  []byte{'1', '2', '3'},
-		}
-		t.Run("Encode", func(t *testing.T) {
-			var e Encoder
-			e.Num(v)
-			require.Equal(t, e.String(), "123")
+		t.Run("Int", func(t *testing.T) {
+			v := Num{
+				Format: NumFormatInt,
+				Value:  []byte{'1', '2', '3'},
+			}
+			t.Run("Methods", func(t *testing.T) {
+				assert.True(t, v.Positive())
+				assert.True(t, v.Format.Int())
+				assert.False(t, v.Format.Invalid())
+				assert.False(t, v.Negative())
+				assert.False(t, v.Zero())
+				assert.Equal(t, 1, v.Sign())
+				assert.Equal(t, "123", v.String())
+			})
+			t.Run("Encode", func(t *testing.T) {
+				var e Encoder
+				e.Num(v)
+				require.Equal(t, e.String(), "123")
 
-			n, err := DecodeBytes(e.Bytes()).Int()
+				n, err := DecodeBytes(e.Bytes()).Int()
+				require.NoError(t, err)
+				require.Equal(t, 123, n)
+			})
+		})
+		t.Run("FloatAsInt", func(t *testing.T) {
+			v := Num{
+				Format: NumFormatFloat,
+				Value:  []byte{'1', '2', '3', '.', '0'},
+			}
+			n, err := v.Int()
 			require.NoError(t, err)
 			require.Equal(t, 123, n)
 		})
@@ -47,15 +67,6 @@ func TestNum(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, NumFormatInt, n.Format)
 			require.Equal(t, "12345", n.String())
-		})
-		t.Run("Methods", func(t *testing.T) {
-			assert.True(t, v.Positive())
-			assert.True(t, v.Format.Int())
-			assert.False(t, v.Format.Invalid())
-			assert.False(t, v.Negative())
-			assert.False(t, v.Zero())
-			assert.Equal(t, 1, v.Sign())
-			assert.Equal(t, "123", v.String())
 		})
 	})
 	t.Run("Integer", func(t *testing.T) {
