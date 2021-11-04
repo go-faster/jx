@@ -16,8 +16,6 @@ func TestEncoder_Num(t *testing.T) {
 	require.Equal(t, e.String(), "123")
 }
 
-const epsilon = 1e-6
-
 func TestNum(t *testing.T) {
 	t.Run("ZeroValue", func(t *testing.T) {
 		// Zero value is invalid because there is no Nun.Value.

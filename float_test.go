@@ -12,6 +12,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// epsilon to compare floats.
+const epsilon = 1e-6
+
 func Test_read_big_float(t *testing.T) {
 	should := require.New(t)
 	r := DecodeStr(`12.3`)
