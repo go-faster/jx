@@ -23,7 +23,7 @@ func (f NumFormat) Float() bool {
 
 // Invalid reports whether format is invalid.
 func (f NumFormat) Invalid() bool {
-	return f == NumFormatInvalid || f > NumFormatFloatStr || f < NumFormatInt
+	return f <= NumFormatInvalid || f > NumFormatFloatStr
 }
 
 // Int reports whether format is integer.

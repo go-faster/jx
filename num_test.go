@@ -17,6 +17,15 @@ func TestEncoder_Num(t *testing.T) {
 }
 
 func TestNum(t *testing.T) {
+	t.Run("ZeroValue", func(t *testing.T) {
+		// Zero value is invalid because there is no Nun.Value.
+		var v Num
+		require.Equal(t, NumFormatInvalid, v.Format)
+		require.True(t, v.Format.Invalid())
+		require.False(t, v.Zero())
+		require.False(t, v.Positive())
+		require.False(t, v.Negative())
+	})
 	t.Run("Integer", func(t *testing.T) {
 		v := Num{
 			Format: NumFormatInt,
@@ -71,6 +80,13 @@ func BenchmarkNum(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				e.Num(v)
 				e.Reset()
+			}
+		})
+		b.Run("Format.Invalid", func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				if v.Format.Invalid() {
+					b.Fatal("invalid")
+				}
 			}
 		})
 	})
