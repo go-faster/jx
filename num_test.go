@@ -25,6 +25,10 @@ func TestNum(t *testing.T) {
 			var e Encoder
 			e.Num(v)
 			require.Equal(t, e.String(), "123")
+
+			n, err := DecodeBytes(e.Bytes()).Int()
+			require.NoError(t, err)
+			require.Equal(t, 123, n)
 		})
 		t.Run("Methods", func(t *testing.T) {
 			require.True(t, v.Positive())
