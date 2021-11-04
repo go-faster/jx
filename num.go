@@ -1,5 +1,9 @@
 package jx
 
+import (
+	"strings"
+)
+
 // NumFormat is format of Num.Value.
 type NumFormat byte
 
@@ -57,6 +61,21 @@ type Num struct {
 	//
 	// If Num is string number, Value does not contain quotes.
 	Value []byte
+}
+
+func (n Num) String() string {
+	if n.Format.Invalid() {
+		return "<invalid>"
+	}
+	var b strings.Builder
+	if n.Format.Str() {
+		b.WriteByte('\n')
+	}
+	_, _ = b.Write(n.Value)
+	if n.Format.Str() {
+		b.WriteByte('\n')
+	}
+	return b.String()
 }
 
 // Sign reports sign of number.

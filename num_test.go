@@ -3,6 +3,7 @@ package jx
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,12 +32,13 @@ func TestNum(t *testing.T) {
 			require.Equal(t, 123, n)
 		})
 		t.Run("Methods", func(t *testing.T) {
-			require.True(t, v.Positive())
-			require.True(t, v.Format.Int())
-			require.False(t, v.Format.Invalid())
-			require.False(t, v.Negative())
-			require.False(t, v.Zero())
-			require.Equal(t, 1, v.Sign())
+			assert.True(t, v.Positive())
+			assert.True(t, v.Format.Int())
+			assert.False(t, v.Format.Invalid())
+			assert.False(t, v.Negative())
+			assert.False(t, v.Zero())
+			assert.Equal(t, 1, v.Sign())
+			assert.Equal(t, "123", v.String())
 		})
 	})
 }
