@@ -106,6 +106,20 @@ func TestNum(t *testing.T) {
 }
 
 func BenchmarkNum(b *testing.B) {
+	b.Run("FloatAsInt", func(b *testing.B) {
+		b.Run("Integer", func(b *testing.B) {
+			v := Num{
+				Format: NumFormatFloat,
+				Value:  []byte{'1', '2', '3', '5', '7', '.', '0'},
+			}
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				if _, err := v.Int(); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+	})
 	b.Run("Integer", func(b *testing.B) {
 		v := Num{
 			Format: NumFormatInt,
