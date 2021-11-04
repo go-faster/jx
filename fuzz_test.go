@@ -45,9 +45,7 @@ func FuzzDecEnc(f *testing.F) {
 			t.Skip()
 		}
 		w := GetEncoder()
-		if err := w.Any(v); err != nil {
-			t.Fatal(err)
-		}
+		w.Any(v)
 
 		// Parsing from buf to new value.
 		r.ResetBytes(w.Bytes())
@@ -62,9 +60,7 @@ func FuzzDecEnc(f *testing.F) {
 		}
 		b := w.Bytes()
 		w.SetBytes(nil)
-		if err := parsed.Write(w); err != nil {
-			t.Fatal(err)
-		}
+		parsed.Write(w)
 		if !bytes.Equal(w.Bytes(), b) {
 			t.Fatalf("%s != %s", w, b)
 		}
