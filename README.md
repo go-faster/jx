@@ -161,6 +161,7 @@ d.ObjBytes(func(d *Decoder, key []byte) error {
 - [ ] Rework `Any`
 - [ ] Support `Raw` for io.Reader
 - [ ] Support `Capture` for io.Reader
+- [ ] Decide what to do with `base64`
 
 # Non-goals
 * Code generation for decoding or encoding

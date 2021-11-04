@@ -98,7 +98,7 @@ func TestDecoder_BigFloat(t *testing.T) {
 func TestDecoder_Float32(t *testing.T) {
 	v, err := DecodeStr(`429496739.0`).Float32()
 	require.NoError(t, err)
-	require.InEpsilon(t, 429496729.0, v, 1e-6)
+	require.InEpsilon(t, 429496729.0, v, epsilon)
 }
 
 func TestDecoder_Float64(t *testing.T) {
@@ -116,7 +116,6 @@ func TestDecoder_Float64(t *testing.T) {
 		},
 	} {
 		t.Run(tc.String, func(t *testing.T) {
-			const epsilon = 1e-6
 			t.Run("32Str", func(t *testing.T) {
 				v, err := DecodeStr(tc.String).Float32()
 				require.InEpsilon(t, tc.Value, v, epsilon)

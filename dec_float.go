@@ -37,7 +37,7 @@ func init() {
 
 // BigFloat read big.Float
 func (d *Decoder) BigFloat() (*big.Float, error) {
-	str, err := d.number(nil)
+	str, err := d.numberAppend(nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "number")
 	}
@@ -54,7 +54,7 @@ func (d *Decoder) BigFloat() (*big.Float, error) {
 
 // BigInt read big.Int
 func (d *Decoder) BigInt() (*big.Int, error) {
-	str, err := d.number(nil)
+	str, err := d.numberAppend(nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "number")
 	}
@@ -162,18 +162,28 @@ NonDecimalLoop:
 	return d.f32Slow()
 }
 
-func (d *Decoder) number(b []byte) ([]byte, error) {
+func (d *Decoder) number() []byte {
+	start := d.head
+	for i := d.head; i < d.tail; i++ {
+		switch c := d.buf[i]; c {
+		case '+', '-', '.', 'e', 'E', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+			continue
+		default:
+			// End of number.
+			d.head = i
+			return d.buf[start:d.head]
+		}
+	}
+	// Buffer is number within head:tail.
+	d.head = d.tail
+	return d.buf[start:d.tail]
+}
+
+func (d *Decoder) numberAppend(b []byte) ([]byte, error) {
 	for {
-		for i := d.head; i < d.tail; i++ {
-			switch c := d.buf[i]; c {
-			case '+', '-', '.', 'e', 'E', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				b = append(b, c)
-				continue
-			default:
-				// End of number.
-				d.head = i
-				return b, nil
-			}
+		b = append(b, d.number()...)
+		if d.head != d.tail {
+			return b, nil
 		}
 		if err := d.read(); err != nil {
 			if err == io.EOF {
@@ -297,7 +307,7 @@ NonDecimal:
 func (d *Decoder) floatSlow(size int) (float64, error) {
 	var buf [32]byte
 
-	str, err := d.number(buf[:0])
+	str, err := d.numberAppend(buf[:0])
 	if err != nil {
 		return 0, errors.Wrap(err, "number")
 	}
@@ -342,7 +352,7 @@ func validateFloat(str []byte) error {
 
 // Number reads json.Number.
 func (d *Decoder) Number() (json.Number, error) {
-	str, err := d.number(nil)
+	str, err := d.numberAppend(nil)
 	if err != nil {
 		return "", err
 	}

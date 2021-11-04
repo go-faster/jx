@@ -16,6 +16,8 @@ func TestEncoder_Num(t *testing.T) {
 	require.Equal(t, e.String(), "123")
 }
 
+const epsilon = 1e-6
+
 func TestNum(t *testing.T) {
 	t.Run("ZeroValue", func(t *testing.T) {
 		// Zero value is invalid because there is no Nun.Value.
@@ -40,6 +42,12 @@ func TestNum(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, 123, n)
 		})
+		t.Run("Decode", func(t *testing.T) {
+			n, err := DecodeStr("12345").NumTo(Num{})
+			require.NoError(t, err)
+			require.Equal(t, NumFormatInt, n.Format)
+			require.Equal(t, "12345", n.String())
+		})
 		t.Run("Methods", func(t *testing.T) {
 			assert.True(t, v.Positive())
 			assert.True(t, v.Format.Int())
@@ -48,6 +56,40 @@ func TestNum(t *testing.T) {
 			assert.False(t, v.Zero())
 			assert.Equal(t, 1, v.Sign())
 			assert.Equal(t, "123", v.String())
+		})
+	})
+	t.Run("Integer", func(t *testing.T) {
+		const (
+			s = `1.23`
+			f = 1.23
+		)
+		v := Num{
+			Format: NumFormatFloat,
+			Value:  []byte(s),
+		}
+		t.Run("Encode", func(t *testing.T) {
+			var e Encoder
+			e.Num(v)
+			require.Equal(t, e.String(), s)
+
+			n, err := DecodeBytes(e.Bytes()).Float64()
+			require.NoError(t, err)
+			require.InEpsilon(t, f, n, epsilon)
+		})
+		t.Run("Decode", func(t *testing.T) {
+			n, err := DecodeStr(s).NumTo(Num{})
+			require.NoError(t, err)
+			require.Equal(t, NumFormatFloat, n.Format)
+			require.Equal(t, s, n.String())
+		})
+		t.Run("Methods", func(t *testing.T) {
+			assert.True(t, v.Positive())
+			assert.True(t, v.Format.Float())
+			assert.False(t, v.Format.Invalid())
+			assert.False(t, v.Negative())
+			assert.False(t, v.Zero())
+			assert.Equal(t, 1, v.Sign())
+			assert.Equal(t, s, v.String())
 		})
 	})
 }

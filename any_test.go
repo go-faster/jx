@@ -33,9 +33,9 @@ const (
 type Any struct {
 	Type AnyType // zero value if AnyInvalid, can be AnyNull
 
-	Str    string      // AnyStr
-	Bool   bool        // AnyBool
-	Number json.Number // AnyNumber
+	Str    string // AnyStr
+	Bool   bool   // AnyBool
+	Number Num    // AnyNumber
 
 	// Key in object. Valid only if KeyValid.
 	Key string
@@ -64,7 +64,7 @@ func (v Any) Equal(b Any) bool {
 	case AnyStr:
 		return v.Str == b.Str
 	case AnyNumber:
-		return v.Number == b.Number
+		return v.Number.Equal(b.Number)
 	}
 	if len(v.Child) != len(b.Child) {
 		return false
@@ -96,7 +96,7 @@ func (v *Any) Read(d *Decoder) error {
 	case Invalid:
 		return errors.New("invalid")
 	case Number:
-		n, err := d.Number()
+		n, err := d.Num()
 		if err != nil {
 			return errors.Wrap(err, "number")
 		}
@@ -162,7 +162,7 @@ func (v Any) Write(w *Encoder) {
 	case AnyStr:
 		w.Str(v.Str)
 	case AnyNumber:
-		w.Raw(string(v.Number))
+		w.Num(v.Number)
 	case AnyBool:
 		w.Bool(v.Bool)
 	case AnyNull:
@@ -201,7 +201,7 @@ func (v Any) String() string {
 	case AnyStr:
 		b.WriteString(`'` + v.Str + `'`)
 	case AnyNumber:
-		b.WriteString(string(v.Number))
+		b.WriteString(v.Number.String())
 	case AnyBool:
 		b.WriteString(strconv.FormatBool(v.Bool))
 	case AnyNull:
