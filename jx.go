@@ -1,4 +1,4 @@
-// Package jx implements encoding and decoding of json as per RFC 4627.
+// Package jx implements RFC 7159 json encoding and decoding.
 package jx
 
 import (
