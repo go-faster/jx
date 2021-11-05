@@ -91,6 +91,12 @@ issues:
       linters:
         - gocritic
 
+    # Check that equal to self is true
+    - linters: [gocritic]
+      source: '(assert|require).+Equal'
+      text: 'dupArg'
+      path: _test\.go
+
     # Ignore shadowing of err.
     - linters: [ govet ]
       text: 'declaration of "(err|ctx|log|c)"'
