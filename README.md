@@ -107,7 +107,7 @@ fmt.Println("Buffer len:", len(e.Bytes()))
 ```
 
 ## Raw
-Use [jx.Decoder.Raw](https://pkg.go.dev/github.com/ogen-go/jx#Decoder.Raw) to read raw json value, similar to `json.RawMessage`.
+Use [jx.Decoder.Raw](https://pkg.go.dev/github.com/ogen-go/jx#Decoder.Raw) to read raw json values, similar to `json.RawMessage`.
 ```go
 d := jx.DecodeStr(`{"foo": [1, 2, 3]}`)
 
