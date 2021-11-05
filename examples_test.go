@@ -106,3 +106,34 @@ func ExampleDecoder_Raw() {
 	// Output:
 	// array [1, 2, 3]
 }
+
+func ExampleDecoder_Num() {
+	// Can decode numbers and number strings.
+	d := jx.DecodeStr(`{"foo": "10531.0"}`)
+
+	var n jx.Num
+	if err := d.Obj(func(d *jx.Decoder, key string) error {
+		v, err := d.Num()
+		if err != nil {
+			return err
+		}
+		n = v
+		return nil
+	}); err != nil {
+		panic(err)
+	}
+
+	fmt.Println(n)
+	fmt.Println("positive:", n.Positive())
+
+	// Can decode floats with zero fractional part as integers:
+	v, err := n.Int64()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("int64:", v)
+	// Output:
+	// "10531.0"
+	// positive: true
+	// int64: 10531
+}

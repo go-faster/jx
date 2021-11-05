@@ -12,9 +12,14 @@ import (
 type Num []byte
 
 func (n Num) dec() Decoder {
+	head := 0
+	if n.Str() {
+		head = 1
+	}
 	return Decoder{
 		buf:  n,
 		tail: len(n),
+		head: head,
 	}
 }
 
@@ -34,7 +39,9 @@ func (n Num) floatAsInt() error {
 		if !dot {
 			continue
 		}
-		if c != '0' {
+		switch c {
+		case '0', '"': // ok
+		default:
 			return errors.Wrap(badToken(c), "non-zero fractional part")
 		}
 	}

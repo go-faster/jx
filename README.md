@@ -128,6 +128,41 @@ fmt.Println(raw.Type(), raw)
 // array [1, 2, 3]
 ```
 
+## Number
+
+Use [jx.Decoder.Num](https://pkg.go.dev/github.com/ogen-go/jx#Decoder.Num) to read numbers, similar to `json.Number`.
+Also supports string numbers, like `"12345"`, which is common js-compatible way to represent `uint64`.
+
+```go
+d := jx.DecodeStr(`{"foo": "10531.0"}`)
+
+var n jx.Num
+if err := d.Obj(func(d *jx.Decoder, key string) error {
+    v, err := d.Num()
+    if err != nil {
+        return err
+    }
+    n = v
+    return nil
+}); err != nil {
+    panic(err)
+}
+
+fmt.Println(n)
+fmt.Println("positive:", n.Positive())
+
+// Can decode floats with zero fractional part as integers:
+v, err := n.Int64()
+if err != nil {
+    panic(err)
+}
+fmt.Println("int64:", v)
+// Output:
+// "10531.0"
+// positive: true
+// int64: 10531
+```
+
 ## Validate
 
 Check that byte slice is valid json with [jx.Valid](https://pkg.go.dev/github.com/ogen-go/jx#Valid):
