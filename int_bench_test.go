@@ -8,7 +8,7 @@ import (
 )
 
 func BenchmarkEncoder_Int(b *testing.B) {
-	const v = 0xffffffff
+	const v = 0xffffff
 	b.Run("Strconv", func(b *testing.B) {
 		b.ReportAllocs()
 		var buf []byte
