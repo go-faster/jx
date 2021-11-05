@@ -131,7 +131,7 @@ fmt.Println(raw.Type(), raw)
 ## Number
 
 Use [jx.Decoder.Num](https://pkg.go.dev/github.com/ogen-go/jx#Decoder.Num) to read numbers, similar to `json.Number`.
-Also supports string numbers, like `"12345"`, which is common js-compatible way to represent `uint64`.
+Also supports string numbers, like `"12345"`, which is common compatible way to represent `uint64`.
 
 ```go
 d := jx.DecodeStr(`{"foo": "10531.0"}`)
