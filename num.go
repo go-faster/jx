@@ -6,9 +6,16 @@ import (
 	"github.com/ogen-go/errors"
 )
 
-// Num represents number, which can be raw json number or string of number.
+// Num represents number, which can be raw json number or number string.
 //
 // Same as Raw, but with number invariants.
+//
+// Examples:
+//	123.45   // Str: false, IsInt: false
+//	"123.45" // Str: true,  IsInt: false
+//	"12345"  // Str: true,  IsInt: false
+//	"12345"  // Str: true,  IsInt: true
+//	12345    // Str: false, IsInt: true
 type Num []byte
 
 func (n Num) dec() Decoder {
