@@ -157,7 +157,7 @@ d.ObjBytes(func(d *Decoder, key []byte) error {
 
 # Roadmap
 - [x] Support `Raw` decoding
-- [ ] Rework `json.Number`
+- [x] Rework `json.Number`
 - [ ] Rework `Any`
 - [ ] Support `Raw` for io.Reader
 - [ ] Support `Capture` for io.Reader
