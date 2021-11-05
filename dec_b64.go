@@ -6,7 +6,7 @@ import (
 	"github.com/ogen-go/errors"
 )
 
-// Base64 encodes base64 encoded data from string.
+// Base64 decodes base64 encoded data from string.
 //
 // Same as encoding/json, base64.StdEncoding or RFC 4648.
 func (d *Decoder) Base64() ([]byte, error) {
@@ -19,7 +19,7 @@ func (d *Decoder) Base64() ([]byte, error) {
 	return d.Base64Append([]byte{})
 }
 
-// Base64Append encodes base64 encoded data from string.
+// Base64Append appends base64 encoded data from string.
 //
 // Same as encoding/json, base64.StdEncoding or RFC 4648.
 func (d *Decoder) Base64Append(b []byte) ([]byte, error) {
