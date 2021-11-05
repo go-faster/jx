@@ -88,7 +88,7 @@ func TestNum(t *testing.T) {
 			})
 		})
 		t.Run("Decode", func(t *testing.T) {
-			n, err := DecodeStr("12345").NumTo(Num{})
+			n, err := DecodeStr("12345").Num()
 			require.NoError(t, err)
 			require.Equal(t, "12345", n.String())
 		})
@@ -109,7 +109,7 @@ func TestNum(t *testing.T) {
 			require.InEpsilon(t, f, n, epsilon)
 		})
 		t.Run("Decode", func(t *testing.T) {
-			n, err := DecodeStr(s).NumTo(Num{})
+			n, err := DecodeStr(s).Num()
 			require.NoError(t, err)
 			require.Equal(t, s, n.String())
 		})

@@ -35,7 +35,7 @@ func (n Num) floatAsInt() error {
 			continue
 		}
 		if c != '0' {
-			return errors.Wrap(badToken(c), "non-zero digit after dot")
+			return errors.Wrap(badToken(c), "non-zero fractional part")
 		}
 	}
 	return nil

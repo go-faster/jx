@@ -6,11 +6,16 @@ import (
 
 // Num decodes number.
 func (d *Decoder) Num() (Num, error) {
-	return d.NumTo(Num{})
+	return d.num(nil, false)
 }
 
-// NumTo decodes number into Num.
-func (d *Decoder) NumTo(v Num) (Num, error) {
+// NumAppend appends number.
+func (d *Decoder) NumAppend(v Num) (Num, error) {
+	return d.num(v, true)
+}
+
+// num decodes number.
+func (d *Decoder) num(v Num, forceAppend bool) (Num, error) {
 	switch d.Next() {
 	case String:
 		// Consume start of the string.
@@ -19,7 +24,7 @@ func (d *Decoder) NumTo(v Num) (Num, error) {
 	default:
 		return v, errors.Errorf("unexpected %s", d.Next())
 	}
-	if d.reader == nil {
+	if d.reader == nil && !forceAppend {
 		// Can use underlying buffer directly.
 		v = d.number()
 	} else {
