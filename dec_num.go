@@ -5,6 +5,8 @@ import (
 )
 
 // Num decodes number.
+//
+// Do not retain returned value, it references underlying buffer.
 func (d *Decoder) Num() (Num, error) {
 	return d.num(nil, false)
 }
