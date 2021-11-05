@@ -13,7 +13,6 @@ import (
 // Examples:
 //	123.45   // Str: false, IsInt: false
 //	"123.45" // Str: true,  IsInt: false
-//	"12345"  // Str: true,  IsInt: false
 //	"12345"  // Str: true,  IsInt: true
 //	12345    // Str: false, IsInt: true
 type Num []byte
