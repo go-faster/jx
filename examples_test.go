@@ -86,3 +86,23 @@ func ExampleDecoder_Capture() {
 	// Read 3 elements on first pass
 	// Next element is array again
 }
+
+func ExampleDecoder_Raw() {
+	d := jx.DecodeStr(`{"foo": [1, 2, 3]}`)
+
+	var raw jx.Raw
+	if err := d.Obj(func(d *jx.Decoder, key string) error {
+		v, err := d.Raw()
+		if err != nil {
+			return err
+		}
+		raw = v
+		return nil
+	}); err != nil {
+		panic(err)
+	}
+
+	fmt.Println(raw.Type(), raw)
+	// Output:
+	// array [1, 2, 3]
+}

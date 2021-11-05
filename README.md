@@ -106,6 +106,28 @@ fmt.Println("Buffer len:", len(e.Bytes()))
 // Buffer len: 28
 ```
 
+## Raw
+Use [jx.Decoder.Raw](https://pkg.go.dev/github.com/ogen-go/jx#Decoder.Raw) to read raw json value, similar to `json.RawMessage`.
+```go
+d := jx.DecodeStr(`{"foo": [1, 2, 3]}`)
+
+var raw jx.Raw
+if err := d.Obj(func(d *jx.Decoder, key string) error {
+    v, err := d.Raw()
+    if err != nil {
+        return err
+    }
+    raw = v
+    return nil
+}); err != nil {
+    panic(err)
+}
+
+fmt.Println(raw.Type(), raw)
+// Output:
+// array [1, 2, 3]
+```
+
 ## Validate
 
 Check that byte slice is valid json with [jx.Valid](https://pkg.go.dev/github.com/ogen-go/jx#Valid):
