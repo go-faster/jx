@@ -3,7 +3,7 @@ module github.com/go-faster/jx
 go 1.17
 
 require (
-	github.com/ogen-go/errors v0.4.1
+	github.com/ogen-go/errors v0.4.2
 	github.com/stretchr/testify v1.7.0
 )
 
