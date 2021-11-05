@@ -16,21 +16,39 @@ func (d *Decoder) NumAppend(v Num) (Num, error) {
 
 // num decodes number.
 func (d *Decoder) num(v Num, forceAppend bool) (Num, error) {
+	var str bool
 	switch d.Next() {
 	case String:
-		// Consume start of the string.
-		d.head++
+		str = true
 	case Number: // float or integer
 	default:
 		return v, errors.Errorf("unexpected %s", d.Next())
 	}
 	if d.reader == nil && !forceAppend {
 		// Can use underlying buffer directly.
-		v = d.number()
+		start := d.head
+		d.head++
+		d.number()
+		if str {
+			if err := d.consume('"'); err != nil {
+				return nil, errors.Wrap(err, "end of string")
+			}
+		}
+		v = d.buf[start:d.head]
 	} else {
-		buf, err := d.numberAppend(v[:0])
+		if str {
+			d.head++ // '"'
+			v = append(v, '"')
+		}
+		buf, err := d.numberAppend(v)
 		if err != nil {
 			return v, errors.Wrap(err, "decode")
+		}
+		if str {
+			if err := d.consume('"'); err != nil {
+				return nil, errors.Wrap(err, "end of string")
+			}
+			buf = append(buf, '"')
 		}
 		v = buf
 	}
@@ -47,6 +65,9 @@ func (d *Decoder) num(v Num, forceAppend bool) (Num, error) {
 	}
 
 	// TODO(ernado): Additional validity checks
+	// Current invariants:
+	// 1) Zero or one dot
+	// 2) Only: +, -, ., e, E, 0-9
 
 	return v, nil
 }

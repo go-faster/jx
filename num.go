@@ -141,7 +141,7 @@ func (n Num) Zero() bool {
 	}
 	for _, c := range n {
 		switch c {
-		case '.', '0':
+		case '.', '0', '-':
 			continue
 		default:
 			return false

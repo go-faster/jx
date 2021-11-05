@@ -8,9 +8,16 @@ import (
 )
 
 func TestEncoder_Num(t *testing.T) {
-	var e Encoder
-	e.Num(Num{'1', '2', '3'})
-	require.Equal(t, e.String(), "123")
+	t.Run("Valid", func(t *testing.T) {
+		var e Encoder
+		e.Num(Num{'1', '2', '3'})
+		require.Equal(t, e.String(), "123")
+	})
+	t.Run("Invalid", func(t *testing.T) {
+		var e Encoder
+		e.Num(Num{})
+		require.Equal(t, e.String(), "null")
+	})
 }
 
 func TestNum(t *testing.T) {
@@ -48,6 +55,8 @@ func TestNum(t *testing.T) {
 		assert.True(t, v.Equal(v))
 		assert.True(t, v.IsInt())
 		assert.False(t, v.Equal(Num{}))
+
+		assert.Equal(t, 0, Num{'"'}.Sign())
 	})
 	t.Run("ZeroValue", func(t *testing.T) {
 		// Zero value is invalid because there is no Num.Value.
@@ -58,6 +67,24 @@ func TestNum(t *testing.T) {
 		require.False(t, v.IsInt())
 		require.False(t, v.Str())
 		require.Equal(t, "<invalid>", v.String())
+	})
+	t.Run("IntZero", func(t *testing.T) {
+		v := Num{'0'}
+		require.True(t, v.Zero())
+		require.False(t, v.Positive())
+		require.False(t, v.Negative())
+		require.True(t, v.IsInt())
+		require.False(t, v.Str())
+		require.Equal(t, "0", v.String())
+	})
+	t.Run("FloatZero", func(t *testing.T) {
+		v := Num{'-', '0', '.', '0'}
+		require.True(t, v.Zero())
+		require.False(t, v.Positive())
+		require.True(t, v.Negative())
+		require.False(t, v.IsInt())
+		require.False(t, v.Str())
+		require.Equal(t, "-0.0", v.String())
 	})
 	t.Run("Integer", func(t *testing.T) {
 		t.Run("Int", func(t *testing.T) {
