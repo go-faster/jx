@@ -57,9 +57,6 @@ jobs:
           restore-keys: |
             test-${{ runner.os }}-${{ matrix.arch }}-go-${{ matrix.go }}-
 
-      - name: Download dependencies
-        run: go mod download && go mod tidy
-
       - name: Run tests
         env:
           GOARCH: ${{ matrix.arch }}
