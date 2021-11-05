@@ -2,7 +2,6 @@ package jx
 
 import (
 	"bytes"
-	"encoding/json"
 	"io"
 	"math/big"
 	"strconv"
@@ -348,13 +347,4 @@ func validateFloat(str []byte) error {
 		}
 	}
 	return nil
-}
-
-// Number reads json.Number.
-func (d *Decoder) Number() (json.Number, error) {
-	str, err := d.numberAppend(nil)
-	if err != nil {
-		return "", err
-	}
-	return json.Number(str), nil
 }

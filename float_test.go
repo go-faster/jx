@@ -33,14 +33,6 @@ func Test_read_big_int(t *testing.T) {
 	should.Equal(`92233720368547758079223372036854775807`, val.String())
 }
 
-func Test_read_number(t *testing.T) {
-	should := require.New(t)
-	iter := DecodeStr(`92233720368547758079223372036854775807`)
-	val, err := iter.Number()
-	should.NoError(err)
-	should.Equal(`92233720368547758079223372036854775807`, string(val))
-}
-
 func Test_encode_inf(t *testing.T) {
 	should := require.New(t)
 	_, err := json.Marshal(math.Inf(1))
