@@ -17,7 +17,17 @@ func TestDecoder_Raw(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, Array, raw.Type())
 				assert.Equal(t, `[1, 2, 3, 4, 5]`, raw.String())
-				t.Logf("%q", raw)
+				var rd Decoder
+				rd.ResetBytes(raw)
+				assert.NoError(t, rd.Arr(func(d *Decoder) error {
+					raw, err := d.Raw()
+					assert.NoError(t, err)
+					assert.Equal(t, Number, raw.Type())
+					n, err := DecodeBytes(raw).Num()
+					assert.NoError(t, err)
+					assert.False(t, n.Str())
+					return nil
+				}))
 				return err
 			}))
 		})
