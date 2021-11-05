@@ -3,7 +3,7 @@ package jx_test
 import (
 	"fmt"
 
-	"github.com/ogen-go/jx"
+	"github.com/go-faster/jx"
 )
 
 func ExampleDecodeStr() {

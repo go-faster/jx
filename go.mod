@@ -1,4 +1,4 @@
-module github.com/ogen-go/jx
+module github.com/go-faster/jx
 
 go 1.17
 

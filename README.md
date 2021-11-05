@@ -1,10 +1,10 @@
-# jx [![Go Reference](https://img.shields.io/badge/go-pkg-00ADD8)](https://pkg.go.dev/github.com/ogen-go/jx#section-documentation) [![codecov](https://img.shields.io/codecov/c/github/ogen-go/jx?label=cover)](https://codecov.io/gh/ogen-go/jx)
+# jx [![Go Reference](https://img.shields.io/badge/go-pkg-00ADD8)](https://pkg.go.dev/github.com/go-faster/jx#section-documentation) [![codecov](https://img.shields.io/codecov/c/github/go-faster/jx?label=cover)](https://codecov.io/gh/go-faster/jx)
 
 Package jx implements encoding and decoding of json [[RFC 7159](https://www.rfc-editor.org/rfc/rfc7159.html)].
 Lightweight fork of [jsoniter](https://github.com/json-iterator/go).
 
 ```console
-go get github.com/ogen-go/jx
+go get github.com/go-faster/jx
 ```
 
 ## Features
@@ -38,16 +38,16 @@ simplified implementation and reduced scope, allowing to focus on json stream pr
 
 ### Decode
 
-Use [jx.Decoder](https://pkg.go.dev/github.com/ogen-go/jx#Decoder). Zero value is valid,
+Use [jx.Decoder](https://pkg.go.dev/github.com/go-faster/jx#Decoder). Zero value is valid,
 but constructors are available for convenience:
-  * [jx.Decode(reader io.Reader, bufSize int)](https://pkg.go.dev/github.com/ogen-go/jx#Decode) for `io.Reader`
-  * [jx.DecodeBytes([]byte)](https://pkg.go.dev/github.com/ogen-go/jx#Decode)  for byte slices
-  * [jx.DecodeStr(string)](https://pkg.go.dev/github.com/ogen-go/jx#Decode) for strings
+  * [jx.Decode(reader io.Reader, bufSize int)](https://pkg.go.dev/github.com/go-faster/jx#Decode) for `io.Reader`
+  * [jx.DecodeBytes([]byte)](https://pkg.go.dev/github.com/go-faster/jx#Decode)  for byte slices
+  * [jx.DecodeStr(string)](https://pkg.go.dev/github.com/go-faster/jx#Decode) for strings
 
-To reuse decoders and their buffers, use [jx.GetDecoder](https://pkg.go.dev/github.com/ogen-go/jx#GetDecoder)
-and [jx.PutDecoder](https://pkg.go.dev/github.com/ogen-go/jx#PutDecoder) alongside with reset functions:
-* [jx.Decoder.Reset(io.Reader)](https://pkg.go.dev/github.com/ogen-go/jx#Decoder.Reset) to reset to new `io.Reader`
-* [jx.Decoder.ResetBytes([]byte)](https://pkg.go.dev/github.com/ogen-go/jx#Decoder.ResetBytes) to decode another byte slice
+To reuse decoders and their buffers, use [jx.GetDecoder](https://pkg.go.dev/github.com/go-faster/jx#GetDecoder)
+and [jx.PutDecoder](https://pkg.go.dev/github.com/go-faster/jx#PutDecoder) alongside with reset functions:
+* [jx.Decoder.Reset(io.Reader)](https://pkg.go.dev/github.com/go-faster/jx#Decoder.Reset) to reset to new `io.Reader`
+* [jx.Decoder.ResetBytes([]byte)](https://pkg.go.dev/github.com/go-faster/jx#Decoder.ResetBytes) to decode another byte slice
 
 Decoder is reset on `PutDecoder`.
 
@@ -83,10 +83,10 @@ fmt.Println(values)
 ```
 
 ### Encode
-Use [jx.Encoder](https://pkg.go.dev/github.com/ogen-go/jx#Encoder). Zero value is valid, reuse with
-[jx.GetEncoder](https://pkg.go.dev/github.com/ogen-go/jx#GetEncoder),
-[jx.PutEncoder](https://pkg.go.dev/github.com/ogen-go/jx#PutEncoder) and
-[jx.Encoder.Reset()](https://pkg.go.dev/github.com/ogen-go/jx#Encoder.Reset). Encoder is reset on `PutEncoder`.
+Use [jx.Encoder](https://pkg.go.dev/github.com/go-faster/jx#Encoder). Zero value is valid, reuse with
+[jx.GetEncoder](https://pkg.go.dev/github.com/go-faster/jx#GetEncoder),
+[jx.PutEncoder](https://pkg.go.dev/github.com/go-faster/jx#PutEncoder) and
+[jx.Encoder.Reset()](https://pkg.go.dev/github.com/go-faster/jx#Encoder.Reset). Encoder is reset on `PutEncoder`.
 ```go
 var e jx.Encoder
 e.ObjStart()         // {
@@ -107,7 +107,7 @@ fmt.Println("Buffer len:", len(e.Bytes()))
 ```
 
 ## Raw
-Use [jx.Decoder.Raw](https://pkg.go.dev/github.com/ogen-go/jx#Decoder.Raw) to read raw json values, similar to `json.RawMessage`.
+Use [jx.Decoder.Raw](https://pkg.go.dev/github.com/go-faster/jx#Decoder.Raw) to read raw json values, similar to `json.RawMessage`.
 ```go
 d := jx.DecodeStr(`{"foo": [1, 2, 3]}`)
 
@@ -130,7 +130,7 @@ fmt.Println(raw.Type(), raw)
 
 ## Number
 
-Use [jx.Decoder.Num](https://pkg.go.dev/github.com/ogen-go/jx#Decoder.Num) to read numbers, similar to `json.Number`.
+Use [jx.Decoder.Num](https://pkg.go.dev/github.com/go-faster/jx#Decoder.Num) to read numbers, similar to `json.Number`.
 Also supports number strings, like `"12345"`, which is common compatible way to represent `uint64`.
 
 ```go
@@ -165,7 +165,7 @@ fmt.Println("int64:", v)
 
 ## Validate
 
-Check that byte slice is valid json with [jx.Valid](https://pkg.go.dev/github.com/ogen-go/jx#Valid):
+Check that byte slice is valid json with [jx.Valid](https://pkg.go.dev/github.com/go-faster/jx#Valid):
 
 ```go
 fmt.Println(jx.Valid([]byte(`{"field": "value"}`))) // true
@@ -174,7 +174,7 @@ fmt.Println(jx.Valid([]byte(`["foo"}`)))            // false
 ```
 
 ## Capture
-The [jx.Decoder.Capture](https://pkg.go.dev/github.com/ogen-go/jx#Decoder.Capture) method allows to unread everything is read in callback.
+The [jx.Decoder.Capture](https://pkg.go.dev/github.com/go-faster/jx#Decoder.Capture) method allows to unread everything is read in callback.
 Useful for multi-pass parsing:
 ```go
 d := jx.DecodeStr(`["foo", "bar", "baz"]`)
