@@ -25,10 +25,19 @@ func TestEncoder_Base64(t *testing.T) {
 			requireCompat(t, e.Bytes(), s)
 		}
 	})
-	t.Run("Zero", func(t *testing.T) {
-		var e Encoder
-		e.Base64([]byte{})
-		require.Equal(t, `null`, e.String())
+	t.Run("Zeroes", func(t *testing.T) {
+		t.Run("Nil", func(t *testing.T) {
+			v := []byte(nil)
+			var e Encoder
+			e.Base64(v)
+			requireCompat(t, e.Bytes(), v)
+		})
+		t.Run("ZeroLen", func(t *testing.T) {
+			v := make([]byte, 0)
+			var e Encoder
+			e.Base64(v)
+			requireCompat(t, e.Bytes(), v)
+		})
 	})
 }
 

@@ -6,11 +6,10 @@ import "encoding/base64"
 //
 // Same as encoding/json, base64.StdEncoding or RFC 4648.
 func (e *Encoder) Base64(data []byte) {
-	if len(data) == 0 {
+	if data == nil {
 		e.Null()
 		return
 	}
-
 	e.byte('"')
 	encodedLen := base64.StdEncoding.EncodedLen(len(data))
 	start := len(e.buf)

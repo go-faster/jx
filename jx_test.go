@@ -11,11 +11,11 @@ import (
 )
 
 // requireCompat fails if `encoding/json` will encode v differently than exp.
-func requireCompat(t testing.TB, exp []byte, v interface{}) {
+func requireCompat(t testing.TB, got []byte, v interface{}) {
 	t.Helper()
 	buf, err := json.Marshal(v)
 	require.NoError(t, err)
-	require.Equal(t, exp, buf)
+	require.Equal(t, buf, got)
 }
 
 func TestPutEncoder(t *testing.T) {
