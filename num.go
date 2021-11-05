@@ -74,6 +74,11 @@ func (n Num) dec() Decoder {
 }
 
 func (n Num) floatAsInt() error {
+	if n.Format.Int() {
+		return nil
+	}
+
+	// Allow decoding floats with zero fractional, like 1.0 as 1.
 	var dot bool
 	for _, c := range n.Value {
 		if c == '.' {
@@ -90,19 +95,27 @@ func (n Num) floatAsInt() error {
 	return nil
 }
 
-// Int decodes number as an integer. Works on floats with zero fractional part.
-func (n Num) Int() (int, error) {
-	if n.Format.Float() {
-		// Allow decoding floats with zero fractional, like 1.0 as 1.
-		if err := n.floatAsInt(); err != nil {
-			return 0, errors.Wrap(err, "float as int")
-		}
+// Int64 decodes number as a signed 64-bit integer.
+// Works on floats with zero fractional part.
+func (n Num) Int64() (int64, error) {
+	if err := n.floatAsInt(); err != nil {
+		return 0, errors.Wrap(err, "float as int")
 	}
 	d := n.dec()
-	return d.Int()
+	return d.Int64()
 }
 
-// Float64 decodes number as floating point.
+// Uint64 decodes number as an unsigned 64-bit integer.
+// Works on floats with zero fractional part.
+func (n Num) Uint64() (uint64, error) {
+	if err := n.floatAsInt(); err != nil {
+		return 0, errors.Wrap(err, "float as int")
+	}
+	d := n.dec()
+	return d.Uint64()
+}
+
+// Float64 decodes number as 64-bit floating point.
 func (n Num) Float64() (float64, error) {
 	d := n.dec()
 	return d.Float64()

@@ -69,6 +69,8 @@ func TestNum(t *testing.T) {
 				assert.False(t, v.Zero())
 				assert.Equal(t, 1, v.Sign())
 				assert.Equal(t, "123", v.String())
+				assert.True(t, v.Equal(v))
+				assert.False(t, v.Equal(Num{}))
 			})
 			t.Run("Encode", func(t *testing.T) {
 				var e Encoder
@@ -86,16 +88,24 @@ func TestNum(t *testing.T) {
 					Format: NumFormatFloat,
 					Value:  []byte{'1', '2', '3', '.', '0'},
 				}
-				n, err := v.Int()
+				n, err := v.Int64()
 				require.NoError(t, err)
-				require.Equal(t, 123, n)
+				require.Equal(t, int64(123), n)
+
+				un, err := v.Uint64()
+				require.NoError(t, err)
+				require.Equal(t, uint64(123), un)
+
+				f, err := v.Float64()
+				require.NoError(t, err)
+				require.InEpsilon(t, 123, f, epsilon)
 			})
 			t.Run("Negative", func(t *testing.T) {
 				v := Num{
 					Format: NumFormatFloat,
 					Value:  []byte{'1', '2', '3', '.', '0', '0', '1'},
 				}
-				_, err := v.Int()
+				_, err := v.Int64()
 				require.Error(t, err)
 			})
 		})
@@ -151,7 +161,7 @@ func BenchmarkNum(b *testing.B) {
 			}
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
-				if _, err := v.Int(); err != nil {
+				if _, err := v.Int64(); err != nil {
 					b.Fatal(err)
 				}
 			}
