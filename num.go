@@ -51,6 +51,28 @@ func (n Num) Int64() (int64, error) {
 	return d.Int64()
 }
 
+// IsInt reports whether number is integer.
+func (n Num) IsInt() bool {
+	if len(n) == 0 {
+		return false
+	}
+	b := n
+	if b[0] == '"' {
+		b = b[1 : len(b)-1]
+	}
+	if b[0] == '-' {
+		b = b[1:]
+	}
+	for _, c := range b {
+		switch c {
+		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9': // ok
+		default:
+			return false
+		}
+	}
+	return true
+}
+
 // Uint64 decodes number as an unsigned 64-bit integer.
 // Works on floats with zero fractional part.
 func (n Num) Uint64() (uint64, error) {

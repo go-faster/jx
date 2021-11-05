@@ -33,8 +33,21 @@ func TestNum(t *testing.T) {
 		} {
 			t.Run(cc.Name, func(t *testing.T) {
 				require.Equal(t, cc.String, cc.Value.String())
+				require.True(t, cc.Value.IsInt())
 			})
 		}
+	})
+	t.Run("Str", func(t *testing.T) {
+		v := Num{'"', '1', '2', '3', '"'}
+		assert.True(t, v.Positive())
+		assert.False(t, v.Negative())
+		assert.False(t, v.Zero())
+		assert.True(t, v.Str())
+		assert.Equal(t, 1, v.Sign())
+		assert.Equal(t, `"123"`, v.String())
+		assert.True(t, v.Equal(v))
+		assert.True(t, v.IsInt())
+		assert.False(t, v.Equal(Num{}))
 	})
 	t.Run("ZeroValue", func(t *testing.T) {
 		// Zero value is invalid because there is no Num.Value.
@@ -42,6 +55,8 @@ func TestNum(t *testing.T) {
 		require.False(t, v.Zero())
 		require.False(t, v.Positive())
 		require.False(t, v.Negative())
+		require.False(t, v.IsInt())
+		require.False(t, v.Str())
 		require.Equal(t, "<invalid>", v.String())
 	})
 	t.Run("Integer", func(t *testing.T) {
@@ -51,9 +66,11 @@ func TestNum(t *testing.T) {
 				assert.True(t, v.Positive())
 				assert.False(t, v.Negative())
 				assert.False(t, v.Zero())
+				assert.False(t, v.Str())
 				assert.Equal(t, 1, v.Sign())
 				assert.Equal(t, "123", v.String())
 				assert.True(t, v.Equal(v))
+				assert.True(t, v.IsInt())
 				assert.False(t, v.Equal(Num{}))
 			})
 			t.Run("Encode", func(t *testing.T) {
@@ -119,6 +136,7 @@ func TestNum(t *testing.T) {
 			assert.True(t, v.Positive())
 			assert.False(t, v.Negative())
 			assert.False(t, v.Zero())
+			assert.False(t, v.IsInt())
 			assert.Equal(t, 1, v.Sign())
 			assert.Equal(t, s, v.String())
 		})
@@ -138,15 +156,27 @@ func BenchmarkNum(b *testing.B) {
 		})
 		b.Run("Float30Chars", func(b *testing.B) {
 			var v Num
-			for i := 0; i < 30; i++ {
+			for i := 0; i < 28; i++ {
 				v = append(v, '1')
 			}
-			b.ReportAllocs()
-			for i := 0; i < b.N; i++ {
-				if err := v.floatAsInt(); err != nil {
-					b.Fatal(err)
+			v = append(v, '.', '0')
+
+			b.Run("AsInt", func(b *testing.B) {
+				b.ReportAllocs()
+				for i := 0; i < b.N; i++ {
+					if err := v.floatAsInt(); err != nil {
+						b.Fatal(err)
+					}
 				}
-			}
+			})
+			b.Run("IsInt", func(b *testing.B) {
+				b.ReportAllocs()
+				for i := 0; i < b.N; i++ {
+					if v.IsInt() {
+						b.Fatal("unexpected")
+					}
+				}
+			})
 		})
 	})
 	b.Run("Integer", func(b *testing.B) {
