@@ -35,3 +35,5 @@ func (r Raw) Type() Type {
 	d := Decoder{buf: r, tail: len(r)}
 	return d.Next()
 }
+
+func (r Raw) String() string { return string(r) }

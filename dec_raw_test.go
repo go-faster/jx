@@ -3,6 +3,7 @@ package jx
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -13,7 +14,9 @@ func TestDecoder_Raw(t *testing.T) {
 			d := DecodeStr(v)
 			require.NoError(t, d.Obj(func(d *Decoder, key string) error {
 				raw, err := d.Raw()
-				require.NoError(t, err)
+				assert.NoError(t, err)
+				assert.Equal(t, Array, raw.Type())
+				assert.Equal(t, `[1, 2, 3, 4, 5]`, raw.String())
 				t.Logf("%q", raw)
 				return err
 			}))
