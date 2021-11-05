@@ -21,6 +21,8 @@ func TestEncoder_Base64(t *testing.T) {
 
 			expected := fmt.Sprintf("%q", base64.StdEncoding.EncodeToString(s))
 			require.Equal(t, expected, e.String())
+
+			requireCompat(t, e.Bytes(), s)
 		}
 	})
 	t.Run("Zero", func(t *testing.T) {
