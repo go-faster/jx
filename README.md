@@ -213,12 +213,9 @@ d.ObjBytes(func(d *Decoder, key []byte) error {
 ```
 
 # Roadmap
-- [x] Support `Raw` decoding
-- [x] Rework `json.Number`
-- [ ] Rework `Any`
+- [ ] Rework and export `Any`
 - [ ] Support `Raw` for io.Reader
 - [ ] Support `Capture` for io.Reader
-- [ ] Decide what to do with `base64`
 
 # Non-goals
 * Code generation for decoding or encoding

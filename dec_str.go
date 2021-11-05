@@ -92,7 +92,7 @@ func (d *Decoder) str(v value) (value, error) {
 
 // StrBytes returns string value as sub-slice of internal buffer.
 //
-// Bytes is valid only until next call to any Decoder method.
+// Bytes are valid only until next call to any Decoder method.
 func (d *Decoder) StrBytes() ([]byte, error) {
 	v, err := d.str(value{raw: true})
 	if err != nil {
