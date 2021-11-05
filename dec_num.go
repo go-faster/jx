@@ -37,6 +37,9 @@ func (d *Decoder) NumTo(v Num) (Num, error) {
 		if c != '.' {
 			continue
 		}
+		if dot {
+			return v, errors.New("multiple dots in number")
+		}
 		dot = true
 		break
 	}
