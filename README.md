@@ -1,6 +1,6 @@
 # jx [![Go Reference](https://img.shields.io/badge/go-pkg-00ADD8)](https://pkg.go.dev/github.com/ogen-go/jx#section-documentation) [![codecov](https://img.shields.io/codecov/c/github/ogen-go/jx?label=cover)](https://codecov.io/gh/ogen-go/jx)
 
-Package jx implements encoding and decoding of json [[RFC 7159]](https://www.rfc-editor.org/rfc/rfc7159.html).
+Package jx implements encoding and decoding of json [[RFC 7159](https://www.rfc-editor.org/rfc/rfc7159.html)].
 Lightweight fork of [jsoniter](https://github.com/json-iterator/go).
 
 ```console
