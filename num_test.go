@@ -85,6 +85,8 @@ func TestNum(t *testing.T) {
 				v := Num{'1', '2', '3', '.', '0', '0', '1'}
 				_, err := v.Int64()
 				require.Error(t, err)
+				_, err = v.Uint64()
+				require.Error(t, err)
 			})
 		})
 		t.Run("Decode", func(t *testing.T) {
