@@ -102,6 +102,12 @@ func (n Num) Int() (int, error) {
 	return d.Int()
 }
 
+// Float64 decodes number as floating point.
+func (n Num) Float64() (float64, error) {
+	d := n.dec()
+	return d.Float64()
+}
+
 // Equal reports whether numbers are strictly equal, including their formats.
 func (n Num) Equal(v Num) bool {
 	if n.Format != v.Format {
