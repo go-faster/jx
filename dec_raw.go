@@ -1,6 +1,6 @@
 package jx
 
-import "github.com/ogen-go/errors"
+import "github.com/go-faster/errors"
 
 // Raw is like Skip(), but saves and returns skipped value as raw json.
 //

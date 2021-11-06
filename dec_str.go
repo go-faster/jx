@@ -5,7 +5,7 @@ import (
 	"unicode/utf16"
 	"unicode/utf8"
 
-	"github.com/ogen-go/errors"
+	"github.com/go-faster/errors"
 )
 
 // StrAppend reads string and appends it to byte slice.

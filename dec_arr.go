@@ -1,7 +1,7 @@
 package jx
 
 import (
-	"github.com/ogen-go/errors"
+	"github.com/go-faster/errors"
 )
 
 // Elem reads array element and reports whether array has more

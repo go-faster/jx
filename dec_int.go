@@ -5,7 +5,7 @@ import (
 	"math"
 	"strconv"
 
-	"github.com/ogen-go/errors"
+	"github.com/go-faster/errors"
 )
 
 var intDigits []int8

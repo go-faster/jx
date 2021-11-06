@@ -3,7 +3,7 @@ package jx
 import (
 	"io"
 
-	"github.com/ogen-go/errors"
+	"github.com/go-faster/errors"
 )
 
 // Type of json value.

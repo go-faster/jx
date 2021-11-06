@@ -1,7 +1,7 @@
 package jx
 
 import (
-	"github.com/ogen-go/errors"
+	"github.com/go-faster/errors"
 )
 
 // Null reads a json object as null and

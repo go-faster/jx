@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"strconv"
 
-	"github.com/ogen-go/errors"
+	"github.com/go-faster/errors"
 )
 
 var pow10 = []uint64{1, 10, 100, 1000, 10000, 100000, 1000000}

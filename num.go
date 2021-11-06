@@ -3,7 +3,7 @@ package jx
 import (
 	"bytes"
 
-	"github.com/ogen-go/errors"
+	"github.com/go-faster/errors"
 )
 
 // Num represents number, which can be raw json number or number string.

@@ -1,7 +1,7 @@
 package jx
 
 import (
-	"github.com/ogen-go/errors"
+	"github.com/go-faster/errors"
 )
 
 func skipObjBytes(d *Decoder, _ []byte) error { return d.Skip() }

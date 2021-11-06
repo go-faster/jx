@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/ogen-go/errors"
+	"github.com/go-faster/errors"
 )
 
 func FuzzValid(f *testing.F) {

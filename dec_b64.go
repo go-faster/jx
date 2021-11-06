@@ -3,7 +3,7 @@ package jx
 import (
 	"encoding/base64"
 
-	"github.com/ogen-go/errors"
+	"github.com/go-faster/errors"
 )
 
 // Base64 decodes base64 encoded data from string.

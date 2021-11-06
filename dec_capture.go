@@ -1,7 +1,7 @@
 package jx
 
 import (
-	"github.com/ogen-go/errors"
+	"github.com/go-faster/errors"
 )
 
 // Capture calls f and then rolls back to state before call.
