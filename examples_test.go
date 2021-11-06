@@ -137,3 +137,22 @@ func ExampleDecoder_Num() {
 	// positive: true
 	// int64: 10531
 }
+
+func ExampleEncoder_Base64() {
+	var e jx.Encoder
+	e.Base64([]byte("Hello"))
+	fmt.Println(e)
+
+	data, _ := jx.DecodeBytes(e.Bytes()).Base64()
+	fmt.Printf("%q", data)
+	// Output:
+	// "SGVsbG8="
+	// "Hello"
+}
+
+func ExampleDecoder_Base64() {
+	data, _ := jx.DecodeStr(`"SGVsbG8="`).Base64()
+	fmt.Printf("%q", data)
+	// Output:
+	// "Hello"
+}

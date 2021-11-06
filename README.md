@@ -163,6 +163,24 @@ fmt.Println("int64:", v)
 // int64: 10531
 ```
 
+## Base64
+Use [jx.Encoder.Base64](https://pkg.go.dev/github.com/go-faster/jx#Encoder.Base64) and
+[jx.Decoder.Base64](https://pkg.go.dev/github.com/go-faster/jx#Decoder.Base64) or
+[jx.Decoder.Base64Append](https://pkg.go.dev/github.com/go-faster/jx#Decoder.Base64Append).
+
+Same as encoding/json, base64.StdEncoding or [[RFC 4648](https://www.rfc-editor.org/rfc/rfc4648.html)].
+```go
+var e jx.Encoder
+e.Base64([]byte("Hello"))
+fmt.Println(e)
+
+data, _ := jx.DecodeBytes(e.Bytes()).Base64()
+fmt.Printf("%q", data)
+// Output:
+// "SGVsbG8="
+// "Hello"
+```
+
 ## Validate
 
 Check that byte slice is valid json with [jx.Valid](https://pkg.go.dev/github.com/go-faster/jx#Valid):
