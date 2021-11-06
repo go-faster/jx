@@ -144,15 +144,15 @@ func ExampleEncoder_Base64() {
 	fmt.Println(e)
 
 	data, _ := jx.DecodeBytes(e.Bytes()).Base64()
-	fmt.Printf("%q", data)
+	fmt.Printf("%s", data)
 	// Output:
 	// "SGVsbG8="
-	// "Hello"
+	// Hello
 }
 
 func ExampleDecoder_Base64() {
 	data, _ := jx.DecodeStr(`"SGVsbG8="`).Base64()
-	fmt.Printf("%q", data)
+	fmt.Printf("%s", data)
 	// Output:
-	// "Hello"
+	// Hello
 }

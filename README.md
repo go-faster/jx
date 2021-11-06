@@ -175,10 +175,10 @@ e.Base64([]byte("Hello"))
 fmt.Println(e)
 
 data, _ := jx.DecodeBytes(e.Bytes()).Base64()
-fmt.Printf("%q", data)
+fmt.Printf("%s", data)
 // Output:
 // "SGVsbG8="
-// "Hello"
+// Hello
 ```
 
 ## Validate
