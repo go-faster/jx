@@ -68,5 +68,10 @@ func TestZeroAlloc(t *testing.T) {
 				return err
 			})
 		})
+		t.Run("ArrBigFile", func(t *testing.T) {
+			zeroAllocDec(t, benchData, func(d *Decoder) error {
+				return d.Arr(nil)
+			})
+		})
 	})
 }
