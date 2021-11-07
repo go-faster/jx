@@ -122,7 +122,7 @@ func (e *Encoder) ObjStart() {
 	e.comma()
 	e.byte('{')
 	e.begin()
-	e.writeIndent(0)
+	e.writeIndent()
 }
 
 // Field writes field name and colon.
@@ -143,7 +143,7 @@ func (e *Encoder) Field(field string) {
 // ObjEnd writes end of object token, performing indentation if needed.
 func (e *Encoder) ObjEnd() {
 	e.end()
-	e.writeIndent(0)
+	e.writeIndent()
 	e.byte('}')
 }
 
@@ -159,7 +159,7 @@ func (e *Encoder) ArrStart() {
 	e.comma()
 	e.byte('[')
 	e.begin()
-	e.writeIndent(0)
+	e.writeIndent()
 }
 
 // ArrEmpty writes empty array.
@@ -171,18 +171,16 @@ func (e *Encoder) ArrEmpty() {
 // ArrEnd writes end of array, performing indentation if needed.
 func (e *Encoder) ArrEnd() {
 	e.end()
-	e.writeIndent(0)
+	e.writeIndent()
 	e.byte(']')
 }
 
-func (e *Encoder) writeIndent(delta int) {
+func (e *Encoder) writeIndent() {
 	if e.ident == 0 {
 		return
 	}
 	e.byte('\n')
-	levels := len(e.first) - delta
-	spaces := levels * e.ident
-	for i := 0; i < spaces; i++ {
+	for i := 0; i < len(e.first)*e.ident; i++ {
 		e.buf = append(e.buf, ' ')
 	}
 }
