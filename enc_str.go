@@ -308,7 +308,10 @@ func (e *Encoder) strEscape(i int, v string, valLen int) {
 	e.byte('"')
 }
 
-// Str write string to stream without html escape
+// Str encodes string without html escaping.
+//
+// Use StrEscape to escape html, this is default for encoding/json and
+// should be used by default for untrusted strings.
 func (e *Encoder) Str(v string) {
 	e.comma()
 	length := len(v)
