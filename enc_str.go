@@ -215,7 +215,7 @@ var safeSet = [utf8.RuneSelf]bool{
 	'\u007f': true,
 }
 
-const hex = "0123456789abcdef"
+const hexChars = "0123456789abcdef"
 
 // StrEscape encodes string with html special characters escaping.
 func (e *Encoder) StrEscape(v string) {
@@ -267,7 +267,7 @@ func (e *Encoder) strEscape(i int, v string, valLen int) {
 				// user-controlled strings are rendered into JSON
 				// and served to some browsers.
 				e.Raw(`\u00`)
-				e.twoBytes(hex[b>>4], hex[b&0xF])
+				e.twoBytes(hexChars[b>>4], hexChars[b&0xF])
 			}
 			i++
 			start = i
@@ -295,7 +295,7 @@ func (e *Encoder) strEscape(i int, v string, valLen int) {
 				e.Raw(v[start:i])
 			}
 			e.Raw(`\u202`)
-			e.byte(hex[c&0xF])
+			e.byte(hexChars[c&0xF])
 			i += size
 			start = i
 			continue
@@ -361,7 +361,7 @@ func (e *Encoder) strSlow(i int, v string, length int) {
 				// user-controlled strings are rendered into JSON
 				// and served to some browsers.
 				e.Raw(`\u00`)
-				e.twoBytes(hex[b>>4], hex[b&0xF])
+				e.twoBytes(hexChars[b>>4], hexChars[b&0xF])
 			}
 			i++
 			start = i

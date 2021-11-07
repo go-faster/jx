@@ -1,7 +1,7 @@
 package jx
 
 import (
-	hexEnc "encoding/hex"
+	"encoding/hex"
 	"encoding/json"
 	"testing"
 
@@ -106,7 +106,7 @@ func TestEncoder_Str(t *testing.T) {
 			i := DecodeBytes(s.Bytes())
 			got, err := i.Str()
 			require.NoError(t, err)
-			require.Equal(t, tt.Input, got, "%s\n%s", s, hexEnc.Dump(s.Bytes()))
+			require.Equal(t, tt.Input, got, "%s\n%s", s, hex.Dump(s.Bytes()))
 		})
 	}
 }
