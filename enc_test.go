@@ -67,3 +67,61 @@ func TestEncoder_ObjEmpty(t *testing.T) {
 	e.ObjEmpty()
 	require.Equal(t, "{}", string(e.Bytes()))
 }
+
+func TestEncoder_Obj(t *testing.T) {
+	t.Run("Field", func(t *testing.T) {
+		var e Encoder
+		e.Obj(func(e *Encoder) {
+			e.Field("hello")
+			e.Str("world")
+		})
+		require.Equal(t, `{"hello":"world"}`, e.String())
+	})
+	t.Run("Nil", func(t *testing.T) {
+		var e Encoder
+		e.Obj(nil)
+		require.Equal(t, `{}`, e.String())
+	})
+}
+
+func TestEncoder_Arr(t *testing.T) {
+	t.Run("Elem", func(t *testing.T) {
+		var e Encoder
+		e.Arr(func(e *Encoder) {
+			e.Str("world")
+		})
+		require.Equal(t, `["world"]`, e.String())
+	})
+	t.Run("Nil", func(t *testing.T) {
+		var e Encoder
+		e.Arr(nil)
+		require.Equal(t, `[]`, e.String())
+	})
+}
+
+func BenchmarkEncoder_Arr(b *testing.B) {
+	b.Run("Manual", func(b *testing.B) {
+		b.ReportAllocs()
+		var e Encoder
+		for i := 0; i < b.N; i++ {
+			e.ArrStart()
+			e.Int(1)
+			e.Int(2)
+			e.ArrEnd()
+
+			e.Reset()
+		}
+	})
+	b.Run("Callback", func(b *testing.B) {
+		b.ReportAllocs()
+		var e Encoder
+		for i := 0; i < b.N; i++ {
+			e.Arr(func(e *Encoder) {
+				e.Int(1)
+				e.Int(2)
+			})
+
+			e.Reset()
+		}
+	})
+}

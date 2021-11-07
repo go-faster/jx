@@ -154,6 +154,17 @@ func (e *Encoder) ObjEmpty() {
 	e.byte('}')
 }
 
+// Obj writes start of object, invokes callback and writes end of object.
+func (e *Encoder) Obj(f func(e *Encoder)) {
+	if f == nil {
+		e.ObjEmpty()
+		return
+	}
+	e.ObjStart()
+	f(e)
+	e.ObjEnd()
+}
+
 // ArrStart writes start of array, performing indentation if needed.
 func (e *Encoder) ArrStart() {
 	e.comma()
@@ -173,6 +184,17 @@ func (e *Encoder) ArrEnd() {
 	e.end()
 	e.writeIndent()
 	e.byte(']')
+}
+
+// Arr writes start of array, invokes callback and writes end of array.
+func (e *Encoder) Arr(f func(e *Encoder)) {
+	if f == nil {
+		e.ArrEmpty()
+		return
+	}
+	e.ArrStart()
+	f(e)
+	e.ArrEnd()
 }
 
 func (e *Encoder) writeIndent() {
