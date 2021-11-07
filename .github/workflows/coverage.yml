@@ -54,7 +54,7 @@ jobs:
   send:
     runs-on: ubuntu-latest
     needs:
-      - test
+      - run
     steps:
       - name: Checkout code
         uses: actions/checkout@v2.4.0
