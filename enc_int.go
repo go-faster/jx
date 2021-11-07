@@ -72,14 +72,14 @@ func (e *Encoder) Int32(v int32) {
 }
 
 // Uint64 encodes uint64.
-func (e *Encoder) Uint64(val uint64) {
+func (e *Encoder) Uint64(v uint64) {
 	e.comma()
-	q1 := val / 1000
+	q1 := v / 1000
 	if q1 == 0 {
-		e.buf = writeFirstBuf(e.buf, digits[val])
+		e.buf = writeFirstBuf(e.buf, digits[v])
 		return
 	}
-	r1 := val - q1*1000
+	r1 := v - q1*1000
 	q2 := q1 / 1000
 	if q2 == 0 {
 		e.buf = writeFirstBuf(e.buf, digits[q1])
@@ -130,25 +130,25 @@ func (e *Encoder) Uint64(val uint64) {
 }
 
 // Int64 encodes int64.
-func (e *Encoder) Int64(nval int64) {
+func (e *Encoder) Int64(v int64) {
 	var val uint64
-	if nval < 0 {
-		val = uint64(-nval)
+	if v < 0 {
+		val = uint64(-v)
 		e.comma()
 		e.resetComma()
 		e.buf = append(e.buf, '-')
 	} else {
-		val = uint64(nval)
+		val = uint64(v)
 	}
 	e.Uint64(val)
 }
 
 // Int encodes int.
-func (e *Encoder) Int(val int) {
-	e.Int64(int64(val))
+func (e *Encoder) Int(v int) {
+	e.Int64(int64(v))
 }
 
 // Uint encodes uint.
-func (e *Encoder) Uint(val uint) {
-	e.Uint64(uint64(val))
+func (e *Encoder) Uint(v uint) {
+	e.Uint64(uint64(v))
 }
