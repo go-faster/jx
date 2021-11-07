@@ -380,16 +380,16 @@ func TestAny_Equal(t *testing.T) {
 }
 
 func BenchmarkAny(b *testing.B) {
-	data := []byte(`[true, null, false, 100, "false"]`)
+	buf := []byte(`[true, null, false, 100, "false"]`)
 	r := GetDecoder()
 
 	b.ReportAllocs()
-	b.SetBytes(int64(len(data)))
+	b.SetBytes(int64(len(buf)))
 
 	var v Any
 	for i := 0; i < b.N; i++ {
 		v.Reset()
-		r.ResetBytes(data)
+		r.ResetBytes(buf)
 		if err := v.Read(r); err != nil {
 			b.Fatal(err)
 		}
@@ -397,14 +397,14 @@ func BenchmarkAny(b *testing.B) {
 }
 
 func BenchmarkAnyStd(b *testing.B) {
-	data := []byte(`[true, null, false, 100, "false"]`)
+	buf := []byte(`[true, null, false, 100, "false"]`)
 	b.ReportAllocs()
-	b.SetBytes(int64(len(data)))
+	b.SetBytes(int64(len(buf)))
 
 	var v []interface{}
 	for i := 0; i < b.N; i++ {
 		v = v[:0]
-		if err := json.Unmarshal(data, &v); err != nil {
+		if err := json.Unmarshal(buf, &v); err != nil {
 			b.Fatal(err)
 		}
 	}

@@ -37,7 +37,7 @@ func TestZeroAlloc(t *testing.T) {
 	// Tests that checks for zero allocations.
 	t.Run("Decoder", func(t *testing.T) {
 		t.Run("Validate", func(t *testing.T) {
-			zeroAllocDec(t, data, func(d *Decoder) error {
+			zeroAllocDec(t, benchData, func(d *Decoder) error {
 				return d.Validate()
 			})
 		})
