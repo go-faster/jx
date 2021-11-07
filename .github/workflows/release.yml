@@ -1,6 +1,9 @@
 name: release
 
-on: {create: {tags: [v*]}}
+on:
+  push:
+    tags:
+      - v*
 
 jobs:
   fetch:
