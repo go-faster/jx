@@ -15,7 +15,7 @@ jobs:
         run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
       - name: curl
         run: |
-          curl -s -o - 'https://pkg.go.dev/fetch/github.com/go-faster/jx@${{ steps.vars.outputs.tag }}' \
+          curl --show-error --fail-with-body -w "%{http_code}\n" -o - 'https://pkg.go.dev/fetch/github.com/go-faster/jx@${{ steps.vars.outputs.tag }}' \
             -X 'POST' \
             -H 'authority: pkg.go.dev' \
             -H 'content-length: 0' \
