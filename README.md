@@ -239,6 +239,7 @@ d.ObjBytes(func(d *Decoder, key []byte) error {
 ```
 
 # Roadmap
+- [ ] Remove `More`, add commas automatically
 - [ ] Rework and export `Any`
 - [ ] Support `Raw` for io.Reader
 - [ ] Support `Capture` for io.Reader
