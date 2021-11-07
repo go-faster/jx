@@ -22,31 +22,31 @@ func BenchmarkEncoderBigObject(b *testing.B) {
 func encodeObject(w *Encoder) {
 	w.ObjStart()
 
-	w.Field("objectId")
+	w.FieldStart("objectId")
 	w.Uint64(8838243212)
 
-	w.Field("name")
+	w.FieldStart("name")
 	w.Str("Jane Doe")
 
-	w.Field("address")
+	w.FieldStart("address")
 	w.ObjStart()
 	for _, field := range addressFields {
-		w.Field(field.key)
+		w.FieldStart(field.key)
 		w.Str(field.val)
 	}
 
-	w.Field("geo")
+	w.FieldStart("geo")
 	{
 		w.ObjStart()
-		w.Field("latitude")
+		w.FieldStart("latitude")
 		w.Float64(-154.550817)
-		w.Field("longitude")
+		w.FieldStart("longitude")
 		w.Float64(-84.176159)
 		w.ObjEnd()
 	}
 	w.ObjEnd()
 
-	w.Field("specialties")
+	w.FieldStart("specialties")
 	w.ArrStart()
 	for _, s := range specialties {
 		w.Str(s)
@@ -54,13 +54,13 @@ func encodeObject(w *Encoder) {
 	w.ArrEnd()
 
 	for i, text := range longText {
-		w.Field("longText" + strconv.Itoa(i))
+		w.FieldStart("longText" + strconv.Itoa(i))
 		w.Str(text)
 	}
 
 	for i := 0; i < 25; i++ {
 		num := i * 18328
-		w.Field("integerField" + strconv.Itoa(i))
+		w.FieldStart("integerField" + strconv.Itoa(i))
 		w.Int64(int64(num))
 	}
 

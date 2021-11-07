@@ -156,7 +156,7 @@ func (v *Any) Read(d *Decoder) error {
 // Write json representation of Any to Encoder.
 func (v Any) Write(w *Encoder) {
 	if v.KeyValid {
-		w.Field(v.Key)
+		w.FieldStart(v.Key)
 	}
 	switch v.Type {
 	case AnyStr:

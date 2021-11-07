@@ -1,6 +1,7 @@
 package jx
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -69,11 +70,12 @@ func TestEncoder_ObjEmpty(t *testing.T) {
 }
 
 func TestEncoder_Obj(t *testing.T) {
-	t.Run("Field", func(t *testing.T) {
+	t.Run("FieldStart", func(t *testing.T) {
 		var e Encoder
 		e.Obj(func(e *Encoder) {
-			e.Field("hello")
-			e.Str("world")
+			e.Field("hello", func(e *Encoder) {
+				e.Str("world")
+			})
 		})
 		require.Equal(t, `{"hello":"world"}`, e.String())
 	})
@@ -105,8 +107,7 @@ func BenchmarkEncoder_Arr(b *testing.B) {
 		var e Encoder
 		for i := 0; i < b.N; i++ {
 			e.ArrStart()
-			e.Int(1)
-			e.Int(2)
+			e.Null()
 			e.ArrEnd()
 
 			e.Reset()
@@ -117,11 +118,51 @@ func BenchmarkEncoder_Arr(b *testing.B) {
 		var e Encoder
 		for i := 0; i < b.N; i++ {
 			e.Arr(func(e *Encoder) {
-				e.Int(1)
-				e.Int(2)
+				e.Null()
 			})
 
 			e.Reset()
 		}
 	})
+}
+
+func BenchmarkEncoder_Field(b *testing.B) {
+	for _, fields := range []int{
+		1,
+		5,
+		10,
+		100,
+	} {
+		b.Run(fmt.Sprintf("%d", fields), func(b *testing.B) {
+			b.Run("Manual", func(b *testing.B) {
+				b.ReportAllocs()
+				var e Encoder
+				for i := 0; i < b.N; i++ {
+					e.ObjStart()
+					for j := 0; j < fields; j++ {
+						e.FieldStart("field")
+						e.Null()
+					}
+					e.ObjEnd()
+
+					e.Reset()
+				}
+			})
+			b.Run("Callback", func(b *testing.B) {
+				b.ReportAllocs()
+				var e Encoder
+				for i := 0; i < b.N; i++ {
+					e.Obj(func(e *Encoder) {
+						for j := 0; j < fields; j++ {
+							e.Field("field", func(e *Encoder) {
+								e.Null()
+							})
+						}
+					})
+
+					e.Reset()
+				}
+			})
+		})
+	}
 }

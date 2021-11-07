@@ -16,7 +16,7 @@ type Encoder struct {
 	//
 	// We write commas only before non-first element of Array or Object.
 	//
-	// See comma, begin, end and Field for implementation details.
+	// See comma, begin, end and FieldStart for implementation details.
 	//
 	// Note: probably, this can be optimized as bit set to ease memory
 	// consumption.
@@ -117,7 +117,9 @@ func (e *Encoder) Bool(v bool) {
 	}
 }
 
-// ObjStart writes object start, performing indentation if needed
+// ObjStart writes object start, performing indentation if needed.
+//
+// Use Obj as convenience helper for writing objects.
 func (e *Encoder) ObjStart() {
 	e.comma()
 	e.byte('{')
@@ -125,10 +127,12 @@ func (e *Encoder) ObjStart() {
 	e.writeIndent()
 }
 
-// Field encodes field name and writes colon.
+// FieldStart encodes field name and writes colon.
 //
 // For non-zero indentation also writes single space after colon.
-func (e *Encoder) Field(field string) {
+//
+// Use Field as convenience helper for encoding fields.
+func (e *Encoder) FieldStart(field string) {
 	e.Str(field)
 	if e.indent > 0 {
 		e.twoBytes(':', ' ')
@@ -140,7 +144,17 @@ func (e *Encoder) Field(field string) {
 	}
 }
 
+// Field encodes field start and then invokes callback.
+//
+// Has ~5ns overhead over FieldStart.
+func (e *Encoder) Field(name string, f func(e *Encoder)) {
+	e.FieldStart(name)
+	f(e)
+}
+
 // ObjEnd writes end of object token, performing indentation if needed.
+//
+// Use Obj as convenience helper for writing objects.
 func (e *Encoder) ObjEnd() {
 	e.end()
 	e.writeIndent()
@@ -154,6 +168,8 @@ func (e *Encoder) ObjEmpty() {
 }
 
 // Obj writes start of object, invokes callback and writes end of object.
+//
+// If callback is nil, writes empty object.
 func (e *Encoder) Obj(f func(e *Encoder)) {
 	if f == nil {
 		e.ObjEmpty()
@@ -165,6 +181,8 @@ func (e *Encoder) Obj(f func(e *Encoder)) {
 }
 
 // ArrStart writes start of array, performing indentation if needed.
+//
+// Use Arr as convenience helper for writing arrays.
 func (e *Encoder) ArrStart() {
 	e.comma()
 	e.byte('[')
@@ -179,6 +197,8 @@ func (e *Encoder) ArrEmpty() {
 }
 
 // ArrEnd writes end of array, performing indentation if needed.
+//
+// Use Arr as convenience helper for writing arrays.
 func (e *Encoder) ArrEnd() {
 	e.end()
 	e.writeIndent()
@@ -186,6 +206,8 @@ func (e *Encoder) ArrEnd() {
 }
 
 // Arr writes start of array, invokes callback and writes end of array.
+//
+// If callback is nil, writes empty array.
 func (e *Encoder) Arr(f func(e *Encoder)) {
 	if f == nil {
 		e.ArrEmpty()

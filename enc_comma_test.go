@@ -22,11 +22,11 @@ func TestEncoder_comma(t *testing.T) {
 	t.Run("Object", func(t *testing.T) {
 		var e Encoder
 		e.ObjStart()
-		e.Field("a")
+		e.FieldStart("a")
 		e.Int(1)
-		e.Field("b")
+		e.FieldStart("b")
 		e.Int(2)
-		e.Field("c")
+		e.FieldStart("c")
 		e.ArrStart()
 		e.Int(1)
 		e.Int(2)
