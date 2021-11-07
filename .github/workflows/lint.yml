@@ -26,7 +26,7 @@ jobs:
           skip-go-installation: true
 
   # Check if there are any dirty changes after go mod tidy
-  check-mod:
+  mod:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
