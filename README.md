@@ -249,6 +249,7 @@ d.ObjBytes(func(d *Decoder, key []byte) error {
   - Better validation on decoding
   - Support BigFloat and BigInt
   - Support equivalence check, like `eq(1.0, 1) == true`
+- [ ] Add non-callback decoding of objects
 
 # Non-goals
 * Code generation for decoding or encoding
