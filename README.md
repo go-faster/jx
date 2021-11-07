@@ -33,7 +33,7 @@ simplified implementation and reduced scope, allowing to focus on json stream pr
 * Reduced scope
   * No reflection
   * No `encoding/json` adapter
-  * 4x less code (8.5K to 2K SLOC)
+  * 3x less code (8.5K to 2.8K SLOC)
 * Fuzzing, improved test coverage
 * Drastically refactored and simplified
   * Explicit error returns
