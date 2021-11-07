@@ -196,3 +196,29 @@ func Benchmark_std_large_file(b *testing.B) {
 		}
 	}
 }
+
+func encodeSmallObject(e *Encoder) {
+	e.ObjStart()
+	e.FieldStart("data_array")
+	e.ArrStart()
+	e.Int(5467889)
+	e.Int(456717)
+	e.Int(5789935)
+	e.ArrEnd()
+	e.ObjEnd()
+}
+
+func BenchmarkEncoder_ObjStart(b *testing.B) {
+	e := GetEncoder()
+	encodeSmallObject(e)
+	b.SetBytes(int64(len(e.Bytes())))
+	if e.String() != `{"data_array":[5467889,456717,5789935]}` {
+		b.Fatal(e)
+	}
+
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		e.Reset()
+		encodeSmallObject(e)
+	}
+}

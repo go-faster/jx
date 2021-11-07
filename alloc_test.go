@@ -9,7 +9,7 @@ import (
 	"github.com/go-faster/errors"
 )
 
-const defaultAllocRuns = 10
+const defaultAllocRuns = 20
 
 func zeroAlloc(t *testing.T, f func()) {
 	t.Helper()
@@ -86,6 +86,38 @@ func TestZeroAlloc(t *testing.T) {
 			zeroAllocDec(t, benchData, func(d *Decoder) error {
 				return d.Arr(nil)
 			})
+		})
+	})
+	t.Run("Encoder", func(t *testing.T) {
+		t.Run("Manual", func(t *testing.T) {
+			var e Encoder
+			e.ObjStart()
+			e.FieldStart("foo")
+			e.ArrStart()
+			e.Int(1)
+			e.Int(2)
+			e.Int(3)
+			e.ArrEnd()
+			e.ObjEnd()
+		})
+		t.Run("Small object", func(t *testing.T) {
+			var e Encoder
+			encodeSmallObject(&e)
+		})
+		t.Run("Callback", func(t *testing.T) {
+			var e Encoder
+			e.Obj(func(e *Encoder) {
+				e.Field("foo", func(e *Encoder) {
+					e.Arr(func(e *Encoder) {
+						e.Int(1)
+						e.Int(2)
+						e.Int(3)
+					})
+				})
+			})
+			if string(e.Bytes()) != `{"foo":[1,2,3]}` {
+				t.Error("mismatch")
+			}
 		})
 	})
 }
