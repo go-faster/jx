@@ -4,8 +4,10 @@ import (
 	"github.com/go-faster/errors"
 )
 
-// Elem reads array element and reports whether array has more
-// elements to read.
+// Elem skips to the start of next array element, returning true boolean
+// if element exists.
+//
+// Can be called before or in Array.
 func (d *Decoder) Elem() (ok bool, err error) {
 	c, err := d.next()
 	if err != nil {
@@ -33,7 +35,7 @@ func (d *Decoder) Elem() (ok bool, err error) {
 
 func skipArr(d *Decoder) error { return d.Skip() }
 
-// Arr reads array and calls f on each array element.
+// Arr decodes array and invokes callback on each array element.
 func (d *Decoder) Arr(f func(d *Decoder) error) error {
 	if f == nil {
 		f = skipArr
