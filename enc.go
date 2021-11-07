@@ -109,8 +109,8 @@ func (e *Encoder) False() {
 }
 
 // Bool encodes boolean.
-func (e *Encoder) Bool(val bool) {
-	if val {
+func (e *Encoder) Bool(v bool) {
+	if v {
 		e.True()
 	} else {
 		e.False()
