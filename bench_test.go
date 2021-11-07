@@ -14,6 +14,7 @@ var benchData []byte
 
 func Benchmark_large_file(b *testing.B) {
 	b.ReportAllocs()
+	b.SetBytes(int64(len(benchData)))
 	d := Decode(nil, 4096)
 
 	for n := 0; n < b.N; n++ {
