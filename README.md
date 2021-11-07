@@ -99,9 +99,9 @@ Use [jx.Encoder](https://pkg.go.dev/github.com/go-faster/jx#Encoder). Zero value
 [jx.Encoder.Reset()](https://pkg.go.dev/github.com/go-faster/jx#Encoder.Reset). Encoder is reset on `PutEncoder`.
 ```go
 var e jx.Encoder
-e.ObjStart()         // {
-e.ObjField("values") // "values":
-e.ArrStart()         // [
+e.ObjStart()           // {
+e.FieldStart("values") // "values":
+e.ArrStart()           // [
 for _, v := range []int{4, 8, 15, 16, 23, 42} {
     e.Int(v)
 }
