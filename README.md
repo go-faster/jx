@@ -36,6 +36,14 @@ simplified implementation and reduced scope, allowing to focus on json stream pr
 
 ## Usage
 
+* [Decoding](#decode)
+* [Encoding](#decode)
+* [Raw message](#raw)
+* [Number](#number)
+* [Base64](#base64)
+* [Validation](#validate)
+* [Multi pass decoding](#capture)
+
 ### Decode
 
 Use [jx.Decoder](https://pkg.go.dev/github.com/go-faster/jx#Decoder). Zero value is valid,
