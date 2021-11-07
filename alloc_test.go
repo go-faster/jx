@@ -30,6 +30,15 @@ func zeroAllocDec(t *testing.T, buf []byte, f func(d *Decoder) error) {
 	})
 }
 
+func zeroAllocEnc(t *testing.T, f func(e *Encoder)) {
+	t.Helper()
+	var e Encoder
+	zeroAlloc(t, func() {
+		e.Reset()
+		f(&e)
+	})
+}
+
 func zeroAllocDecStr(t *testing.T, s string, f func(d *Decoder) error) {
 	t.Helper()
 	zeroAllocDec(t, []byte(s), f)
@@ -90,26 +99,22 @@ func TestZeroAlloc(t *testing.T) {
 	})
 	t.Run("Encoder", func(t *testing.T) {
 		t.Run("Manual", func(t *testing.T) {
-			var e Encoder
-			e.ObjStart()
-			e.FieldStart("foo")
-			e.ArrStart()
-			e.Int(1)
-			e.Int(2)
-			e.Int(3)
-			e.ArrEnd()
-			e.ObjEnd()
+			zeroAllocEnc(t, func(e *Encoder) {
+				e.ObjStart()
+				e.FieldStart("foo")
+				e.ArrStart()
+				e.Int(1)
+				e.Int(2)
+				e.Int(3)
+				e.ArrEnd()
+				e.ObjEnd()
+			})
 		})
 		t.Run("Small object", func(t *testing.T) {
-			var e Encoder
-			encodeSmallObject(&e)
+			zeroAllocEnc(t, encodeSmallObject)
 		})
 		t.Run("Callback", func(t *testing.T) {
-			var e Encoder
-			encodeSmallCallback(&e)
-			if string(e.Bytes()) != `{"foo":[100,200,300]}` {
-				t.Fatal("mismatch")
-			}
+			zeroAllocEnc(t, encodeSmallCallback)
 		})
 	})
 }
