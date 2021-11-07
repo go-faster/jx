@@ -106,17 +106,9 @@ func TestZeroAlloc(t *testing.T) {
 		})
 		t.Run("Callback", func(t *testing.T) {
 			var e Encoder
-			e.Obj(func(e *Encoder) {
-				e.Field("foo", func(e *Encoder) {
-					e.Arr(func(e *Encoder) {
-						e.Int(1)
-						e.Int(2)
-						e.Int(3)
-					})
-				})
-			})
-			if string(e.Bytes()) != `{"foo":[1,2,3]}` {
-				t.Error("mismatch")
+			encodeSmallCallback(&e)
+			if string(e.Bytes()) != `{"foo":[100,200,300]}` {
+				t.Fatal("mismatch")
 			}
 		})
 	})

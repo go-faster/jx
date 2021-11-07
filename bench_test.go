@@ -211,7 +211,7 @@ func encodeSmallObject(e *Encoder) {
 func BenchmarkEncoder_ObjStart(b *testing.B) {
 	e := GetEncoder()
 	encodeSmallObject(e)
-	b.SetBytes(int64(len(e.Bytes())))
+	setBytes(b, e)
 	if e.String() != `{"data_array":[5467889,456717,5789935]}` {
 		b.Fatal(e)
 	}
@@ -220,5 +220,38 @@ func BenchmarkEncoder_ObjStart(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		e.Reset()
 		encodeSmallObject(e)
+	}
+}
+
+func encodeSmallCallback(e *Encoder) {
+	e.Obj(func(e *Encoder) {
+		e.Field("foo", func(e *Encoder) {
+			e.Arr(func(e *Encoder) {
+				e.Int(100)
+				e.Int(200)
+				e.Int(300)
+			})
+		})
+	})
+}
+
+func setBytes(b *testing.B, e *Encoder) {
+	b.Helper()
+	b.SetBytes(int64(len(e.Bytes())))
+}
+
+func BenchmarkEncoder_Obj(b *testing.B) {
+	e := GetEncoder()
+	b.ReportAllocs()
+
+	encodeSmallCallback(e)
+	setBytes(b, e)
+	if string(e.Bytes()) != `{"foo":[100,200,300]}` {
+		b.Fatal("mismatch")
+	}
+
+	for i := 0; i < b.N; i++ {
+		e.Reset()
+		encodeSmallCallback(e)
 	}
 }
