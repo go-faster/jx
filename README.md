@@ -7,6 +7,10 @@ Lightweight fork of [jsoniter](https://github.com/json-iterator/go).
 go get github.com/go-faster/jx
 ```
 
+* [Usage and examples](#usage)
+* [Roadmap](#roadmap)
+* [Non-goals](#non-goals)
+
 ## Features
 * Directly encode and decode json values
 * No reflect or `interface{}`
