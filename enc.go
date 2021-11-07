@@ -150,8 +150,7 @@ func (e *Encoder) ObjEnd() {
 // ObjEmpty writes empty object.
 func (e *Encoder) ObjEmpty() {
 	e.comma()
-	e.byte('{')
-	e.byte('}')
+	e.twoBytes('{', '}')
 }
 
 // Obj writes start of object, invokes callback and writes end of object.
