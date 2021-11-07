@@ -80,17 +80,17 @@ func (e *Encoder) fiveBytes(c1, c2, c3, c4, c5 byte) {
 	e.buf = append(e.buf, c1, c2, c3, c4, c5)
 }
 
-// Raw writes string as raw json.
-func (e *Encoder) Raw(v string) {
+// RawStr writes string as raw json.
+func (e *Encoder) RawStr(v string) {
 	e.buf = append(e.buf, v...)
 }
 
-// RawBytes writes byte slice as raw json.
-func (e *Encoder) RawBytes(b []byte) {
+// Raw writes byte slice as raw json.
+func (e *Encoder) Raw(b []byte) {
 	e.buf = append(e.buf, b...)
 }
 
-// Null writes null to stream.
+// Null writes null.
 func (e *Encoder) Null() {
 	e.comma()
 	e.fourBytes('n', 'u', 'l', 'l')
@@ -108,7 +108,7 @@ func (e *Encoder) False() {
 	e.fiveBytes('f', 'a', 'l', 's', 'e')
 }
 
-// Bool writes boolean.
+// Bool encodes boolean.
 func (e *Encoder) Bool(val bool) {
 	if val {
 		e.True()
@@ -125,7 +125,7 @@ func (e *Encoder) ObjStart() {
 	e.writeIndent()
 }
 
-// Field writes field name and colon.
+// Field encodes field name and writes colon.
 //
 // For non-zero indentation also writes single space after colon.
 func (e *Encoder) Field(field string) {

@@ -10,7 +10,7 @@ import (
 func TestDecoder_Raw(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
 		v := `{"foo":   [1, 2, 3, 4, 5]  }}`
-		t.Run("Raw", func(t *testing.T) {
+		t.Run("RawStr", func(t *testing.T) {
 			d := DecodeStr(v)
 			require.NoError(t, d.Obj(func(d *Decoder, key string) error {
 				raw, err := d.Raw()
@@ -43,7 +43,7 @@ func TestDecoder_Raw(t *testing.T) {
 	})
 	t.Run("Negative", func(t *testing.T) {
 		v := `{"foo":   [1, 2, 3, 4, 5`
-		t.Run("Raw", func(t *testing.T) {
+		t.Run("RawStr", func(t *testing.T) {
 			d := DecodeStr(v)
 			var called bool
 			require.Error(t, d.Obj(func(d *Decoder, key string) error {

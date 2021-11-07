@@ -86,7 +86,7 @@ func (d *Decoder) Any() (Any, error) {
 	return v, nil
 }
 
-// Any writes Any value.
+// Any encodes Any value.
 func (e *Encoder) Any(a Any) {
 	a.Write(e)
 }

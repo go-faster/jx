@@ -210,7 +210,7 @@ func Test_write_uint32(t *testing.T) {
 	}
 	should := require.New(t)
 	e := GetEncoder()
-	e.Raw("a")
+	e.RawStr("a")
 	e.Uint32(0xffffffff) // should clear buffer
 	should.Equal("a4294967295", e.String())
 }
@@ -227,7 +227,7 @@ func Test_write_int32(t *testing.T) {
 	}
 	should := require.New(t)
 	e := GetEncoder()
-	e.Raw("a")
+	e.RawStr("a")
 	e.Int32(-0x7fffffff) // should clear buffer
 	should.Equal("a-2147483647", e.String())
 }
@@ -246,7 +246,7 @@ func Test_write_uint64(t *testing.T) {
 	}
 	should := require.New(t)
 	e := GetEncoder()
-	e.Raw("a")
+	e.RawStr("a")
 	e.Uint64(0xffffffff) // should clear buffer
 	should.Equal("a4294967295", e.String())
 }
@@ -265,7 +265,7 @@ func Test_write_int64(t *testing.T) {
 	}
 	should := require.New(t)
 	e := GetEncoder()
-	e.Raw("a")
+	e.RawStr("a")
 	e.Int64(0xffffffff) // should clear buffer
 	should.Equal("a4294967295", e.String())
 }

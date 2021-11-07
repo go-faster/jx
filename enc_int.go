@@ -71,7 +71,7 @@ func (e *Encoder) Int32(v int32) {
 	e.Uint32(val)
 }
 
-// Uint64 writes uint64 to stream.
+// Uint64 encodes uint64.
 func (e *Encoder) Uint64(val uint64) {
 	e.comma()
 	q1 := val / 1000
@@ -129,7 +129,7 @@ func (e *Encoder) Uint64(val uint64) {
 	e.buf = writeBuf(e.buf, digits[r1])
 }
 
-// Int64 writes int64 to stream
+// Int64 encodes int64.
 func (e *Encoder) Int64(nval int64) {
 	var val uint64
 	if nval < 0 {
@@ -143,12 +143,12 @@ func (e *Encoder) Int64(nval int64) {
 	e.Uint64(val)
 }
 
-// Int writes int to stream.
+// Int encodes int.
 func (e *Encoder) Int(val int) {
 	e.Int64(int64(val))
 }
 
-// Uint writes uint to stream.
+// Uint encodes uint.
 func (e *Encoder) Uint(val uint) {
 	e.Uint64(uint64(val))
 }

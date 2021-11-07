@@ -7,5 +7,5 @@ func (e *Encoder) Num(v Num) {
 		return
 	}
 	e.comma()
-	e.RawBytes(v)
+	e.Raw(v)
 }

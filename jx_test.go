@@ -26,7 +26,7 @@ func TestPutEncoder(t *testing.T) {
 			defer wg.Done()
 			for i := 0; i < 1024; i++ {
 				e := GetEncoder()
-				e.Raw("false")
+				e.RawStr("false")
 				assert.Equal(t, "false", e.String())
 				PutEncoder(e)
 			}

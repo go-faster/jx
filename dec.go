@@ -87,9 +87,9 @@ func init() {
 	types['{'] = Object
 }
 
-// Decoder is streaming json decoder.
+// Decoder decodes json.
 //
-// Can read from io.Reader or byte slice directly.
+// Can decode from io.Reader or byte slice directly.
 type Decoder struct {
 	reader io.Reader
 

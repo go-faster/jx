@@ -30,9 +30,9 @@ func TestEncoder(t *testing.T) {
 		require.Equal(t, n, len(buf))
 		require.Equal(t, data, e.String())
 	})
-	t.Run("RawBytes", func(t *testing.T) {
+	t.Run("Raw", func(t *testing.T) {
 		e.Reset()
-		e.RawBytes(buf)
+		e.Raw(buf)
 		require.Equal(t, data, e.String())
 	})
 	t.Run("SetBytes", func(t *testing.T) {
@@ -45,7 +45,7 @@ func TestEncoder(t *testing.T) {
 func TestEncoder_Raw_should_grow_buffer(t *testing.T) {
 	should := require.New(t)
 	e := GetEncoder()
-	e.Raw("123")
+	e.RawStr("123")
 	should.Equal("123", string(e.Bytes()))
 }
 
