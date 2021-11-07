@@ -20,6 +20,7 @@ func (e *Encoder) float(v float64, bits int) {
 		return
 	}
 
+	e.comma()
 	// From go std sources, strconv/ftoa.go:
 
 	// Convert as if by ES6 number to string conversion.

@@ -22,61 +22,45 @@ func BenchmarkEncoderBigObject(b *testing.B) {
 func encodeObject(w *Encoder) {
 	w.ObjStart()
 
-	w.ObjField("objectId")
+	w.Field("objectId")
 	w.Uint64(8838243212)
 
-	w.More()
-	w.ObjField("name")
+	w.Field("name")
 	w.Str("Jane Doe")
 
-	w.More()
-	w.ObjField("address")
+	w.Field("address")
 	w.ObjStart()
-	for i, field := range addressFields {
-		if i != 0 {
-			w.More()
-		}
-		w.ObjField(field.key)
+	for _, field := range addressFields {
+		w.Field(field.key)
 		w.Str(field.val)
 	}
 
-	w.More()
-	w.ObjField("geo")
+	w.Field("geo")
 	{
 		w.ObjStart()
-		w.ObjField("latitude")
+		w.Field("latitude")
 		w.Float64(-154.550817)
-		w.More()
-		w.ObjField("longitude")
+		w.Field("longitude")
 		w.Float64(-84.176159)
 		w.ObjEnd()
 	}
 	w.ObjEnd()
 
-	w.More()
-	w.ObjField("specialties")
+	w.Field("specialties")
 	w.ArrStart()
-	for i, s := range specialties {
-		if i != 0 {
-			w.More()
-		}
+	for _, s := range specialties {
 		w.Str(s)
 	}
 	w.ArrEnd()
 
-	w.More()
 	for i, text := range longText {
-		if i != 0 {
-			w.More()
-		}
-		w.ObjField("longText" + strconv.Itoa(i))
+		w.Field("longText" + strconv.Itoa(i))
 		w.Str(text)
 	}
 
 	for i := 0; i < 25; i++ {
 		num := i * 18328
-		w.More()
-		w.ObjField("integerField" + strconv.Itoa(i))
+		w.Field("integerField" + strconv.Itoa(i))
 		w.Int64(int64(num))
 	}
 

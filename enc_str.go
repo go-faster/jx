@@ -219,6 +219,7 @@ const hex = "0123456789abcdef"
 
 // StrEscape encodes string with html special characters escaping.
 func (e *Encoder) StrEscape(v string) {
+	e.comma()
 	length := len(v)
 	e.buf = append(e.buf, '"')
 	// Fast path, probably does not require escaping.
@@ -309,6 +310,7 @@ func (e *Encoder) strEscape(i int, v string, valLen int) {
 
 // Str write string to stream without html escape
 func (e *Encoder) Str(v string) {
+	e.comma()
 	length := len(v)
 	e.buf = append(e.buf, '"')
 	// Fast path, without utf8 and escape support.

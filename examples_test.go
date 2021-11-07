@@ -39,13 +39,10 @@ func ExampleDecodeStr() {
 
 func ExampleEncoder_String() {
 	var e jx.Encoder
-	e.ObjStart()         // {
-	e.ObjField("values") // "values":
-	e.ArrStart()         // [
-	for i, v := range []int{4, 8, 15, 16, 23, 42} {
-		if i != 0 {
-			e.More() // ,
-		}
+	e.ObjStart()      // {
+	e.Field("values") // "values":
+	e.ArrStart()      // [
+	for _, v := range []int{4, 8, 15, 16, 23, 42} {
 		e.Int(v)
 	}
 	e.ArrEnd() // ]
@@ -160,7 +157,7 @@ func ExampleDecoder_Base64() {
 func Example() {
 	var e jx.Encoder
 	e.ObjStart()
-	e.ObjField("data")
+	e.Field("data")
 	e.Base64([]byte("hello"))
 	e.ObjEnd()
 	fmt.Println(e)

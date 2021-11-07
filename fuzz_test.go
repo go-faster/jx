@@ -76,7 +76,6 @@ func FuzzValues(f *testing.F) {
 
 		w.ArrStart()
 		w.Int64(n)
-		w.More()
 		w.Str(str)
 		w.ArrEnd()
 

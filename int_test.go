@@ -317,7 +317,6 @@ func TestDecoder_Int64(t *testing.T) {
 			e := GetEncoder()
 			e.ArrStart()
 			e.Int64(v)
-			e.More()
 			e.Int64(-v)
 			e.ArrEnd()
 
@@ -362,7 +361,6 @@ func TestDecoder_Int32(t *testing.T) {
 			e := GetEncoder()
 			e.ArrStart()
 			e.Int32(v)
-			e.More()
 			e.Int32(-v)
 			e.ArrEnd()
 
@@ -449,7 +447,6 @@ func TestDecoder_Uint32(t *testing.T) {
 			e := GetEncoder()
 			e.ArrStart()
 			e.Uint32(v)
-			e.More()
 			e.Uint(uint(v))
 			e.ArrEnd()
 

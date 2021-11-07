@@ -156,7 +156,7 @@ func (v *Any) Read(d *Decoder) error {
 // Write json representation of Any to Encoder.
 func (v Any) Write(w *Encoder) {
 	if v.KeyValid {
-		w.ObjField(v.Key)
+		w.Field(v.Key)
 	}
 	switch v.Type {
 	case AnyStr:
@@ -169,19 +169,13 @@ func (v Any) Write(w *Encoder) {
 		w.Null()
 	case AnyArr:
 		w.ArrStart()
-		for i, c := range v.Child {
-			if i != 0 {
-				w.More()
-			}
+		for _, c := range v.Child {
 			c.Write(w)
 		}
 		w.ArrEnd()
 	case AnyObj:
 		w.ObjStart()
-		for i, c := range v.Child {
-			if i != 0 {
-				w.More()
-			}
+		for _, c := range v.Child {
 			c.Write(w)
 		}
 		w.ObjEnd()

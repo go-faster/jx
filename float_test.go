@@ -172,11 +172,13 @@ func TestEncoder_FloatNanInf(t *testing.T) {
 		math.Inf(1),
 	} {
 		var e Encoder
+		e.ArrStart()
 		e.Float64(f)
-		e.More()
 		e.Float32(float32(f))
+		e.ArrEnd()
 
 		d := DecodeBytes(e.Bytes())
+		requireElem(t, d)
 		require.NoError(t, d.Null())
 		requireElem(t, d)
 		require.NoError(t, d.Null())

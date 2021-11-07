@@ -31,6 +31,7 @@ func writeBuf(buf []byte, v uint32) []byte {
 
 // Uint32 writes uint32 to stream.
 func (e *Encoder) Uint32(val uint32) {
+	e.comma()
 	q1 := val / 1000
 	if q1 == 0 {
 		e.buf = writeFirstBuf(e.buf, digits[val])
@@ -61,6 +62,8 @@ func (e *Encoder) Int32(nval int32) {
 	var val uint32
 	if nval < 0 {
 		val = uint32(-nval)
+		e.comma()
+		e.resetComma()
 		e.buf = append(e.buf, '-')
 	} else {
 		val = uint32(nval)
@@ -70,6 +73,7 @@ func (e *Encoder) Int32(nval int32) {
 
 // Uint64 writes uint64 to stream.
 func (e *Encoder) Uint64(val uint64) {
+	e.comma()
 	q1 := val / 1000
 	if q1 == 0 {
 		e.buf = writeFirstBuf(e.buf, digits[val])
@@ -130,6 +134,8 @@ func (e *Encoder) Int64(nval int64) {
 	var val uint64
 	if nval < 0 {
 		val = uint64(-nval)
+		e.comma()
+		e.resetComma()
 		e.buf = append(e.buf, '-')
 	} else {
 		val = uint64(nval)
