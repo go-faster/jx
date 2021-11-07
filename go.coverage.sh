@@ -2,5 +2,5 @@
 
 set -e
 
-go test -v -coverpkg=./... -coverprofile=profile.out ./...
+go test -race -v -coverpkg=./... -coverprofile=profile.out ./...
 go tool cover -func profile.out
