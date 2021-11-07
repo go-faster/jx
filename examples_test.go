@@ -156,3 +156,22 @@ func ExampleDecoder_Base64() {
 	// Output:
 	// Hello
 }
+
+func Example() {
+	var e jx.Encoder
+	e.ObjStart()
+	e.ObjField("data")
+	e.Base64([]byte("hello"))
+	e.ObjEnd()
+	fmt.Println(e)
+
+	if err := jx.DecodeBytes(e.Bytes()).Obj(func(d *jx.Decoder, key string) error {
+		v, err := d.Base64()
+		fmt.Printf("%s: %s\n", key, v)
+		return err
+	}); err != nil {
+		panic(err)
+	}
+	// Output: {"data":"aGVsbG8="}
+	// data: hello
+}
