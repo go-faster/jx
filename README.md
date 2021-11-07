@@ -102,10 +102,7 @@ var e jx.Encoder
 e.ObjStart()         // {
 e.ObjField("values") // "values":
 e.ArrStart()         // [
-for i, v := range []int{4, 8, 15, 16, 23, 42} {
-    if i != 0 {
-        e.More() // ,
-    }
+for _, v := range []int{4, 8, 15, 16, 23, 42} {
     e.Int(v)
 }
 e.ArrEnd() // ]
