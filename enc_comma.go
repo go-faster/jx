@@ -37,5 +37,5 @@ func (e *Encoder) comma() {
 		return
 	}
 	e.byte(',')
-	e.writeIdent(0)
+	e.writeIndent(0)
 }

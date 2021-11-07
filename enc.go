@@ -1,18 +1,15 @@
 package jx
 
-import (
-	"io"
-)
+import "io"
 
 // Encoder encodes json to underlying buffer.
 //
 // Zero value is valid.
 type Encoder struct {
-	buf    []byte // underlying buffer
-	ident  int    // indentation step
-	spaces int    // count of spaces
+	buf   []byte // underlying buffer
+	ident int    // indentation step
 
-	// first handles state for commas writing.
+	// first handles state for comma and indentation writing.
 	//
 	// New Object or Array appends new level to this slice, and
 	// last element of this slice denotes whether first element was written.
@@ -20,6 +17,11 @@ type Encoder struct {
 	// We write commas only before non-first element of Array or Object.
 	//
 	// See comma, begin, end and Field for implementation details.
+	//
+	// Note: probably, this can be optimized as bit set to ease memory
+	// consumption.
+	//
+	// See https://yourbasic.org/algorithms/your-basic-int/#simple-sets
 	first []bool
 }
 
@@ -118,10 +120,9 @@ func (e *Encoder) Bool(val bool) {
 // ObjStart writes object start, performing indentation if needed
 func (e *Encoder) ObjStart() {
 	e.comma()
-	e.spaces += e.ident
 	e.byte('{')
-	e.writeIdent(0)
 	e.begin()
+	e.writeIndent(0)
 }
 
 // Field writes field name and colon.
@@ -129,7 +130,7 @@ func (e *Encoder) ObjStart() {
 // For non-zero indentation also writes single space after colon.
 func (e *Encoder) Field(field string) {
 	e.Str(field)
-	if e.spaces > 0 {
+	if e.ident > 0 {
 		e.twoBytes(':', ' ')
 	} else {
 		e.byte(':')
@@ -141,10 +142,9 @@ func (e *Encoder) Field(field string) {
 
 // ObjEnd writes end of object token, performing indentation if needed.
 func (e *Encoder) ObjEnd() {
-	e.writeIdent(e.ident)
-	e.spaces -= e.ident
-	e.byte('}')
 	e.end()
+	e.writeIndent(0)
+	e.byte('}')
 }
 
 // ObjEmpty writes empty object.
@@ -157,10 +157,9 @@ func (e *Encoder) ObjEmpty() {
 // ArrStart writes start of array, performing indentation if needed.
 func (e *Encoder) ArrStart() {
 	e.comma()
-	e.spaces += e.ident
 	e.byte('[')
-	e.writeIdent(0)
 	e.begin()
+	e.writeIndent(0)
 }
 
 // ArrEmpty writes empty array.
@@ -171,18 +170,18 @@ func (e *Encoder) ArrEmpty() {
 
 // ArrEnd writes end of array, performing indentation if needed.
 func (e *Encoder) ArrEnd() {
-	e.writeIdent(e.ident)
-	e.spaces -= e.ident
-	e.byte(']')
 	e.end()
+	e.writeIndent(0)
+	e.byte(']')
 }
 
-func (e *Encoder) writeIdent(delta int) {
-	if e.spaces == 0 {
+func (e *Encoder) writeIndent(delta int) {
+	if e.ident == 0 {
 		return
 	}
 	e.byte('\n')
-	spaces := e.spaces - delta
+	levels := len(e.first) - delta
+	spaces := levels * e.ident
 	for i := 0; i < spaces; i++ {
 		e.buf = append(e.buf, ' ')
 	}

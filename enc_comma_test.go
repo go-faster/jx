@@ -35,6 +35,13 @@ func TestEncoder_comma(t *testing.T) {
 
 		require.Equal(t, `{"a":1,"b":2,"c":[1,2]}`, e.String())
 	})
+	t.Run("NoPanic", func(t *testing.T) {
+		var e Encoder
+		e.ObjEnd()
+		e.ObjEnd()
+		e.ArrEnd()
+		e.ArrEnd()
+	})
 }
 
 func BenchmarkEncoder_comma_overhead(b *testing.B) {

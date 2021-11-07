@@ -24,7 +24,7 @@ func Test_one_field(t *testing.T) {
 	}))
 }
 
-func Test_write_object(t *testing.T) {
+func TestEncoder_SetIdent(t *testing.T) {
 	should := require.New(t)
 	e := GetEncoder()
 	e.SetIdent(2)
@@ -33,8 +33,29 @@ func Test_write_object(t *testing.T) {
 	e.Int(1)
 	e.Field("world")
 	e.Int(2)
+	e.Field("obj")
+	e.ObjStart()
+	e.Field("a")
+	e.Str("b")
 	e.ObjEnd()
-	should.Equal("{\n  \"hello\": 1,\n  \"world\": 2\n}", e.String())
+	e.Field("data")
+	e.ArrStart()
+	e.Int(1)
+	e.Int(2)
+	e.ArrEnd()
+	e.ObjEnd()
+	expected := `{
+  "hello": 1,
+  "world": 2,
+  "obj": {
+    "a": "b"
+  },
+  "data": [
+    1,
+    2
+  ]
+}`
+	should.Equal(expected, e.String())
 }
 
 func TestDecoder_Obj(t *testing.T) {

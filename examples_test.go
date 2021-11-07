@@ -172,3 +172,26 @@ func Example() {
 	// Output: {"data":"aGVsbG8="}
 	// data: hello
 }
+
+func ExampleEncoder_SetIdent() {
+	var e jx.Encoder
+	e.SetIdent(2)
+	e.ObjStart()
+
+	e.Field("data")
+	e.ArrStart()
+	e.Int(1)
+	e.Int(2)
+	e.ArrEnd()
+
+	e.ObjEnd()
+	fmt.Println(e)
+
+	// Output:
+	// {
+	//   "data": [
+	//     1,
+	//     2
+	//   ]
+	// }
+}
