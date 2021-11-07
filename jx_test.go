@@ -15,7 +15,7 @@ func requireCompat(t testing.TB, got []byte, v interface{}) {
 	t.Helper()
 	buf, err := json.Marshal(v)
 	require.NoError(t, err)
-	require.Equal(t, buf, got)
+	require.Equal(t, string(buf), string(got))
 }
 
 func TestPutEncoder(t *testing.T) {

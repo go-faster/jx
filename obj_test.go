@@ -1,7 +1,9 @@
 package jx
 
 import (
+	"bytes"
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -56,6 +58,33 @@ func TestEncoder_SetIdent(t *testing.T) {
   ]
 }`
 	should.Equal(expected, e.String())
+
+	t.Run("Std", func(t *testing.T) {
+		b := new(bytes.Buffer)
+		enc := json.NewEncoder(b)
+		enc.SetIndent("", "  ")
+		require.NoError(t, enc.Encode(struct {
+			Hello int `json:"hello"`
+			World int `json:"world"`
+			Obj   struct {
+				A string `json:"a"`
+			} `json:"obj"`
+			Data []int `json:"data"`
+		}{
+			Hello: 1,
+			World: 2,
+			Obj: struct {
+				A string `json:"a"`
+			}{A: "b"},
+			Data: []int{1, 2},
+		}))
+
+		// Remove trialing newline from expected.
+		exp := b.String()
+		exp = strings.TrimRight(exp, "\n")
+
+		require.Equal(t, exp, e.String())
+	})
 }
 
 func TestDecoder_Obj(t *testing.T) {
