@@ -2,7 +2,6 @@
 package jx
 
 import (
-	"io"
 	"sync"
 )
 
@@ -11,17 +10,7 @@ func Valid(data []byte) bool {
 	d := GetDecoder()
 	defer PutDecoder(d)
 	d.ResetBytes(data)
-
-	// First encountered value skip should consume all buffer.
-	if err := d.Skip(); err != nil {
-		return false
-	}
-	// Check for any trialing json.
-	if err := d.Skip(); err != io.EOF {
-		return false
-	}
-
-	return true
+	return d.Validate() == nil
 }
 
 var (

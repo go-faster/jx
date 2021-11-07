@@ -28,10 +28,11 @@ func BenchmarkValid(b *testing.B) {
 	b.Run("JX", func(b *testing.B) {
 		b.ReportAllocs()
 		b.SetBytes(int64(len(data)))
-
+		var d Decoder
 		for n := 0; n < b.N; n++ {
-			if !Valid(data) {
-				b.Fatal("invalid")
+			d.ResetBytes(data)
+			if err := d.Validate(); err != nil {
+				b.Fatal(err)
 			}
 		}
 	})
