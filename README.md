@@ -241,6 +241,10 @@ d.ObjBytes(func(d *Decoder, key []byte) error {
 - [ ] Rework and export `Any`
 - [ ] Support `Raw` for io.Reader
 - [ ] Support `Capture` for io.Reader
+- [ ] Improve Num
+  - Better validation on decoding
+  - Support BigFloat and BigInt
+  - Support equivalence check, like `eq(1.0, 1) == true`
 
 # Non-goals
 * Code generation for decoding or encoding
