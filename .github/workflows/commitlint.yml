@@ -1,8 +1,8 @@
-name: Lint Commit Messages
+name: commit
 on: [pull_request]
 
 jobs:
-  commitlint:
+  lint:
     runs-on: ubuntu-latest
     if: github.actor != 'dependabot[bot]'
     steps:

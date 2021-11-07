@@ -1,4 +1,4 @@
-name: Lint
+name: lint
 on:
   push:
     branches:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  golangci-lint:
+  run:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -59,7 +59,7 @@ jobs:
         run: git diff --exit-code
 
   # Check if there are any dirty changes after go generate
-  check-generate:
+  gen:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
