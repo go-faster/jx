@@ -6,8 +6,8 @@ import "io"
 //
 // Zero value is valid.
 type Encoder struct {
-	buf   []byte // underlying buffer
-	ident int    // indentation step
+	buf    []byte // underlying buffer
+	indent int    // count of spaces for single indentation level
 
 	// first handles state for comma and indentation writing.
 	//
@@ -39,7 +39,7 @@ func (e *Encoder) WriteTo(w io.Writer) (n int64, err error) {
 
 // SetIdent sets length of single indentation step.
 func (e *Encoder) SetIdent(n int) {
-	e.ident = n
+	e.indent = n
 }
 
 // String returns string of underlying buffer.
@@ -130,7 +130,7 @@ func (e *Encoder) ObjStart() {
 // For non-zero indentation also writes single space after colon.
 func (e *Encoder) Field(field string) {
 	e.Str(field)
-	if e.ident > 0 {
+	if e.indent > 0 {
 		e.twoBytes(':', ' ')
 	} else {
 		e.byte(':')
@@ -176,11 +176,11 @@ func (e *Encoder) ArrEnd() {
 }
 
 func (e *Encoder) writeIndent() {
-	if e.ident == 0 {
+	if e.indent == 0 {
 		return
 	}
 	e.byte('\n')
-	for i := 0; i < len(e.first)*e.ident; i++ {
+	for i := 0; i < len(e.first)*e.indent; i++ {
 		e.buf = append(e.buf, ' ')
 	}
 }
