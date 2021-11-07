@@ -10,5 +10,6 @@ _bin/*
 
 *.out
 *.dump
+*.test
 
 corpus

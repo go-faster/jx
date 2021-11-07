@@ -17,7 +17,7 @@ func (t Type) String() string {
 		return "string"
 	case Number:
 		return "number"
-	case Nil:
+	case Null:
 		return "nil"
 	case Bool:
 		return "bool"
@@ -31,19 +31,19 @@ func (t Type) String() string {
 }
 
 const (
-	// Invalid invalid JSON element
+	// Invalid json value.
 	Invalid Type = iota
-	// String JSON element "string"
+	// String json value, like "foo".
 	String
-	// Number JSON element 100 or 0.10
+	// Number json value, like 100 or 1.01.
 	Number
-	// Nil JSON element null
-	Nil
-	// Bool JSON element true or false
+	// Null json value.
+	Null
+	// Bool json value, true or false.
 	Bool
-	// Array JSON element []
+	// Array json value, like [1, 2, 3].
 	Array
-	// Object JSON element {}
+	// Object json value, like {"foo": 1}.
 	Object
 )
 
@@ -82,7 +82,7 @@ func init() {
 	types['9'] = Number
 	types['t'] = Bool
 	types['f'] = Bool
-	types['n'] = Nil
+	types['n'] = Null
 	types['['] = Array
 	types['{'] = Object
 }

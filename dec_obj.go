@@ -31,7 +31,7 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 	}
 	d.unread()
 
-	k, err := d.str(value{ignore: skip})
+	k, err := d.str(value{ignore: skip, raw: true})
 	if err != nil {
 		return errors.Wrap(err, "str")
 	}
@@ -52,7 +52,7 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 		return errors.Wrap(err, "next")
 	}
 	for c == ',' {
-		k, err := d.str(value{ignore: skip})
+		k, err := d.str(value{ignore: skip, raw: true})
 		if err != nil {
 			return errors.Wrap(err, "str")
 		}

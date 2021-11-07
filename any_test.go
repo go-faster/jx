@@ -109,7 +109,7 @@ func (v *Any) Read(d *Decoder) error {
 		}
 		v.Str = s
 		v.Type = AnyStr
-	case Nil:
+	case Null:
 		if err := d.Null(); err != nil {
 			return errors.Wrap(err, "null")
 		}

@@ -5,6 +5,8 @@ package jx
 
 import (
 	"testing"
+
+	"github.com/go-faster/errors"
 )
 
 const defaultAllocRuns = 10
@@ -39,6 +41,27 @@ func TestZeroAlloc(t *testing.T) {
 		t.Run("Validate", func(t *testing.T) {
 			zeroAllocDec(t, benchData, func(d *Decoder) error {
 				return d.Validate()
+			})
+		})
+		t.Run("ObjBytes", func(t *testing.T) {
+			zeroAllocDec(t, benchData, func(d *Decoder) error {
+				return d.Arr(func(d *Decoder) error {
+					return d.ObjBytes(func(d *Decoder, key []byte) error {
+						switch string(key) {
+						case "person", "company": // ok
+						default:
+							return errors.New("unexpected key")
+						}
+						switch d.Next() {
+						case Object:
+							return d.ObjBytes(func(d *Decoder, key []byte) error {
+								return d.Skip()
+							})
+						default:
+							return d.Skip()
+						}
+					})
+				})
 			})
 		})
 		t.Run("Int", func(t *testing.T) {

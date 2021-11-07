@@ -10,7 +10,7 @@ import (
 //
 // Same as encoding/json, base64.StdEncoding or RFC 4648.
 func (d *Decoder) Base64() ([]byte, error) {
-	if d.Next() == Nil {
+	if d.Next() == Null {
 		if err := d.Null(); err != nil {
 			return nil, errors.Wrap(err, "read null")
 		}
@@ -23,7 +23,7 @@ func (d *Decoder) Base64() ([]byte, error) {
 //
 // Same as encoding/json, base64.StdEncoding or RFC 4648.
 func (d *Decoder) Base64Append(b []byte) ([]byte, error) {
-	if d.Next() == Nil {
+	if d.Next() == Null {
 		if err := d.Null(); err != nil {
 			return nil, errors.Wrap(err, "read null")
 		}
