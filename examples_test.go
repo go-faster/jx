@@ -156,10 +156,10 @@ func ExampleDecoder_Base64() {
 
 func Example() {
 	var e jx.Encoder
-	e.ObjStart()
-	e.Field("data")
-	e.Base64([]byte("hello"))
-	e.ObjEnd()
+	e.Obj(func(e *jx.Encoder) {
+		e.Field("data")
+		e.Base64([]byte("hello"))
+	})
 	fmt.Println(e)
 
 	if err := jx.DecodeBytes(e.Bytes()).Obj(func(d *jx.Decoder, key string) error {
