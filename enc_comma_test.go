@@ -13,7 +13,7 @@ func TestEncoder_comma(t *testing.T) {
 		e.Int(1)
 		e.ArrStart()
 		e.Int(2)
-		e.Int(3)
+		e.RawStr(`3`)
 		e.ArrEnd()
 		e.ArrEnd()
 
@@ -29,11 +29,18 @@ func TestEncoder_comma(t *testing.T) {
 		e.FieldStart("c")
 		e.ArrStart()
 		e.Int(1)
-		e.Int(2)
+		e.Raw([]byte{'2'})
+		e.Float32(3.0)
+		e.Float64(4.5)
+		e.Num(Num{'2', '3'})
+		e.True()
+		e.False()
+		e.Null()
+		e.Bool(true)
 		e.ArrEnd()
 		e.ObjEnd()
 
-		require.Equal(t, `{"a":1,"b":2,"c":[1,2]}`, e.String())
+		require.Equal(t, `{"a":1,"b":2,"c":[1,2,3,4.5,23,true,false,null,true]}`, e.String())
 	})
 	t.Run("NoPanic", func(t *testing.T) {
 		var e Encoder

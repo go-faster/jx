@@ -6,6 +6,5 @@ func (e *Encoder) Num(v Num) {
 		e.Null()
 		return
 	}
-	e.comma()
 	e.Raw(v)
 }
