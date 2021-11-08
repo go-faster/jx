@@ -1,6 +1,7 @@
 package jx
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,6 +22,15 @@ func TestEncoder_Num(t *testing.T) {
 }
 
 func TestNum(t *testing.T) {
+	t.Run("Format", func(t *testing.T) {
+		assert.Equal(t, `-12`, fmt.Sprintf("%d", Num(`"-12.0"`)))
+		assert.Equal(t, `-12.000000`, fmt.Sprintf("%f", Num(`"-12.0"`)))
+		assert.Equal(t, `%!invalid(Num=f)`, fmt.Sprintf("%f", Num(`f`)))
+		assert.Equal(t, `"-12.0"`, fmt.Sprintf("%s", Num(`"-12.0"`)))
+		assert.Equal(t, `"-12.0"`, fmt.Sprintf("%v", Num(`"-12.0"`)))
+		assert.Equal(t, `%!invalid(Num=f)`, fmt.Sprintf("%d", Num(`f`)))
+		assert.Equal(t, `%!invalid(Num="-12.1")`, fmt.Sprintf("%d", Num(`"-12.1"`)))
+	})
 	t.Run("String", func(t *testing.T) {
 		for _, cc := range []struct {
 			Name   string

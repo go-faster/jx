@@ -2,6 +2,8 @@ package jx
 
 import (
 	"bytes"
+	"fmt"
+	"math/big"
 
 	"github.com/go-faster/errors"
 )
@@ -112,6 +114,30 @@ func (n Num) String() string {
 		return "<invalid>"
 	}
 	return string(n)
+}
+
+// Format implements fmt.Formatter.
+func (n Num) Format(f fmt.State, verb rune) {
+	switch verb {
+	case 's', 'v':
+		_, _ = f.Write(n)
+	case 'd':
+		d, err := n.Int64()
+		if err != nil {
+			fmt.Fprintf(f, "%%!invalid(Num=%s)", n.String())
+			return
+		}
+		v := big.NewInt(d)
+		v.Format(f, verb)
+	case 'f':
+		d, err := n.Float64()
+		if err != nil {
+			fmt.Fprintf(f, "%%!invalid(Num=%s)", n.String())
+			return
+		}
+		v := big.NewFloat(d)
+		v.Format(f, verb)
+	}
 }
 
 // Sign reports sign of number.
