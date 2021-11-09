@@ -1,4 +1,4 @@
-# jx [![](https://img.shields.io/badge/go-pkg-00ADD8)](https://pkg.go.dev/github.com/go-faster/jx#section-documentation) [![](https://img.shields.io/codecov/c/github/go-faster/jx?label=cover)](https://codecov.io/gh/go-faster/jx)
+# jx [![](https://img.shields.io/badge/go-pkg-00ADD8)](https://pkg.go.dev/github.com/go-faster/jx#section-documentation) [![](https://img.shields.io/codecov/c/github/go-faster/jx?label=cover)](https://codecov.io/gh/go-faster/jx) [![beta](https://img.shields.io/badge/-beta-yellow)](https://go-faster.org/docs/projects/status#beta)
 
 Package jx implements encoding and decoding of json [[RFC 7159](https://www.rfc-editor.org/rfc/rfc7159.html)].
 Lightweight fork of [jsoniter](https://github.com/json-iterator/go).
