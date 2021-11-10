@@ -117,7 +117,7 @@ fmt.Println("Buffer len:", len(e.Bytes()))
 // Buffer len: 28
 ```
 
-## Raw
+### Raw
 Use [jx.Decoder.Raw](https://pkg.go.dev/github.com/go-faster/jx#Decoder.Raw) to read raw json values, similar to `json.RawMessage`.
 ```go
 d := jx.DecodeStr(`{"foo": [1, 2, 3]}`)
@@ -139,7 +139,7 @@ fmt.Println(raw.Type(), raw)
 // array [1, 2, 3]
 ```
 
-## Number
+### Number
 
 Use [jx.Decoder.Num](https://pkg.go.dev/github.com/go-faster/jx#Decoder.Num) to read numbers, similar to `json.Number`.
 Also supports number strings, like `"12345"`, which is common compatible way to represent `uint64`.
@@ -174,7 +174,7 @@ fmt.Println("int64:", v)
 // int64: 10531
 ```
 
-## Base64
+### Base64
 Use [jx.Encoder.Base64](https://pkg.go.dev/github.com/go-faster/jx#Encoder.Base64) and
 [jx.Decoder.Base64](https://pkg.go.dev/github.com/go-faster/jx#Decoder.Base64) or
 [jx.Decoder.Base64Append](https://pkg.go.dev/github.com/go-faster/jx#Decoder.Base64Append).
@@ -192,7 +192,7 @@ fmt.Printf("%s", data)
 // Hello
 ```
 
-## Validate
+### Validate
 
 Check that byte slice is valid json with [jx.Valid](https://pkg.go.dev/github.com/go-faster/jx#Valid):
 
@@ -202,7 +202,7 @@ fmt.Println(jx.Valid([]byte(`"Hello, world!"`)))    // true
 fmt.Println(jx.Valid([]byte(`["foo"}`)))            // false
 ```
 
-## Capture
+### Capture
 The [jx.Decoder.Capture](https://pkg.go.dev/github.com/go-faster/jx#Decoder.Capture) method allows to unread everything is read in callback.
 Useful for multi-pass parsing:
 ```go
@@ -227,7 +227,7 @@ fmt.Println("Next element is", d.Next(), "again")
 // Next element is array again
 ```
 
-## ObjBytes
+### ObjBytes
 
 The `Decoder.ObjBytes` method tries not to allocate memory for keys, reusing existing buffer.
 ```go
@@ -241,7 +241,7 @@ d.ObjBytes(func(d *Decoder, key []byte) error {
 })
 ```
 
-# Roadmap
+## Roadmap
 - [ ] Rework and export `Any`
 - [ ] Support `Raw` for io.Reader
 - [ ] Support `Capture` for io.Reader
@@ -251,7 +251,7 @@ d.ObjBytes(func(d *Decoder, key []byte) error {
   - Support equivalence check, like `eq(1.0, 1) == true`
 - [ ] Add non-callback decoding of objects
 
-# Non-goals
+## Non-goals
 * Code generation for decoding or encoding
 * Replacement for `encoding/json`
 * Reflection or `interface{}` based encoding or decoding
@@ -260,5 +260,5 @@ d.ObjBytes(func(d *Decoder, key []byte) error {
 This package should be kept as simple as possible and be used as
 low-level foundation for high-level projects like code generator.
 
-# License
+## License
 MIT, same as jsoniter
