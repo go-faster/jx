@@ -66,7 +66,7 @@ func TestEncoder_String(t *testing.T) {
 		e.StrEscape("<f\xed\xa0\x80")
 		require.Equal(t, `"\u003cf\ufffd\ufffd\ufffd"`, e.String())
 	})
-	t.Run("QuotesEscape", func(t *testing.T) {
+	t.Run("Quotes", func(t *testing.T) {
 		const (
 			v = "\"/\""
 		)
@@ -74,7 +74,15 @@ func TestEncoder_String(t *testing.T) {
 		e.Str(v)
 		requireCompat(t, e.Bytes(), v)
 	})
-	t.Run("QuotesEscapeObj", func(t *testing.T) {
+	t.Run("QuotesEscape", func(t *testing.T) {
+		const (
+			v = "\"/\""
+		)
+		var e Encoder
+		e.StrEscape(v)
+		requireCompat(t, e.Bytes(), v)
+	})
+	t.Run("QuotesObj", func(t *testing.T) {
 		const (
 			k = "k"
 			v = "\"/\""
