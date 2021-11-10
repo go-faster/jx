@@ -10,6 +10,7 @@ func (e *Encoder) Base64(data []byte) {
 		e.Null()
 		return
 	}
+	e.comma()
 	e.byte('"')
 	encodedLen := base64.StdEncoding.EncodedLen(len(data))
 	start := len(e.buf)

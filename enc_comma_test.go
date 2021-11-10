@@ -36,11 +36,12 @@ func TestEncoder_comma(t *testing.T) {
 		e.True()
 		e.False()
 		e.Null()
+		e.Base64(Raw{1})
 		e.Bool(true)
 		e.ArrEnd()
 		e.ObjEnd()
 
-		require.Equal(t, `{"a":1,"b":2,"c":[1,2,3,4.5,23,true,false,null,true]}`, e.String())
+		require.Equal(t, `{"a":1,"b":2,"c":[1,2,3,4.5,23,true,false,null,"AQ==",true]}`, e.String())
 	})
 	t.Run("NoPanic", func(t *testing.T) {
 		var e Encoder
