@@ -146,7 +146,7 @@ func (e *Encoder) FieldStart(field string) {
 		e.byte(':')
 	}
 	if len(e.first) > 0 {
-		e.first[e.last()] = true
+		e.first[e.current()] = true
 	}
 }
 

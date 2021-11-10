@@ -10,18 +10,16 @@ func (e *Encoder) end() {
 	if len(e.first) == 0 {
 		return
 	}
-	e.first = e.first[:e.last()]
+	e.first = e.first[:e.current()]
 }
 
-func (e *Encoder) last() int {
-	return len(e.first) - 1
-}
+func (e *Encoder) current() int { return len(e.first) - 1 }
 
 func (e *Encoder) resetComma() {
 	if len(e.first) == 0 {
 		return
 	}
-	e.first[e.last()] = true
+	e.first[e.current()] = true
 }
 
 // comma should be called before any new value.
@@ -32,8 +30,10 @@ func (e *Encoder) comma() {
 	if len(e.first) == 0 {
 		return
 	}
-	if e.first[e.last()] {
-		e.first[e.last()] = false
+	current := e.current()
+	_ = e.first[current]
+	if e.first[current] {
+		e.first[current] = false
 		return
 	}
 	e.byte(',')
