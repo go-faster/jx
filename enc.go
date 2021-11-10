@@ -83,6 +83,10 @@ func (e *Encoder) fiveBytes(c1, c2, c3, c4, c5 byte) {
 // RawStr writes string as raw json.
 func (e *Encoder) RawStr(v string) {
 	e.comma()
+	e.rawStr(v)
+}
+
+func (e *Encoder) rawStr(v string) {
 	e.buf = append(e.buf, v...)
 }
 

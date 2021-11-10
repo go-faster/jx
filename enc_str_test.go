@@ -1,8 +1,10 @@
 package jx
 
 import (
+	"encoding/json"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -63,5 +65,31 @@ func TestEncoder_String(t *testing.T) {
 		e := GetEncoder()
 		e.StrEscape("<f\xed\xa0\x80")
 		require.Equal(t, `"\u003cf\ufffd\ufffd\ufffd"`, e.String())
+	})
+	t.Run("QuotesEscape", func(t *testing.T) {
+		const (
+			v = "\"/\""
+		)
+		var e Encoder
+		e.Str(v)
+		requireCompat(t, e.Bytes(), v)
+	})
+	t.Run("QuotesEscapeObj", func(t *testing.T) {
+		const (
+			k = "k"
+			v = "\"/\""
+		)
+
+		var e Encoder
+		e.ObjStart()
+		e.FieldStart(k)
+		e.Str(v)
+		e.ObjEnd()
+		t.Log(e)
+
+		var target map[string]string
+		require.NoError(t, json.Unmarshal(e.Bytes(), &target))
+		assert.Equal(t, v, target[k])
+		requireCompat(t, e.Bytes(), map[string]string{k: v})
 	})
 }

@@ -249,7 +249,7 @@ func (e *Encoder) strEscape(i int, v string, valLen int) {
 				continue
 			}
 			if start < i {
-				e.RawStr(v[start:i])
+				e.rawStr(v[start:i])
 			}
 			switch b {
 			case '\\', '"':
@@ -266,7 +266,7 @@ func (e *Encoder) strEscape(i int, v string, valLen int) {
 				// because they can lead to security holes when
 				// user-controlled strings are rendered into JSON
 				// and served to some browsers.
-				e.RawStr(`\u00`)
+				e.rawStr(`\u00`)
 				e.twoBytes(hexChars[b>>4], hexChars[b&0xF])
 			}
 			i++
@@ -276,9 +276,9 @@ func (e *Encoder) strEscape(i int, v string, valLen int) {
 		c, size := utf8.DecodeRuneInString(v[i:])
 		if c == utf8.RuneError && size == 1 {
 			if start < i {
-				e.RawStr(v[start:i])
+				e.rawStr(v[start:i])
 			}
-			e.RawStr(`\ufffd`)
+			e.rawStr(`\ufffd`)
 			i++
 			start = i
 			continue
@@ -292,9 +292,9 @@ func (e *Encoder) strEscape(i int, v string, valLen int) {
 		// See http://timelessrepo.com/json-isnt-a-javascript-subset for discussion.
 		if c == '\u2028' || c == '\u2029' {
 			if start < i {
-				e.RawStr(v[start:i])
+				e.rawStr(v[start:i])
 			}
-			e.RawStr(`\u202`)
+			e.rawStr(`\u202`)
 			e.byte(hexChars[c&0xF])
 			i += size
 			start = i
@@ -303,7 +303,7 @@ func (e *Encoder) strEscape(i int, v string, valLen int) {
 		i += size
 	}
 	if start < len(v) {
-		e.RawStr(v[start:])
+		e.rawStr(v[start:])
 	}
 	e.byte('"')
 }
@@ -343,7 +343,7 @@ func (e *Encoder) strSlow(i int, v string, length int) {
 				continue
 			}
 			if start < i {
-				e.RawStr(v[start:i])
+				e.rawStr(v[start:i])
 			}
 			switch b {
 			case '\\', '"':
@@ -360,7 +360,7 @@ func (e *Encoder) strSlow(i int, v string, length int) {
 				// because they can lead to security holes when
 				// user-controlled strings are rendered into JSON
 				// and served to some browsers.
-				e.RawStr(`\u00`)
+				e.rawStr(`\u00`)
 				e.twoBytes(hexChars[b>>4], hexChars[b&0xF])
 			}
 			i++
@@ -371,7 +371,7 @@ func (e *Encoder) strSlow(i int, v string, length int) {
 		continue
 	}
 	if start < len(v) {
-		e.RawStr(v[start:])
+		e.rawStr(v[start:])
 	}
 	e.byte('"')
 }
