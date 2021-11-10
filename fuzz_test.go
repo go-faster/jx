@@ -32,6 +32,10 @@ func FuzzDecEnc(f *testing.F) {
 	f.Add([]byte(`123"`))
 	f.Add([]byte(`null`))
 	f.Add([]byte(`{"foo": {"bar": 1, "baz": [1, 2, 3]}}`))
+	f.Add([]byte(`"\u003cf\ufffd\ufffd\ufffd"`))
+	f.Add([]byte(`"a\ufffdz"`))
+	f.Add([]byte(`"\\nH\\tel\\tl\\ro\\\\World\\r\n\rHello\r\tHi"`))
+	f.Add([]byte(`"key:\"/registry/runtimeclasses/\" range_end:\"/registry/runtimeclasses0\" count_only:true "`))
 	f.Fuzz(func(t *testing.T, data []byte) {
 		r := GetDecoder()
 		r.ResetBytes(data)
