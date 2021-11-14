@@ -91,11 +91,15 @@ func (s Small) Encode(e *jx.Encoder) {
 	e.ArrEnd()
 
 	e.FieldStart("weights")
-	e.ArrStart()
-	for _, v := range s.Weights {
-		e.Int(v)
+	if s.Weights == nil {
+		e.Null()
+	} else {
+		e.ArrStart()
+		for _, v := range s.Weights {
+			e.Int(v)
+		}
+		e.ArrEnd()
 	}
-	e.ArrEnd()
 
 	e.ObjEnd()
 }
