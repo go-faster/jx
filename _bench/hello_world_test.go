@@ -25,26 +25,6 @@ func setupHelloWorld(b *testing.B) {
 	b.SetBytes(int64(len(helloWorld)))
 }
 
-// Common benchmark names.
-const (
-	// Encode is name for encoding benchmarks.
-	Encode = "Encode"
-	// Decode is name for decoding benchmarks.
-	Decode = "Decode"
-	// JX is name for benchmarks related to go-faster/jx package.
-	JX = "jx"
-	// Std is name for benchmarks related to encoding/json.
-	Std = "std"
-	// Sonic is name for benchmarks related to bytedance/sonic package.
-	Sonic = "sonic"
-	// JSONIter for json-iterator/go.
-	JSONIter = "json-iterator"
-	// EasyJSON for mailru/easyjson.
-	EasyJSON = "easyjson"
-	// FFJSON for pquerna/ffjson.
-	FFJSON = "ffjson"
-)
-
 func BenchmarkHelloWorld(b *testing.B) {
 	b.Run(Encode, func(b *testing.B) {
 		b.Run(JX, func(b *testing.B) {
