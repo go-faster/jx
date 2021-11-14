@@ -20,3 +20,14 @@ func sonicHelloWorld(b *testing.B) {
 		}
 	}
 }
+
+func sonicSmall(b *testing.B) {
+	buf := make([]byte, 0, 1024)
+	setupSmall(b)
+	for i := 0; i < b.N; i++ {
+		buf = buf[:0] // reset buffer
+		if err := sonic.EncodeInto(&buf, small, 0); err != nil {
+			b.Fatal(err)
+		}
+	}
+}

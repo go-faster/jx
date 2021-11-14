@@ -18,3 +18,8 @@ func sonicHelloWorld(b *testing.B) {
 	b.Helper()
 	sonicSkip(b)
 }
+
+func sonicSmall(b *testing.B) {
+	b.Helper()
+	sonicSkip(b)
+}

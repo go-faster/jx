@@ -12,12 +12,6 @@ import (
 	"github.com/go-faster/jx"
 )
 
-const (
-	helloWorldField   = "message"
-	helloWorldMessage = "Hello, world!"
-	helloWorld        = `{"message": "Hello, world!"}`
-)
-
 // setupHelloWorld should be called on each "HelloWorld" benchmark.
 func setupHelloWorld(b *testing.B) {
 	b.Helper()
@@ -26,22 +20,19 @@ func setupHelloWorld(b *testing.B) {
 }
 
 func BenchmarkHelloWorld(b *testing.B) {
+	v := &HelloWorld{Message: helloWorldMessage}
 	b.Run(Encode, func(b *testing.B) {
 		b.Run(JX, func(b *testing.B) {
 			setupHelloWorld(b)
 			var e jx.Encoder
 			for i := 0; i < b.N; i++ {
 				e.Reset()
-				e.ObjStart()
-				e.FieldStart(helloWorldField)
-				e.Str(helloWorldMessage)
-				e.ObjEnd()
+				v.Encode(&e)
 			}
 		})
 		b.Run(Std, func(b *testing.B) {
 			w := new(bytes.Buffer)
 			e := json.NewEncoder(w)
-			v := &HelloWorld{Message: helloWorldMessage}
 			setupHelloWorld(b)
 			for i := 0; i < b.N; i++ {
 				w.Reset()
@@ -52,19 +43,15 @@ func BenchmarkHelloWorld(b *testing.B) {
 		})
 		b.Run(Sonic, sonicHelloWorld)
 		b.Run(JSONIter, func(b *testing.B) {
-			e := jsoniter.NewStream(jsoniter.ConfigFastest, nil, 1024)
+			s := jsoniter.NewStream(jsoniter.ConfigFastest, nil, 1024)
 			setupHelloWorld(b)
 			for i := 0; i < b.N; i++ {
-				e.SetBuffer(e.Buffer()[:0]) // reset buffer
-				e.WriteObjectStart()
-				e.WriteObjectField(helloWorldField)
-				e.WriteString(helloWorldMessage)
-				e.WriteObjectEnd()
+				s.SetBuffer(s.Buffer()[:0]) // reset buffer
+				v.EncodeIter(s)
 			}
 		})
 		b.Run(EasyJSON, func(b *testing.B) {
 			jw := jwriter.Writer{}
-			v := &HelloWorld{Message: helloWorldMessage}
 			setupHelloWorld(b)
 			for i := 0; i < b.N; i++ {
 				jw.Buffer.Buf = jw.Buffer.Buf[:0] // reset
