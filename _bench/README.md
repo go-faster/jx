@@ -4,6 +4,8 @@
 * jsoniter (should same as jx in most cases)
 * encoding/json
 * bytedance/sonic
+* mailru/easyjson
+* pquerna/ffjson
 
 ## Hello world
 

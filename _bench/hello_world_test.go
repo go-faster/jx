@@ -7,6 +7,7 @@ import (
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/mailru/easyjson/jwriter"
+	fflib "github.com/pquerna/ffjson/fflib/v1"
 
 	"github.com/go-faster/jx"
 )
@@ -40,6 +41,8 @@ const (
 	JSONIter = "json-iterator"
 	// EasyJSON for mailru/easyjson.
 	EasyJSON = "easyjson"
+	// FFJSON for pquerna/ffjson.
+	FFJSON = "ffjson"
 )
 
 func BenchmarkHelloWorld(b *testing.B) {
@@ -86,6 +89,17 @@ func BenchmarkHelloWorld(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				jw.Buffer.Buf = jw.Buffer.Buf[:0] // reset
 				v.MarshalEasyJSON(&jw)
+			}
+		})
+		b.Run(FFJSON, func(b *testing.B) {
+			var buf fflib.EncodingBuffer = new(fflib.Buffer)
+			v := &HelloWorldFFJSON{Message: helloWorldMessage}
+			setupHelloWorld(b)
+			for i := 0; i < b.N; i++ {
+				buf.Reset()
+				if err := v.MarshalJSONBuf(buf); err != nil {
+					b.Fatal(err)
+				}
 			}
 		})
 	})
