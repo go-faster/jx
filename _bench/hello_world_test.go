@@ -6,17 +6,10 @@ import (
 	"testing"
 
 	jsoniter "github.com/json-iterator/go"
+	"github.com/mailru/easyjson/jwriter"
 
 	"github.com/go-faster/jx"
 )
-
-// HelloWorld case.
-//
-// Example:
-//	{"message": "Hello, world!"}
-type HelloWorld struct {
-	Message string `json:"message"`
-}
 
 const (
 	helloWorldField   = "message"
@@ -45,6 +38,8 @@ const (
 	Sonic = "sonic"
 	// JSONIter for json-iterator/go.
 	JSONIter = "json-iterator"
+	// EasyJSON for mailru/easyjson.
+	EasyJSON = "easyjson"
 )
 
 func BenchmarkHelloWorld(b *testing.B) {
@@ -82,6 +77,15 @@ func BenchmarkHelloWorld(b *testing.B) {
 				e.WriteObjectField(helloWorldField)
 				e.WriteString(helloWorldMessage)
 				e.WriteObjectEnd()
+			}
+		})
+		b.Run(EasyJSON, func(b *testing.B) {
+			jw := jwriter.Writer{}
+			v := &HelloWorld{Message: helloWorldMessage}
+			setupHelloWorld(b)
+			for i := 0; i < b.N; i++ {
+				jw.Buffer.Buf = jw.Buffer.Buf[:0] // reset
+				v.MarshalEasyJSON(&jw)
 			}
 		})
 	})
