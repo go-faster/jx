@@ -72,9 +72,7 @@ func BenchmarkHelloWorld(b *testing.B) {
 				}
 			}
 		})
-		b.Run(Sonic, func(b *testing.B) {
-			sonicHelloWorld(b)
-		})
+		b.Run(Sonic, sonicHelloWorld)
 		b.Run(JSONIter, func(b *testing.B) {
 			e := jsoniter.NewStream(jsoniter.ConfigFastest, nil, 1024)
 			setupHelloWorld(b)

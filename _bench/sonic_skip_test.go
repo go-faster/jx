@@ -14,4 +14,7 @@ func sonicSkip(b *testing.B) {
 	b.Skip("not supported on current go version")
 }
 
-func sonicHelloWorld(b *testing.B) { sonicSkip(b) }
+func sonicHelloWorld(b *testing.B) {
+	b.Helper()
+	sonicSkip(b)
+}
