@@ -18,4 +18,6 @@ const (
 	EasyJSON = "easyjson"
 	// FFJSON for pquerna/ffjson.
 	FFJSON = "ffjson"
+	// Baseline directly writes string to buffer, no encoding.
+	Baseline = "Baseline"
 )

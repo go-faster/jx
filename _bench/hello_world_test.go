@@ -82,5 +82,13 @@ func BenchmarkHelloWorld(b *testing.B) {
 				}
 			}
 		})
+		b.Run(Baseline, func(b *testing.B) {
+			setupHelloWorld(b)
+			buf := new(bytes.Buffer)
+			for i := 0; i < b.N; i++ {
+				buf.Reset()
+				buf.WriteString(helloWorld)
+			}
+		})
 	})
 }
