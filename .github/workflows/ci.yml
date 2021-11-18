@@ -30,7 +30,9 @@ jobs:
             runner: ubuntu-latest
             flags: "-race"
             go: 1.17
-
+          - arch: arm64
+            runner: self-hosted
+            go: 1.17
     steps:
       - name: Checkout code
         uses: actions/checkout@v2.4.0
