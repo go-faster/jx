@@ -244,7 +244,7 @@ d.ObjBytes(func(d *Decoder, key []byte) error {
 ## Roadmap
 - [ ] Rework and export `Any`
 - [ ] Support `Raw` for io.Reader
-- [ ] Support `Capture` for io.Reader
+- [x] Support `Capture` for io.Reader
 - [ ] Improve Num
   - Better validation on decoding
   - Support BigFloat and BigInt
