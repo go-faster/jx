@@ -1,7 +1,7 @@
 package jx
 
 import (
-	"strings"
+	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -84,6 +84,11 @@ func BenchmarkIterator_Skip(b *testing.B) {
 }
 
 func TestDecoder_Capture(t *testing.T) {
+	strs := []string{
+		"foo",
+		"bar",
+		"baz",
+	}
 	test := func(i *Decoder) func(t *testing.T) {
 		return func(t *testing.T) {
 			var elems int
@@ -96,15 +101,39 @@ func TestDecoder_Capture(t *testing.T) {
 				t.Fatal(err)
 			}
 			require.Equal(t, Array, i.Next())
-			require.Equal(t, 3, elems)
+			require.Equal(t, 6, elems)
 			t.Run("Nil", func(t *testing.T) {
 				require.NoError(t, i.Capture(nil))
 				require.Equal(t, Array, i.Next())
 			})
+
+			idx := 0
+			require.NoError(t, i.Arr(func(d *Decoder) error {
+				v, err := d.Str()
+				if err != nil {
+					return err
+				}
+				require.Equal(t, strs[idx%len(strs)], v)
+
+				idx++
+				return nil
+			}))
 		}
 	}
 
-	testData := `["foo", "bar", "baz"]`
-	t.Run("Str", test(DecodeStr(testData)))
-	t.Run("Reader", test(Decode(strings.NewReader(testData), 0)))
+	var e Encoder
+	e.ArrStart()
+	for i := 0; i < 6; i++ {
+		e.Str(strs[i%len(strs)])
+	}
+	e.ArrEnd()
+	testData := e.Bytes()
+
+	t.Run("Str", test(DecodeBytes(testData)))
+	// Check that we get correct result even if buffer smaller than captured data.
+	decoder := Decoder{
+		reader: bytes.NewReader(testData),
+		buf:    make([]byte, 8),
+	}
+	t.Run("Reader", test(&decoder))
 }
