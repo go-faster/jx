@@ -1,18 +1,24 @@
 package jx
 
 import (
-	"github.com/go-faster/errors"
+	"bytes"
+	"io"
 )
 
 // Capture calls f and then rolls back to state before call.
-//
-// Does not work with reader.
 func (d *Decoder) Capture(f func(d *Decoder) error) error {
-	if d.reader != nil {
-		return errors.New("capture is not supported with reader")
-	}
 	if f == nil {
 		return nil
+	}
+
+	if d.reader != nil {
+		// TODO(tdakkota): May it be more efficient?
+		var buf bytes.Buffer
+		reader := io.TeeReader(d.reader, &buf)
+		defer func() {
+			d.reader = io.MultiReader(&buf, d.reader)
+		}()
+		d.reader = reader
 	}
 	head, tail, depth := d.head, d.tail, d.depth
 	err := f(d)

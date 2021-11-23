@@ -84,25 +84,56 @@ func BenchmarkIterator_Skip(b *testing.B) {
 }
 
 func TestDecoder_Capture(t *testing.T) {
-	i := DecodeStr(`["foo", "bar", "baz"]`)
-	var elems int
-	if err := i.Capture(func(i *Decoder) error {
-		return i.Arr(func(i *Decoder) error {
-			elems++
-			return i.Skip()
-		})
-	}); err != nil {
-		t.Fatal(err)
+	strs := []string{
+		"foo",
+		"bar",
+		"baz",
 	}
-	require.Equal(t, Array, i.Next())
-	require.Equal(t, 3, elems)
-	t.Run("Nil", func(t *testing.T) {
-		require.NoError(t, i.Capture(nil))
-		require.Equal(t, Array, i.Next())
-	})
-}
+	test := func(i *Decoder) func(t *testing.T) {
+		return func(t *testing.T) {
+			var elems int
+			if err := i.Capture(func(i *Decoder) error {
+				return i.Arr(func(i *Decoder) error {
+					elems++
+					return i.Skip()
+				})
+			}); err != nil {
+				t.Fatal(err)
+			}
+			require.Equal(t, Array, i.Next())
+			require.Equal(t, 6, elems)
+			t.Run("Nil", func(t *testing.T) {
+				require.NoError(t, i.Capture(nil))
+				require.Equal(t, Array, i.Next())
+			})
 
-func TestDecoder_Capture_reader(t *testing.T) {
-	i := Decode(new(bytes.Buffer), 0)
-	require.Error(t, i.Capture(nil))
+			idx := 0
+			require.NoError(t, i.Arr(func(d *Decoder) error {
+				v, err := d.Str()
+				if err != nil {
+					return err
+				}
+				require.Equal(t, strs[idx%len(strs)], v)
+
+				idx++
+				return nil
+			}))
+		}
+	}
+
+	var e Encoder
+	e.ArrStart()
+	for i := 0; i < 6; i++ {
+		e.Str(strs[i%len(strs)])
+	}
+	e.ArrEnd()
+	testData := e.Bytes()
+
+	t.Run("Str", test(DecodeBytes(testData)))
+	// Check that we get correct result even if buffer smaller than captured data.
+	decoder := Decoder{
+		reader: bytes.NewReader(testData),
+		buf:    make([]byte, 8),
+	}
+	t.Run("Reader", test(&decoder))
 }
