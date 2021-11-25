@@ -1,3 +1,5 @@
+ignore:
+  - tools/**
 coverage:
   status:
     patch: false
