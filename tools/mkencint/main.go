@@ -15,11 +15,13 @@ import (
 	"unicode/utf8"
 )
 
+// IntType represents Go integer type.
 type IntType struct {
 	Name       string
 	Iterations int
 }
 
+// Config is generation config.
 type Config struct {
 	PackageName string
 	Types       []IntType
@@ -109,7 +111,9 @@ func run() error {
 		if err != nil {
 			return err
 		}
-		defer f.Close()
+		defer func() {
+			fmt.Println(f.Close())
+		}()
 		w = f
 	}
 
