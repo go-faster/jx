@@ -3,6 +3,7 @@ package bench
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/romshark/jscan"
 	"testing"
 
 	"github.com/mailru/easyjson/jwriter"
@@ -11,7 +12,7 @@ import (
 )
 
 // setupSmall should be called on each "Small" benchmark.
-func setupSmall(b *testing.B) {
+func setupSmall(b *testing.B) []byte {
 	b.Helper()
 	b.ReportAllocs()
 	data, err := json.Marshal(small)
@@ -19,6 +20,7 @@ func setupSmall(b *testing.B) {
 		b.Fatal(err)
 	}
 	b.SetBytes(int64(len(data)))
+	return data
 }
 
 var (
@@ -71,6 +73,32 @@ func BenchmarkSmall(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				jw.Buffer.Buf = jw.Buffer.Buf[:0] // reset
 				v.MarshalEasyJSON(&jw)
+			}
+		})
+	})
+	b.Run(Decode, func(b *testing.B) {
+		b.Run(JX, func(b *testing.B) {
+			data := setupSmall(b)
+			var d jx.Decoder
+
+			for i := 0; i < b.N; i++ {
+				d.ResetBytes(data)
+				if err := d.Skip(); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+		b.Run(JSCan, func(b *testing.B) {
+			data := string(setupSmall(b))
+			for i := 0; i < b.N; i++ {
+				r := jscan.Scan(
+					jscan.Options{},
+					data,
+					func(i *jscan.Iterator) bool { return false },
+				)
+				if r.IsErr() {
+					b.Fatal("err")
+				}
 			}
 		})
 	})
