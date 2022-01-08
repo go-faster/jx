@@ -22,7 +22,7 @@ See [usage](#Usage) for examples. Mostly suitable for fast low-level json manipu
 with high control. Used in [ogen](https://github.com/ogen-go/ogen) project for
 json (un)marshaling code generation based on json and OpenAPI schemas.
 
-Also, `fx` is pretty fast.
+Also, `jx` is pretty fast.
 
 ```json
 {
@@ -56,6 +56,11 @@ BenchmarkOTEL_Decode-32  674.1 ns/op  741.71 MB/s  0 B/op  0 allocs/op
 BenchmarkOTEL_Encode-32  481.4 ns/op  880.82 MB/s  0 B/op  0 allocs/op
 PASS
 ```
+
+Flexibility of `jx` enables highly efficient semantic-aware encoding and decoding,
+e.g. using `[16]byte` for `TraceId` with zero-allocation `hex` encoding in json.
+
+See [otel_test.go](./otel_test.go) for example.
 
 ## Why
 
