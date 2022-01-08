@@ -22,6 +22,41 @@ See [usage](#Usage) for examples. Mostly suitable for fast low-level json manipu
 with high control. Used in [ogen](https://github.com/ogen-go/ogen) project for
 json (un)marshaling code generation based on json and OpenAPI schemas.
 
+Also, `fx` is pretty fast.
+
+```json
+{
+  "Timestamp": "1586960586000000000",
+  "Attributes": {
+    "http.status_code": 500,
+    "http.url": "http://example.com",
+    "my.custom.application.tag": "hello"
+  },
+  "Resource": {
+    "service.name": "donut_shop",
+    "service.version": "2.0.0",
+    "k8s.pod.uid": "1138528c-c36e-11e9-a1a7-42010a800198"
+  },
+  "TraceId": "13e2a0921288b3ff80df0a0482d4fc46",
+  "SpanId": "43222c2d51a7abe3",
+  "SeverityText": "INFO",
+  "SeverityNumber": 9,
+  "Body": "20200415T072306-0700 INFO I like donuts"
+}
+```
+
+This OpenTelemetry log entry has the following benchmarks:
+```json
+go test -bench OTEL
+goos: linux
+goarch: amd64
+pkg: github.com/go-faster/jx
+cpu: AMD Ryzen 9 5950X 16-Core Processor
+BenchmarkOTEL_Decode-32  674.1 ns/op  741.71 MB/s  0 B/op  0 allocs/op
+BenchmarkOTEL_Encode-32  481.4 ns/op  880.82 MB/s  0 B/op  0 allocs/op
+PASS
+```
+
 ## Why
 
 Most of [jsoniter](https://github.com/json-iterator/go) issues are caused by necessity

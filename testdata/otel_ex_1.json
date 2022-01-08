@@ -1,0 +1,18 @@
+{
+  "Timestamp": "1586960586000000000",
+  "Attributes": {
+    "http.status_code": 500,
+    "http.url": "http://example.com",
+    "my.custom.application.tag": "hello"
+  },
+  "Resource": {
+    "service.name": "donut_shop",
+    "service.version": "2.0.0",
+    "k8s.pod.uid": "1138528c-c36e-11e9-a1a7-42010a800198"
+  },
+  "TraceId": "13e2a0921288b3ff80df0a0482d4fc46",
+  "SpanId": "43222c2d51a7abe3",
+  "SeverityText": "INFO",
+  "SeverityNumber": 9,
+  "Body": "20200415T072306-0700 INFO I like donuts"
+}
