@@ -6,7 +6,7 @@ package bench
 import "testing"
 
 func sonicSkip(b *testing.B) {
-	// Sonic tests are skipped because sonic does not support go1.17.
+	// Sonic tests are skipped because sonic does not support go1.18.
 	// Ref:
 	//  https://github.com/bytedance/sonic/pull/116
 	//  https://github.com/bytedance/sonic/issues/75
