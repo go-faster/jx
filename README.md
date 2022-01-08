@@ -46,8 +46,8 @@ Also, `jx` is pretty fast.
 ```
 
 This OpenTelemetry log entry has the following benchmarks:
-```json
-go test -bench OTEL
+```console
+$ go test -bench OTEL
 goos: linux
 goarch: amd64
 pkg: github.com/go-faster/jx
