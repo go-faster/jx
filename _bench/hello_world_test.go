@@ -8,6 +8,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"github.com/mailru/easyjson/jwriter"
 	fflib "github.com/pquerna/ffjson/fflib/v1"
+	"github.com/romshark/jscan"
 
 	"github.com/go-faster/jx"
 )
@@ -75,6 +76,32 @@ func BenchmarkHelloWorld(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				buf.Reset()
 				buf.WriteString(helloWorld)
+			}
+		})
+	})
+	b.Run(Decode, func(b *testing.B) {
+		b.Run(JX, func(b *testing.B) {
+			setupHelloWorld(b)
+			var d jx.Decoder
+			data := []byte(helloWorld)
+			for i := 0; i < b.N; i++ {
+				d.ResetBytes(data)
+				if err := d.Skip(); err != nil {
+					b.Fatal()
+				}
+			}
+		})
+		b.Run(JSCan, func(b *testing.B) {
+			setupHelloWorld(b)
+			for i := 0; i < b.N; i++ {
+				r := jscan.Scan(
+					jscan.Options{},
+					helloWorld,
+					func(i *jscan.Iterator) bool { return false },
+				)
+				if r.IsErr() {
+					b.Fatal("err")
+				}
 			}
 		})
 	})

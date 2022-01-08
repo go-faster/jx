@@ -3,10 +3,10 @@ package bench
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/romshark/jscan"
 	"testing"
 
 	"github.com/mailru/easyjson/jwriter"
+	"github.com/romshark/jscan"
 
 	"github.com/go-faster/jx"
 )
