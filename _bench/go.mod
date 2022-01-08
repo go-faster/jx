@@ -3,7 +3,7 @@ module bench
 go 1.17
 
 require (
-	github.com/bytedance/sonic v1.0.0-rc.1.0.20211109044705-0f66ab721157
+	github.com/bytedance/sonic v1.0.0
 	github.com/go-faster/jx v0.0.0-replaced
 	github.com/json-iterator/go v1.1.12
 	github.com/mailru/easyjson v0.7.7
