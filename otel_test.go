@@ -3,9 +3,10 @@ package jx
 import (
 	_ "embed"
 	"encoding/hex"
+	"testing"
+
 	"github.com/go-faster/errors"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 type Pos struct {
