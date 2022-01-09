@@ -1,7 +1,9 @@
 package jx
 
 import (
+	"fmt"
 	"io"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -56,5 +58,34 @@ func Benchmark_appendRune(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		buf = buf[:0]
 		buf = appendRune(buf, 'f')
+	}
+}
+
+func benchmarkDecoderStrBytes(str string) func(b *testing.B) {
+	return func(b *testing.B) {
+		e := GetEncoder()
+		e.Str(str)
+		data := e.Bytes()
+
+		d := GetDecoder()
+
+		b.SetBytes(int64(len(data)))
+		b.ReportAllocs()
+		b.ResetTimer()
+
+		for i := 0; i < b.N; i++ {
+			d.ResetBytes(data)
+			if _, err := d.StrBytes(); err != nil {
+				b.Fatal(err)
+			}
+		}
+	}
+}
+
+func BenchmarkDecoder_StrBytes(b *testing.B) {
+	for _, size := range []int{
+		1, 8, 16, 64, 128, 1024,
+	} {
+		b.Run(fmt.Sprintf("%db", size), benchmarkDecoderStrBytes(strings.Repeat("a", size)))
 	}
 }
