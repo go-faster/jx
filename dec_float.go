@@ -163,13 +163,14 @@ NonDecimalLoop:
 
 func (d *Decoder) number() []byte {
 	start := d.head
-	for i := d.head; i < d.tail; i++ {
-		switch c := d.buf[i]; c {
+	buf := d.buf[d.head:d.tail]
+	for i, c := range buf {
+		switch c {
 		case '+', '-', '.', 'e', 'E', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 			continue
 		default:
 			// End of number.
-			d.head = i
+			d.head += i
 			return d.buf[start:d.head]
 		}
 	}
