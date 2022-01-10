@@ -188,14 +188,15 @@ func (d *Decoder) more() (byte, error) {
 // next reads next non-whitespace token or error.
 func (d *Decoder) next() (byte, error) {
 	for {
-		for i := d.head; i < d.tail; i++ {
-			c := d.buf[i]
+		buf := d.buf[d.head:d.tail]
+		for i, c := range buf {
 			switch c {
 			case ' ', '\n', '\t', '\r':
 				continue
+			default:
+				d.head += i + 1
+				return c, nil
 			}
-			d.head = i + 1
-			return c, nil
 		}
 		if err := d.read(); err != nil {
 			return 0, err

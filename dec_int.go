@@ -149,10 +149,11 @@ func (d *Decoder) readUint32() (uint32, error) {
 		}
 	}
 	for {
-		for i := d.head; i < d.tail; i++ {
-			ind = intDigits[d.buf[i]]
+		buf := d.buf[d.head:d.tail]
+		for i, c := range buf {
+			ind = intDigits[c]
 			if ind == invalidCharForNumber {
-				d.head = i
+				d.head += i
 				return value, nil
 			}
 			if value > uint32SafeToMultiply10 {
@@ -275,10 +276,11 @@ func (d *Decoder) readUint64(c byte) (uint64, error) {
 		}
 	}
 	for {
-		for i := d.head; i < d.tail; i++ {
-			ind = intDigits[d.buf[i]]
+		buf := d.buf[d.head:d.tail]
+		for i, c := range buf {
+			ind = intDigits[c]
 			if ind == invalidCharForNumber {
-				d.head = i
+				d.head += i
 				return value, nil
 			}
 			if value > uint64SafeToMultiple10 {

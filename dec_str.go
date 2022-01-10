@@ -64,8 +64,8 @@ func (d *Decoder) str(v value) (value, error) {
 	if err := d.consume('"'); err != nil {
 		return value{}, errors.Wrap(err, "start")
 	}
-	for i := d.head; i < d.tail; i++ {
-		c := d.buf[i]
+	buf := d.buf[d.head:d.tail]
+	for i, c := range buf {
 		if c == '\\' {
 			// Character is escaped, fallback to slow path.
 			break
@@ -73,11 +73,11 @@ func (d *Decoder) str(v value) (value, error) {
 		if c == '"' {
 			// End of string in fast path.
 			if v.ignore {
-				d.head = i + 1
+				d.head += i + 1
 				return value{}, nil
 			}
-			str := d.buf[d.head:i]
-			d.head = i + 1
+			str := buf[:i]
+			d.head += i + 1
 			if v.raw {
 				return value{buf: str}, nil
 			}
