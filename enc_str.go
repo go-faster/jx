@@ -235,7 +235,6 @@ func (e *Encoder) Str(v string) {
 	)
 	for i, c = range []byte(v) {
 		if safeSet[c] != 0 {
-			e.buf = append(e.buf, v[:i]...)
 			goto slow
 		}
 	}
@@ -245,11 +244,12 @@ func (e *Encoder) Str(v string) {
 		return
 	}
 slow:
-	e.strSlow(i, v)
+	e.buf = append(e.buf, v[:i]...)
+	e.strSlow(v[i:])
 }
 
-func (e *Encoder) strSlow(i int, v string) {
-	start := i
+func (e *Encoder) strSlow(v string) {
+	var i, start int
 	// for the remaining parts, we process them char by char
 	for i < len(v) {
 		b := v[i]
