@@ -18,21 +18,32 @@ func TestEncoder_StringEscape(t *testing.T) {
 }
 
 func TestEncoder_String(t *testing.T) {
-	t.Run("Escape", func(t *testing.T) {
-		e := GetEncoder()
-		const data = `\nH\tel\tl\ro\\World\r` + "\n\rHello\r\tHi"
-		e.Str(data)
-		const expected = `"\\nH\\tel\\tl\\ro\\\\World\\r\n\rHello\r\tHi"`
-		require.Equal(t, expected, string(e.Bytes()))
-		requireCompat(t, e.Bytes(), data)
-		t.Run("Decode", func(t *testing.T) {
-			i := GetDecoder()
-			i.ResetBytes(e.Bytes())
-			s, err := i.Str()
-			require.NoError(t, err)
-			require.Equal(t, data, s)
+	testCases := []struct {
+		name, input, expect string
+	}{
+		{`Empty`, ``, `""`},
+		{`Simple`, `abcd`, `"abcd"`},
+		{
+			`Escape`,
+			`abcd\nH\tel\tl\ro\\World\r` + "\n\rHello\r\tHi",
+			`"abcd\\nH\\tel\\tl\\ro\\\\World\\r\n\rHello\r\tHi"`,
+		},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			e := GetEncoder()
+			e.Str(tt.input)
+			require.Equal(t, tt.expect, string(e.Bytes()))
+			requireCompat(t, e.Bytes(), tt.input)
+			t.Run("Decode", func(t *testing.T) {
+				i := GetDecoder()
+				i.ResetBytes(e.Bytes())
+				s, err := i.Str()
+				require.NoError(t, err)
+				require.Equal(t, tt.input, s)
+			})
 		})
-	})
+	}
 	t.Run("StrEscapeFast", func(t *testing.T) {
 		e := GetEncoder()
 		e.StrEscape("Foo")
