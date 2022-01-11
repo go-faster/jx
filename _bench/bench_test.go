@@ -18,8 +18,8 @@ const (
 	EasyJSON = "easyjson"
 	// FFJSON for pquerna/ffjson.
 	FFJSON = "ffjson"
-	// JSCan for romshark/jscan.
-	JSCan = "jscan"
+	// JScan for romshark/jscan.
+	JScan = "jscan"
 	// Baseline directly writes string to buffer, no encoding.
 	Baseline = "Baseline"
 )

@@ -91,7 +91,7 @@ func BenchmarkHelloWorld(b *testing.B) {
 				}
 			}
 		})
-		b.Run(JSCan, func(b *testing.B) {
+		b.Run(JScan, func(b *testing.B) {
 			setupHelloWorld(b)
 			for i := 0; i < b.N; i++ {
 				r := jscan.Scan(
