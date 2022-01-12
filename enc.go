@@ -6,7 +6,7 @@ import "io"
 //
 // Zero value is valid.
 type Encoder struct {
-	buf    []byte // underlying buffer
+	w      Writer // underlying writer
 	indent int    // count of spaces for single indentation level
 
 	// first handles state for comma and indentation writing.
@@ -27,14 +27,12 @@ type Encoder struct {
 
 // Write implements io.Writer.
 func (e *Encoder) Write(p []byte) (n int, err error) {
-	e.buf = append(e.buf, p...)
-	return len(p), nil
+	return e.w.Write(p)
 }
 
 // WriteTo implements io.WriterTo.
 func (e *Encoder) WriteTo(w io.Writer) (n int64, err error) {
-	wrote, err := w.Write(e.buf)
-	return int64(wrote), err
+	return e.w.WriteTo(w)
 }
 
 // SetIdent sets length of single indentation step.
@@ -49,77 +47,50 @@ func (e Encoder) String() string {
 
 // Reset resets underlying buffer.
 func (e *Encoder) Reset() {
-	e.buf = e.buf[:0]
+	e.w.Buf = e.w.Buf[:0]
 	e.first = e.first[:0]
 }
 
 // Bytes returns underlying buffer.
-func (e Encoder) Bytes() []byte { return e.buf }
+func (e Encoder) Bytes() []byte { return e.w.Buf }
 
 // SetBytes sets underlying buffer.
-func (e *Encoder) SetBytes(buf []byte) { e.buf = buf }
+func (e *Encoder) SetBytes(buf []byte) { e.w.Buf = buf }
 
 // byte writes a single byte.
 func (e *Encoder) byte(c byte) {
-	e.buf = append(e.buf, c)
+	e.w.Buf = append(e.w.Buf, c)
 }
 
 func (e *Encoder) twoBytes(c1, c2 byte) {
-	e.buf = append(e.buf, c1, c2)
-}
-
-func (e *Encoder) threeBytes(c1, c2, c3 byte) {
-	e.buf = append(e.buf, c1, c2, c3)
-}
-
-func (e *Encoder) fourBytes(c1, c2, c3, c4 byte) {
-	e.buf = append(e.buf, c1, c2, c3, c4)
-}
-
-func (e *Encoder) fiveBytes(c1, c2, c3, c4, c5 byte) {
-	e.buf = append(e.buf, c1, c2, c3, c4, c5)
+	e.w.Buf = append(e.w.Buf, c1, c2)
 }
 
 // RawStr writes string as raw json.
 func (e *Encoder) RawStr(v string) {
 	e.comma()
-	e.rawStr(v)
-}
-
-func (e *Encoder) rawStr(v string) {
-	e.buf = append(e.buf, v...)
+	e.w.RawStr(v)
 }
 
 // Raw writes byte slice as raw json.
 func (e *Encoder) Raw(b []byte) {
 	e.comma()
-	e.buf = append(e.buf, b...)
+	e.w.Raw(b)
 }
 
 // Null writes null.
 func (e *Encoder) Null() {
 	e.comma()
-	e.fourBytes('n', 'u', 'l', 'l')
-}
-
-// True writes true.
-func (e *Encoder) True() {
-	e.comma()
-	e.fourBytes('t', 'r', 'u', 'e')
-}
-
-// False writes false.
-func (e *Encoder) False() {
-	e.comma()
-	e.fiveBytes('f', 'a', 'l', 's', 'e')
+	e.w.Null()
 }
 
 // Bool encodes boolean.
 func (e *Encoder) Bool(v bool) {
+	e.comma()
 	if v {
-		e.True()
+		e.w.True()
 	} else {
-		e.False()
+		e.w.False()
 	}
 }
 
@@ -128,7 +99,7 @@ func (e *Encoder) Bool(v bool) {
 // Use Obj as convenience helper for writing objects.
 func (e *Encoder) ObjStart() {
 	e.comma()
-	e.byte('{')
+	e.w.ObjStart()
 	e.begin()
 	e.writeIndent()
 }
@@ -164,13 +135,14 @@ func (e *Encoder) Field(name string, f func(e *Encoder)) {
 func (e *Encoder) ObjEnd() {
 	e.end()
 	e.writeIndent()
-	e.byte('}')
+	e.w.ObjEnd()
 }
 
 // ObjEmpty writes empty object.
 func (e *Encoder) ObjEmpty() {
 	e.comma()
-	e.twoBytes('{', '}')
+	e.w.ObjStart()
+	e.w.ObjEnd()
 }
 
 // Obj writes start of object, invokes callback and writes end of object.
@@ -191,7 +163,7 @@ func (e *Encoder) Obj(f func(e *Encoder)) {
 // Use Arr as convenience helper for writing arrays.
 func (e *Encoder) ArrStart() {
 	e.comma()
-	e.byte('[')
+	e.w.ArrStart()
 	e.begin()
 	e.writeIndent()
 }
@@ -199,7 +171,8 @@ func (e *Encoder) ArrStart() {
 // ArrEmpty writes empty array.
 func (e *Encoder) ArrEmpty() {
 	e.comma()
-	e.twoBytes('[', ']')
+	e.w.ArrStart()
+	e.w.ArrEnd()
 }
 
 // ArrEnd writes end of array, performing indentation if needed.
@@ -208,7 +181,7 @@ func (e *Encoder) ArrEmpty() {
 func (e *Encoder) ArrEnd() {
 	e.end()
 	e.writeIndent()
-	e.byte(']')
+	e.w.ArrEnd()
 }
 
 // Arr writes start of array, invokes callback and writes end of array.
@@ -230,6 +203,6 @@ func (e *Encoder) writeIndent() {
 	}
 	e.byte('\n')
 	for i := 0; i < len(e.first)*e.indent; i++ {
-		e.buf = append(e.buf, ' ')
+		e.w.Buf = append(e.w.Buf, ' ')
 	}
 }

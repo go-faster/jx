@@ -40,7 +40,7 @@ func Benchmark_skip(b *testing.B) {
 		if err := iter.ObjBytes(func(i *Decoder, key []byte) error {
 			switch string(key) {
 			case "code":
-				v, err := iter.Uint64()
+				v, err := iter.UInt64()
 				result.Code = v
 				return err
 			default:

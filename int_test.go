@@ -15,7 +15,7 @@ import (
 func Test_read_uint64_invalid(t *testing.T) {
 	should := require.New(t)
 	iter := DecodeStr(",")
-	_, err := iter.Uint64()
+	_, err := iter.UInt64()
 	should.Error(err)
 }
 
@@ -57,14 +57,14 @@ func TestDecoder_int_numbers(t *testing.T) {
 		})
 		t.Run("uint", func(t *testing.T) {
 			decodeStr(t, s, func(d *Decoder) {
-				got, err := d.Uint()
+				got, err := d.UInt()
 				require.NoError(t, err)
 				require.Equal(t, uint(v), got)
 			})
 		})
 		t.Run("uint32", func(t *testing.T) {
 			decodeStr(t, s, func(d *Decoder) {
-				got, err := d.Uint32()
+				got, err := d.UInt32()
 				require.NoError(t, err)
 				require.Equal(t, uint32(v), got)
 			})
@@ -112,7 +112,7 @@ func TestDecoder_int_overflow(t *testing.T) {
 				should.Error(err, "%v", v)
 
 				d = DecodeStr(s)
-				vu, err := d.Uint32()
+				vu, err := d.UInt32()
 				should.Error(err, "%v", vu)
 
 				d = DecodeStr(s)
@@ -149,7 +149,7 @@ func TestDecoder_int_overflow(t *testing.T) {
 				should.Error(err, "%v", v)
 
 				d = DecodeStr(s)
-				vu, err := d.Uint64()
+				vu, err := d.UInt64()
 				should.Error(err, "%v", vu)
 			})
 		}
@@ -204,14 +204,14 @@ func Test_write_uint32(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
 			e := GetEncoder()
-			e.Uint32(val)
+			e.UInt32(val)
 			should.Equal(strconv.FormatUint(uint64(val), 10), e.String())
 		})
 	}
 	should := require.New(t)
 	e := GetEncoder()
 	e.RawStr("a")
-	e.Uint32(0xffffffff) // should clear buffer
+	e.UInt32(0xffffffff) // should clear buffer
 	should.Equal("a4294967295", e.String())
 }
 
@@ -240,14 +240,14 @@ func Test_write_uint64(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
 			e := GetEncoder()
-			e.Uint64(val)
+			e.UInt64(val)
 			should.Equal(strconv.FormatUint(val, 10), e.String())
 		})
 	}
 	should := require.New(t)
 	e := GetEncoder()
 	e.RawStr("a")
-	e.Uint64(0xffffffff) // should clear buffer
+	e.UInt64(0xffffffff) // should clear buffer
 	should.Equal("a4294967295", e.String())
 }
 
@@ -389,7 +389,7 @@ func uintPow(n, m uint64) uint64 {
 	return result
 }
 
-func TestDecoder_Uint64(t *testing.T) {
+func TestDecoder_UInt64(t *testing.T) {
 	// Generate some diverse numbers.
 	var values []uint64
 	values = append(values, 0, math.MaxUint64)
@@ -405,13 +405,13 @@ func TestDecoder_Uint64(t *testing.T) {
 		t.Run(fmt.Sprintf("%d", v), func(t *testing.T) {
 			e := GetEncoder()
 			e.ArrStart()
-			e.Uint64(v)
+			e.UInt64(v)
 			e.ArrEnd()
 
 			d := GetDecoder()
 			d.ResetBytes(e.Bytes())
 			requireElem(t, d)
-			got, err := d.Uint64()
+			got, err := d.UInt64()
 			require.NoError(t, err)
 			require.Equal(t, v, got)
 			requireArrEnd(t, d)
@@ -430,7 +430,7 @@ func uint32Pow(n, m uint32) uint32 {
 	return result
 }
 
-func TestDecoder_Uint32(t *testing.T) {
+func TestDecoder_UInt32(t *testing.T) {
 	var values []uint32
 	values = append(values, 0, math.MaxUint32)
 	for i := uint32(0); i < 28; i++ {
@@ -446,20 +446,20 @@ func TestDecoder_Uint32(t *testing.T) {
 		t.Run(fmt.Sprintf("%d", v), func(t *testing.T) {
 			e := GetEncoder()
 			e.ArrStart()
-			e.Uint32(v)
-			e.Uint(uint(v))
+			e.UInt32(v)
+			e.UInt(uint(v))
 			e.ArrEnd()
 
 			d := GetDecoder()
 			d.ResetBytes(e.Bytes())
 			requireElem(t, d)
-			got, err := d.Uint32()
+			got, err := d.UInt32()
 			require.NoError(t, err)
 			require.Equal(t, v, got)
 			requireElem(t, d)
-			gotUint, err := d.Uint()
+			gotUInt, err := d.UInt()
 			require.NoError(t, err)
-			require.Equal(t, uint(v), gotUint)
+			require.Equal(t, uint(v), gotUInt)
 			requireArrEnd(t, d)
 		})
 	}
@@ -475,11 +475,11 @@ func TestIntEOF(t *testing.T) {
 		assert.Error(t, err, io.ErrUnexpectedEOF)
 		_, err = d.Int32()
 		assert.Error(t, err, io.ErrUnexpectedEOF)
-		_, err = d.Uint()
+		_, err = d.UInt()
 		assert.Error(t, err, io.ErrUnexpectedEOF)
-		_, err = d.Uint64()
+		_, err = d.UInt64()
 		assert.Error(t, err, io.ErrUnexpectedEOF)
-		_, err = d.Uint32()
+		_, err = d.UInt32()
 		assert.Error(t, err, io.ErrUnexpectedEOF)
 	})
 	t.Run("Minus", func(t *testing.T) {

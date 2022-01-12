@@ -138,7 +138,7 @@ func (o *OTEL) Encode(e *Encoder) {
 			e.Str("FATAL")
 		}
 		e.FieldStart("SeverityNumber")
-		e.Uint8(o.Severity)
+		e.UInt8(o.Severity)
 	}
 
 	e.FieldStart("Body")

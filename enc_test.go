@@ -12,12 +12,10 @@ func TestEncoder_byte_should_grow_buffer(t *testing.T) {
 	e := GetEncoder()
 	e.byte('1')
 	should.Equal("1", string(e.Bytes()))
-	should.Equal(1, len(e.buf))
+	should.Equal(1, len(e.w.Buf))
 	e.byte('2')
 	should.Equal("12", string(e.Bytes()))
-	should.Equal(2, len(e.buf))
-	e.threeBytes('3', '4', '5')
-	should.Equal("12345", string(e.Bytes()))
+	should.Equal(2, len(e.w.Buf))
 }
 
 func TestEncoder(t *testing.T) {
