@@ -68,6 +68,16 @@ func (m Map) Write(w *Writer) {
 	})
 }
 
+func (m Map) Encode(e *Encoder) {
+	e.ObjStart()
+	defer e.ObjEnd()
+	_ = m.Keys.ForEachBytes(func(i int, b []byte) error {
+		e.FieldStart(string(b))
+		e.Raw(m.Values.Elem(i))
+		return nil
+	})
+}
+
 func (m *Map) Decode(d *Decoder) error {
 	return d.ObjBytes(func(d *Decoder, k []byte) error {
 		v, err := d.Raw()
@@ -146,6 +156,57 @@ func (o *OTEL) Write(w *Writer) {
 
 	w.RawStr(`,"Body":`)
 	w.Raw(o.Body)
+}
+
+func (o *OTEL) Encode(e *Encoder) {
+	e.ObjStart()
+	defer e.ObjEnd()
+
+	e.FieldStart("Timestamp")
+	e.Num(o.Timestamp)
+
+	e.FieldStart("Attributes")
+	o.Attributes.Encode(e)
+
+	e.FieldStart("Resource")
+	o.Resource.Encode(e)
+
+	{
+		// Hex encoding.
+		buf := make([]byte, 32) // 32 = 16 * 2
+		var n int
+
+		n = hex.Encode(buf, o.TraceID[:])
+		e.FieldStart("TraceId")
+		e.Str(string(buf[:n]))
+
+		n = hex.Encode(buf, o.SpanID[:])
+		e.FieldStart("SpanId")
+		e.Str(string(buf[:n]))
+	}
+
+	if o.Severity > 0 && o.Severity <= 24 {
+		e.FieldStart("SeverityText")
+		switch {
+		case o.Severity >= 1 && o.Severity <= 4:
+			e.Str("TRACE")
+		case o.Severity >= 5 && o.Severity <= 8:
+			e.Str("DEBUG")
+		case o.Severity >= 9 && o.Severity <= 12:
+			e.Str("INFO")
+		case o.Severity >= 13 && o.Severity <= 16:
+			e.Str("WARN")
+		case o.Severity >= 17 && o.Severity <= 20:
+			e.Str("ERROR")
+		case o.Severity >= 21 && o.Severity <= 24:
+			e.Str("FATAL")
+		}
+		e.FieldStart("SeverityNumber")
+		e.UInt8(o.Severity)
+	}
+
+	e.FieldStart("Body")
+	e.Raw(o.Body)
 }
 
 func (o *OTEL) Decode(d *Decoder) error {
@@ -235,33 +296,44 @@ func TestOTELDecode(t *testing.T) {
 }
 
 func BenchmarkOTEL_Decode(b *testing.B) {
-	d := GetDecoder()
-	b.ReportAllocs()
-	b.SetBytes(int64(len(otelEx1)))
-
 	var v OTEL
-	for i := 0; i < b.N; i++ {
-		v.Reset()
-		d.ResetBytes(otelEx1)
-		if err := v.Decode(d); err != nil {
-			b.Fatal(err)
+	dec := DecodeBytes(otelEx1)
+	require.NoError(b, v.Decode(dec))
+
+	b.Run("Decode", func(b *testing.B) {
+		d := GetDecoder()
+		b.ReportAllocs()
+		b.SetBytes(int64(len(otelEx1)))
+
+		var v OTEL
+		for i := 0; i < b.N; i++ {
+			v.Reset()
+			d.ResetBytes(otelEx1)
+			if err := v.Decode(d); err != nil {
+				b.Fatal(err)
+			}
 		}
-	}
-}
-
-func BenchmarkOTEL_Write(b *testing.B) {
-	d := DecodeBytes(otelEx1)
-	var v OTEL
-
-	require.NoError(b, v.Decode(d))
-
-	b.ReportAllocs()
-	var w Writer
-	v.Write(&w)
-	b.SetBytes(int64(len(w.Buf)))
-
-	for i := 0; i < b.N; i++ {
-		w.Reset()
+	})
+	b.Run("Write", func(b *testing.B) {
+		b.ReportAllocs()
+		var w Writer
 		v.Write(&w)
-	}
+		b.SetBytes(int64(len(w.Buf)))
+
+		for i := 0; i < b.N; i++ {
+			w.Reset()
+			v.Write(&w)
+		}
+	})
+	b.Run("Encode", func(b *testing.B) {
+		b.ReportAllocs()
+		e := GetEncoder()
+		v.Encode(e)
+		b.SetBytes(int64(len(e.Bytes())))
+
+		for i := 0; i < b.N; i++ {
+			e.Reset()
+			v.Encode(e)
+		}
+	})
 }
