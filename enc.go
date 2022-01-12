@@ -62,10 +62,6 @@ func (e *Encoder) byte(c byte) {
 	e.w.Buf = append(e.w.Buf, c)
 }
 
-func (e *Encoder) twoBytes(c1, c2 byte) {
-	e.w.Buf = append(e.w.Buf, c1, c2)
-}
-
 // RawStr writes string as raw json.
 func (e *Encoder) RawStr(v string) {
 	e.comma()
