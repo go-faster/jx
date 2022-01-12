@@ -31,7 +31,7 @@ func writeBuf(buf []byte, v uint32) []byte {
 	return append(buf, byte(v>>16), byte(v>>8), byte(v))
 }
 
-// Uint64 encodes uint64.
+// UInt64 encodes uint64.
 func (w *Writer) UInt64(v uint64) {
 	q0 := v
 	// Iteration 0.
@@ -101,7 +101,7 @@ func (w *Writer) UInt64(v uint64) {
 	w.Buf = writeBuf(w.Buf, digits[r1])
 }
 
-// Uint64 encodes uint64.
+// UInt64 encodes uint64.
 func (e *Encoder) UInt64(v uint64) {
 	e.comma()
 	e.w.UInt64(v)
@@ -125,7 +125,7 @@ func (e *Encoder) Int64(v int64) {
 	e.w.Int64(v)
 }
 
-// Uint32 encodes uint32.
+// UInt32 encodes uint32.
 func (w *Writer) UInt32(v uint32) {
 	q0 := v
 	// Iteration 0.
@@ -159,7 +159,7 @@ func (w *Writer) UInt32(v uint32) {
 	w.Buf = writeBuf(w.Buf, digits[r1])
 }
 
-// Uint32 encodes uint32.
+// UInt32 encodes uint32.
 func (e *Encoder) UInt32(v uint32) {
 	e.comma()
 	e.w.UInt32(v)
@@ -183,7 +183,7 @@ func (e *Encoder) Int32(v int32) {
 	e.w.Int32(v)
 }
 
-// Uint16 encodes uint16.
+// UInt16 encodes uint16.
 func (w *Writer) UInt16(v uint16) {
 	q0 := v
 	// Iteration 0.
@@ -198,7 +198,7 @@ func (w *Writer) UInt16(v uint16) {
 	w.Buf = writeBuf(w.Buf, digits[r1])
 }
 
-// Uint16 encodes uint16.
+// UInt16 encodes uint16.
 func (e *Encoder) UInt16(v uint16) {
 	e.comma()
 	e.w.UInt16(v)

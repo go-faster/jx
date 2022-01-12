@@ -41,7 +41,7 @@ func writeBuf(buf []byte, v uint32) []byte {
 
 {{ define "encode_uint" }}
 {{- /*gotype: github.com/go-faster/jx/tools/mkencint.IntType */ -}}
-// U{{ $.Name }} encodes u{{ $.Name }}.
+// U{{ title $.Name }} encodes u{{ $.Name }}.
 func (w *Writer) U{{ title $.Name }}(v u{{ $.Name }}) {
 	q0 := v
 	{{- range $i, $_ := times $.Iterations }}
@@ -68,7 +68,7 @@ func (w *Writer) U{{ title $.Name }}(v u{{ $.Name }}) {
 	{{- end }}
 }
 
-// U{{ $.Name }} encodes u{{ $.Name }}.
+// U{{ title $.Name }} encodes u{{ $.Name }}.
 func (e *Encoder) U{{ title $.Name }}(v u{{ $.Name }}) {
     e.comma()
     e.w.U{{ title $.Name }}(v)
