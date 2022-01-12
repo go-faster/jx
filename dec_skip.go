@@ -1,6 +1,8 @@
 package jx
 
 import (
+	"io"
+
 	"github.com/go-faster/errors"
 )
 
@@ -50,11 +52,8 @@ func (d *Decoder) Skip() error {
 		return d.skipThreeBytes('r', 'u', 'e') // true
 	case 'f':
 		return d.skipFourBytes('a', 'l', 's', 'e') // false
-	case '0':
+	case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		d.unread()
-		_, err := d.Float32()
-		return err
-	case '-', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		return d.skipNumber()
 	case '[':
 		if err := d.skipArr(); err != nil {
@@ -97,51 +96,203 @@ func (d *Decoder) skipThreeBytes(b1, b2, b3 byte) error {
 	return nil
 }
 
-func (d *Decoder) skipNumber() error {
-	ok, err := d.skipNumberFast()
-	if err != nil || ok {
-		return err
+var (
+	closerSet = [256]byte{
+		',':  1,
+		']':  1,
+		'}':  1,
+		' ':  1,
+		'\t': 1,
+		'\n': 1,
+		'\r': 1,
 	}
-	d.unread()
-	if _, err := d.Float64(); err != nil {
-		return err
+	digitSet = [256]byte{
+		'0': 1,
+		'1': 1,
+		'2': 1,
+		'3': 1,
+		'4': 1,
+		'5': 1,
+		'6': 1,
+		'7': 1,
+		'8': 1,
+		'9': 1,
 	}
-	return nil
-}
+)
 
-func (d *Decoder) skipNumberFast() (ok bool, err error) {
-	dotFound := false
-	for i := d.head; i < d.tail; i++ {
-		c := d.buf[i]
-		switch c {
-		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-		case '.':
-			if dotFound {
-				return false, errors.New("more than one dot")
-			}
-			if i+1 == d.tail {
-				return false, nil
-			}
-			c = d.buf[i+1]
-			switch c {
-			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-			default:
-				return false, errors.New("no digit after dot")
-			}
-			dotFound = true
-		default:
-			switch c {
-			case ',', ']', '}', ' ', '\t', '\n', '\r':
-				if d.head == i {
-					return false, nil // if - without following digits
+func (d *Decoder) skipNumber() error {
+	if d.head == d.tail {
+		return io.ErrUnexpectedEOF
+	}
+	c := d.buf[d.head]
+	d.head++
+	switch c {
+	case '-':
+		c, err := d.byte()
+		if err != nil {
+			return err
+		}
+		// Character after '-' must be a digit.
+		if digitSet[c] == 0 {
+			return badToken(c)
+		}
+	case '0':
+		// If buffer is empty, try to read more.
+		if d.head == d.tail {
+			err := d.read()
+			if err != nil {
+				// There is no data anymore.
+				if err == io.EOF {
+					return nil
 				}
-				d.head = i
-				return true, nil
+				return err
 			}
-			return false, nil
+		}
+
+		c = d.buf[d.head]
+		if closerSet[c] != 0 {
+			return nil
+		}
+		switch c {
+		case '.':
+			goto stateDot
+		case 'e', 'E':
+			goto stateExp
+		default:
+			return badToken(c)
 		}
 	}
-	return false, nil
+	for {
+		for i, c := range d.buf[d.head:d.tail] {
+			if closerSet[c] != 0 {
+				d.head += i
+				return nil
+			}
+			if digitSet[c] != 0 {
+				continue
+			}
+			switch c {
+			case '.':
+				d.head += i
+				goto stateDot
+			case 'e', 'E':
+				d.head += i
+				goto stateExp
+			default:
+				return badToken(c)
+			}
+		}
+
+		if err := d.read(); err != nil {
+			// There is no data anymore.
+			if err == io.EOF {
+				return nil
+			}
+			return err
+		}
+	}
+
+stateDot:
+	d.head++
+	for {
+		var last byte = '.'
+		for i, c := range d.buf[d.head:d.tail] {
+			if closerSet[c] != 0 {
+				d.head += i
+				if last == '.' {
+					return io.ErrUnexpectedEOF
+				}
+				return nil
+			}
+			last = c
+			if digitSet[c] != 0 {
+				continue
+			}
+			switch c {
+			case 'e', 'E':
+				if i == 0 {
+					return badToken(c)
+				}
+				d.head += i
+				goto stateExp
+			default:
+				return badToken(c)
+			}
+		}
+
+		if err := d.read(); err != nil {
+			// There is no data anymore.
+			if err == io.EOF {
+				if last == '.' {
+					return io.ErrUnexpectedEOF
+				}
+				return nil
+			}
+			return err
+		}
+	}
+stateExp:
+	d.head++
+	for {
+		var last byte = 'e'
+		for i, c := range d.buf[d.head:d.tail] {
+			if closerSet[c] != 0 {
+				d.head += i
+				if last == 'e' {
+					return io.ErrUnexpectedEOF
+				}
+				return nil
+			}
+			last = c
+			if digitSet[c] == 0 {
+				if c == '-' || c == '+' {
+					d.head += i
+					goto stateExpAfterSign
+				}
+				return badToken(c)
+			}
+		}
+
+		if err := d.read(); err != nil {
+			// There is no data anymore.
+			if err == io.EOF {
+				if last == 'e' {
+					return io.ErrUnexpectedEOF
+				}
+				return nil
+			}
+			return err
+		}
+	}
+stateExpAfterSign:
+	d.head++
+	for {
+		var last byte = '+'
+		for i, c := range d.buf[d.head:d.tail] {
+			if closerSet[c] != 0 {
+				d.head += i
+				if last == '+' {
+					return io.ErrUnexpectedEOF
+				}
+				return nil
+			}
+			last = c
+			if digitSet[c] == 0 {
+				return badToken(c)
+			}
+		}
+
+		if err := d.read(); err != nil {
+			// There is no data anymore.
+			if err == io.EOF {
+				if last == '+' {
+					return io.ErrUnexpectedEOF
+				}
+				return nil
+			}
+			return err
+		}
+	}
 }
 
 func (d *Decoder) skipStr() error {

@@ -13,7 +13,6 @@ import (
 func Test_skip(t *testing.T) {
 	type testCase struct {
 		ptr    interface{}
-		name   string
 		inputs []string
 	}
 	var testCases []testCase
