@@ -5,6 +5,7 @@ package jx
 
 import (
 	"bytes"
+	"encoding/json"
 	"testing"
 
 	"github.com/go-faster/errors"
@@ -22,7 +23,13 @@ func FuzzValid(f *testing.F) {
 		f.Add([]byte(s))
 	}
 	f.Fuzz(func(t *testing.T, data []byte) {
-		Valid(data)
+		var (
+			std = json.Valid(data)
+			jx  = Valid(data)
+		)
+		if std != jx {
+			t.Fatalf(`Valid(%#v): %v (std) != %v (jx)`, string(data), std, jx)
+		}
 	})
 }
 
