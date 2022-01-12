@@ -87,11 +87,7 @@ func (e *Encoder) Null() {
 // Bool encodes boolean.
 func (e *Encoder) Bool(v bool) {
 	e.comma()
-	if v {
-		e.w.True()
-	} else {
-		e.w.False()
-	}
+	e.w.Bool(v)
 }
 
 // ObjStart writes object start, performing indentation if needed.
@@ -110,11 +106,10 @@ func (e *Encoder) ObjStart() {
 //
 // Use Field as convenience helper for encoding fields.
 func (e *Encoder) FieldStart(field string) {
-	e.Str(field)
+	e.comma()
+	e.w.FieldStart(field)
 	if e.indent > 0 {
-		e.twoBytes(':', ' ')
-	} else {
-		e.byte(':')
+		e.byte(' ')
 	}
 	if len(e.first) > 0 {
 		e.first[e.current()] = true
