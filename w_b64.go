@@ -1,6 +1,6 @@
 package jx
 
-import "encoding/base64"
+import "github.com/segmentio/asm/base64"
 
 // Base64 encodes data as standard base64 encoded string.
 //
