@@ -30,21 +30,11 @@ func Test_skip(t *testing.T) {
 			`"\t"`,     // valid
 		},
 	})
-	testCases = append(testCases, testCase{
-		ptr: (*[]interface{})(nil),
-		inputs: []string{
-			`[]`,             // valid
-			`[1]`,            // valid
-			`[  1, "hello"]`, // valid
-			`[abc]`,          // invalid
-			`[`,              // invalid
-			`[[]`,            // invalid
-		},
-	})
-	testCases = append(testCases, testCase{
+	numberCase := testCase{
 		ptr: (*float64)(nil),
 		inputs: []string{
 			"0",      // valid
+			"-",      // invalid
 			"+1",     // invalid
 			"-a",     // invalid
 			"-\x00",  // invalid, zero byte
@@ -52,6 +42,9 @@ func Test_skip(t *testing.T) {
 			"0e1",    // valid
 			"0e+1",   // valid
 			"0e-1",   // valid
+			"0e-11",  // valid
+			"0e-1a",  // invalid
+			"0e-1+",  // invalid
 			"0e",     // invalid
 			"-e",     // invalid
 			"+e",     // invalid
@@ -72,7 +65,23 @@ func Test_skip(t *testing.T) {
 			"10.",    // invalid
 			"-0.12",  // valid
 		},
-	})
+	}
+	testCases = append(testCases, numberCase)
+	arrayCase := testCase{
+		ptr: (*[]interface{})(nil),
+		inputs: []string{
+			`[]`,             // valid
+			`[1]`,            // valid
+			`[  1, "hello"]`, // valid
+			`[abc]`,          // invalid
+			`[`,              // invalid
+			`[[]`,            // invalid
+		},
+	}
+	for _, c := range numberCase.inputs {
+		arrayCase.inputs = append(arrayCase.inputs, `[`+c+`]`)
+	}
+	testCases = append(testCases, arrayCase)
 	testCases = append(testCases, testCase{
 		ptr: (*struct{})(nil),
 		inputs: []string{

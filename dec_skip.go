@@ -120,10 +120,10 @@ var (
 	}
 )
 
+// skipNumber reads one JSON number.
+//
+// Assumes d.buf is not empty.
 func (d *Decoder) skipNumber() error {
-	if d.head == d.tail {
-		return io.ErrUnexpectedEOF
-	}
 	c := d.buf[d.head]
 	d.head++
 	switch c {
