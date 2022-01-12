@@ -305,11 +305,11 @@ func BenchmarkOTEL_Decode(b *testing.B) {
 		b.ReportAllocs()
 		b.SetBytes(int64(len(otelEx1)))
 
-		var v OTEL
+		var vDec OTEL
 		for i := 0; i < b.N; i++ {
-			v.Reset()
+			vDec.Reset()
 			d.ResetBytes(otelEx1)
-			if err := v.Decode(d); err != nil {
+			if err := vDec.Decode(d); err != nil {
 				b.Fatal(err)
 			}
 		}
