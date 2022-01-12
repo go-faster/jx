@@ -23,3 +23,8 @@ func sonicSmall(b *testing.B) {
 	b.Helper()
 	sonicSkip(b)
 }
+
+func sonicDecodeSmall(b *testing.B) {
+	b.Helper()
+	sonicSkip(b)
+}

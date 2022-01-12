@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/mailru/easyjson/jlexer"
 	"github.com/mailru/easyjson/jwriter"
 	"github.com/romshark/jscan"
 
@@ -87,6 +88,29 @@ func BenchmarkSmall(b *testing.B) {
 		})
 	})
 	b.Run(Decode, func(b *testing.B) {
+		b.Run(EasyJSON, func(b *testing.B) {
+			data := setupSmall(b)
+			var d Small
+			for i := 0; i < b.N; i++ {
+				l := jlexer.Lexer{Data: data}
+				d.UnmarshalEasyJSON(&l)
+				if err := l.Error(); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+		b.Run(Sonic, sonicDecodeSmall)
+		b.Run(Std, func(b *testing.B) {
+			data := setupSmall(b)
+			var d Small
+			for i := 0; i < b.N; i++ {
+				if err := json.Unmarshal(data, &d); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+	})
+	b.Run(Scan, func(b *testing.B) {
 		b.Run(JX, func(b *testing.B) {
 			data := setupSmall(b)
 			var d jx.Decoder

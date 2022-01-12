@@ -89,7 +89,7 @@ func BenchmarkHelloWorld(b *testing.B) {
 			}
 		})
 	})
-	b.Run(Decode, func(b *testing.B) {
+	b.Run(Scan, func(b *testing.B) {
 		b.Run(JX, func(b *testing.B) {
 			setupHelloWorld(b)
 			var d jx.Decoder

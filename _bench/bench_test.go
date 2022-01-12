@@ -6,6 +6,8 @@ const (
 	Encode = "Encode"
 	// Decode is name for decoding benchmarks.
 	Decode = "Decode"
+	// Scan is name for scanning benchmarks.
+	Scan = "Scan"
 	// JX is name for benchmarks related to go-faster/jx package.
 	JX = "jx"
 	// Std is name for benchmarks related to encoding/json.
