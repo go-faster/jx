@@ -60,7 +60,6 @@ func BenchmarkEncoder_comma_overhead(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		e.ArrStart()
 		e.comma()
-		e.resetComma()
 		e.Reset()
 	}
 }

@@ -15,13 +15,6 @@ func (e *Encoder) end() {
 
 func (e *Encoder) current() int { return len(e.first) - 1 }
 
-func (e *Encoder) resetComma() {
-	if len(e.first) == 0 {
-		return
-	}
-	e.first[e.current()] = true
-}
-
 // comma should be called before any new value.
 func (e *Encoder) comma() {
 	// Writing commas.
