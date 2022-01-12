@@ -2,6 +2,7 @@ package jx
 
 import (
 	"io"
+	"math/bits"
 
 	"github.com/go-faster/errors"
 )
@@ -9,10 +10,32 @@ import (
 // Null reads a json object as null and
 // returns whether it's a null or not.
 func (d *Decoder) Null() error {
-	if err := d.consume('n'); err != nil {
+	const encodedNull = 'n' | 'u'<<8 | 'l'<<16 | 'l'<<24
+
+	if buf := d.buf[d.head:d.tail]; len(buf) >= 4 {
+		c := uint32(buf[0]) | uint32(buf[1])<<8 | uint32(buf[2])<<16 | uint32(buf[3])<<24
+		if mask := c ^ encodedNull; mask != 0 {
+			idx := bits.TrailingZeros32(mask) / 8
+			return badToken(buf[idx])
+		}
+		d.head += 4
+		return nil
+	}
+
+	var buf [4]byte
+	n := copy(buf[:], d.buf[d.head:d.tail])
+	if err := d.readAtLeast(4 - n); err != nil {
 		return err
 	}
-	return d.skipThreeBytes('u', 'l', 'l') // null
+	copy(buf[n:], d.buf[d.head:d.tail])
+
+	c := uint32(buf[0]) | uint32(buf[1])<<8 | uint32(buf[2])<<16 | uint32(buf[3])<<24
+	if mask := c ^ encodedNull; mask != 0 {
+		idx := bits.TrailingZeros32(mask) / 8
+		return badToken(buf[idx])
+	}
+	d.head += 4
+	return nil
 }
 
 // Bool reads a json object as Bool

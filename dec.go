@@ -246,6 +246,22 @@ func (d *Decoder) read() error {
 	return nil
 }
 
+func (d *Decoder) readAtLeast(min int) error {
+	if d.reader == nil {
+		d.head = d.tail
+		return io.ErrUnexpectedEOF
+	}
+
+	n, err := io.ReadAtLeast(d.reader, d.buf, min)
+	if err != nil {
+		return err
+	}
+
+	d.head = 0
+	d.tail = n
+	return nil
+}
+
 func (d *Decoder) unread() { d.head-- }
 
 // limit maximum depth of nesting, as allowed by https://tools.ietf.org/html/rfc7159#section-9
