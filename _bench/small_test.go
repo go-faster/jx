@@ -32,7 +32,7 @@ var (
 	small = &Small{
 		BookId:  12125925,
 		BookIds: []int{-2147483648, 2147483647},
-		Title:   "未来简史-从智人到智神",
+		Title:   "Foo",
 		Titles:  []string{"hello", "world"},
 		Price:   40.8,
 		Prices:  []float64{-0.1, 0.1},
@@ -48,12 +48,22 @@ func BenchmarkSmall(b *testing.B) {
 	v := small
 	b.Run(Encode, func(b *testing.B) {
 		b.Run(JX, func(b *testing.B) {
-			setupSmall(b)
-			var e jx.Encoder
-			for i := 0; i < b.N; i++ {
-				e.Reset()
-				v.Encode(&e)
-			}
+			b.Run("Encoder", func(b *testing.B) {
+				setupSmall(b)
+				var e jx.Encoder
+				for i := 0; i < b.N; i++ {
+					e.Reset()
+					v.Encode(&e)
+				}
+			})
+			b.Run("Writer", func(b *testing.B) {
+				setupSmall(b)
+				var w jx.Writer
+				for i := 0; i < b.N; i++ {
+					w.Reset()
+					v.Write(&w)
+				}
+			})
 		})
 		b.Run(Std, func(b *testing.B) {
 			w := new(bytes.Buffer)

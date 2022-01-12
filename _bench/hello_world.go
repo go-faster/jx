@@ -29,6 +29,13 @@ func (w HelloWorld) Encode(e *jx.Encoder) {
 	e.ObjEnd()
 }
 
+func (w HelloWorld) Write(wr *jx.Writer) {
+	wr.ObjStart()
+	wr.RawStr(`"message":`)
+	wr.Str(w.Message)
+	wr.ObjEnd()
+}
+
 func (w HelloWorld) EncodeIter(s *jsoniter.Stream) {
 	s.WriteObjectStart()
 	s.WriteObjectField(helloWorldField)

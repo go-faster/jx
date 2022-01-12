@@ -104,6 +104,87 @@ func (s Small) Encode(e *jx.Encoder) {
 	e.ObjEnd()
 }
 
+func (s Small) Write(w *jx.Writer) {
+	w.ObjStart()
+	w.RawStr(`"id":`)
+	w.Int(s.BookId)
+
+	w.RawStr(`,"ids":`)
+	w.ArrStart()
+	for i, v := range s.BookIds {
+		if i != 0 {
+			w.Comma()
+		}
+		w.Int(v)
+	}
+	w.ArrEnd()
+
+	w.RawStr(`,"title":`)
+	w.Str(s.Title)
+
+	w.RawStr(`,"titles":`)
+	w.ArrStart()
+	for i, v := range s.Titles {
+		if i != 0 {
+			w.Comma()
+		}
+		w.Str(v)
+	}
+	w.ArrEnd()
+
+	w.RawStr(`,"price":`)
+	w.Float64(s.Price)
+
+	w.RawStr(`,"prices":`)
+	w.ArrStart()
+	for i, v := range s.Prices {
+		if i != 0 {
+			w.Comma()
+		}
+		w.Float64(v)
+	}
+	w.ArrEnd()
+
+	w.RawStr(`,"hot":`)
+	w.Bool(s.Hot)
+
+	w.RawStr(`,"hots":`)
+	w.ArrStart()
+	for i, v := range s.Hots {
+		if i != 0 {
+			w.Comma()
+		}
+		w.Bool(v)
+	}
+	w.ArrEnd()
+
+	w.RawStr(`,"author":`)
+	s.Author.Write(w)
+
+	w.RawStr(`,"authors":`)
+	w.ArrStart()
+	for i, v := range s.Authors {
+		if i != 0 {
+			w.Comma()
+		}
+		v.Write(w)
+	}
+	w.ArrEnd()
+
+	w.RawStr(`,"weights":`)
+	if s.Weights == nil {
+		w.Null()
+	} else {
+		w.ArrStart()
+		for _, v := range s.Weights {
+			w.Int(v)
+		}
+		w.ArrEnd()
+	}
+
+	w.ObjEnd()
+}
+
 //easyjson:json
 type SmallAuthor struct {
 	Name string `json:"name"`
@@ -120,4 +201,15 @@ func (a SmallAuthor) Encode(e *jx.Encoder) {
 	e.FieldStart("male")
 	e.Bool(a.Male)
 	e.ObjEnd()
+}
+
+func (a SmallAuthor) Write(w *jx.Writer) {
+	w.ObjStart()
+	w.RawStr(`"name":`)
+	w.Str(a.Name)
+	w.RawStr(`,"age":`)
+	w.Int(a.Age)
+	w.RawStr(`,"male":`)
+	w.Bool(a.Male)
+	w.ObjEnd()
 }

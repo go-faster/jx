@@ -24,12 +24,22 @@ func BenchmarkHelloWorld(b *testing.B) {
 	v := &HelloWorld{Message: helloWorldMessage}
 	b.Run(Encode, func(b *testing.B) {
 		b.Run(JX, func(b *testing.B) {
-			setupHelloWorld(b)
-			var e jx.Encoder
-			for i := 0; i < b.N; i++ {
-				e.Reset()
-				v.Encode(&e)
-			}
+			b.Run("Encoder", func(b *testing.B) {
+				setupHelloWorld(b)
+				var e jx.Encoder
+				for i := 0; i < b.N; i++ {
+					e.Reset()
+					v.Encode(&e)
+				}
+			})
+			b.Run("Writer", func(b *testing.B) {
+				setupHelloWorld(b)
+				var w jx.Writer
+				for i := 0; i < b.N; i++ {
+					w.Reset()
+					v.Write(&w)
+				}
+			})
 		})
 		b.Run(Std, func(b *testing.B) {
 			w := new(bytes.Buffer)
