@@ -9,6 +9,7 @@ import (
 	"strconv"
 )
 
+// Float writes float value to buffer.
 func (w *Writer) Float(v float64, bits int) {
 	if math.IsNaN(v) || math.IsInf(v, 0) {
 		// Like in ECMA:
