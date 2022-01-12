@@ -95,7 +95,7 @@ func (n Num) Uint64() (uint64, error) {
 		return 0, errors.Wrap(err, "float as int")
 	}
 	d := n.dec()
-	return d.Uint64()
+	return d.UInt64()
 }
 
 // Float64 decodes number as 64-bit floating point.

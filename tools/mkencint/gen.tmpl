@@ -42,8 +42,7 @@ func writeBuf(buf []byte, v uint32) []byte {
 {{ define "encode_uint" }}
 {{- /*gotype: github.com/go-faster/jx/tools/mkencint.IntType */ -}}
 // U{{ $.Name }} encodes u{{ $.Name }}.
-func (e *Encoder) U{{ $.Name }}(v u{{ $.Name }}) {
-	e.comma()
+func (w *Writer) U{{ title $.Name }}(v u{{ $.Name }}) {
 	q0 := v
 	{{- range $i, $_ := times $.Iterations }}
 	// Iteration {{ $i }}.
@@ -52,37 +51,47 @@ func (e *Encoder) U{{ $.Name }}(v u{{ $.Name }}) {
 	{{- end }}
 
 	{{- if eq $i (sub $.Iterations 1) }}
-	e.buf = writeFirstBuf(e.buf, digits[q{{$i}}])
+	w.Buf = writeFirstBuf(w.Buf, digits[q{{$i}}])
 	{{- range $r, $_ := times $i }}
-	e.buf = writeBuf(e.buf, digits[r{{sub $i $r}}])
+	w.Buf = writeBuf(w.Buf, digits[r{{sub $i $r}}])
 	{{- end }}
 	{{- else }}
 	q{{add $i 1}} := q{{$i}} / 1000
 	if q{{add $i 1}} == 0 {
-		e.buf = writeFirstBuf(e.buf, digits[q{{$i}}])
+		w.Buf = writeFirstBuf(w.Buf, digits[q{{$i}}])
 		{{- range $r, $_ := times $i }}
-		e.buf = writeBuf(e.buf, digits[r{{sub $i $r}}])
+		w.Buf = writeBuf(w.Buf, digits[r{{sub $i $r}}])
 		{{- end }}
 		return
 	}
 	{{- end }}
 	{{- end }}
 }
+
+// U{{ $.Name }} encodes u{{ $.Name }}.
+func (e *Encoder) U{{ title $.Name }}(v u{{ $.Name }}) {
+    e.comma()
+    e.w.U{{ title $.Name }}(v)
+}
 {{ end }}
 
 {{ define "encode_int" }}
 {{- /*gotype: github.com/go-faster/jx/tools/mkencint.IntType */ -}}
 // {{ title $.Name }} encodes {{ $.Name }}.
-func (e *Encoder) {{ title $.Name }}(v {{ $.Name }}) {
+func (w *Writer) {{ title $.Name }}(v {{ $.Name }}) {
 	var val u{{ $.Name }}
 	if v < 0 {
 		val = u{{ $.Name }}(-v)
-		e.comma()
-		e.resetComma()
-		e.buf = append(e.buf, '-')
+		w.Buf = append(w.Buf, '-')
 	} else {
 		val = u{{ $.Name }}(v)
 	}
-	e.U{{ $.Name }}(val)
+	w.U{{ title $.Name }}(val)
+}
+
+// {{ title $.Name }} encodes {{ $.Name }}.
+func (e *Encoder) {{ title $.Name }}(v {{ $.Name }}) {
+	e.comma()
+	e.w.{{ title $.Name }}(v)
 }
 {{ end }}

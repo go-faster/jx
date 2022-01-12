@@ -23,7 +23,7 @@ func encodeObject(w *Encoder) {
 	w.ObjStart()
 
 	w.FieldStart("objectId")
-	w.Uint64(8838243212)
+	w.UInt64(8838243212)
 
 	w.FieldStart("name")
 	w.Str("Jane Doe")

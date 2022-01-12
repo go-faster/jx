@@ -26,15 +26,15 @@ func init() {
 
 func (d *Decoder) uint(size int) (uint, error) {
 	if size == 32 {
-		v, err := d.Uint32()
+		v, err := d.UInt32()
 		return uint(v), err
 	}
-	v, err := d.Uint64()
+	v, err := d.UInt64()
 	return uint(v), err
 }
 
-// Uint read uint.
-func (d *Decoder) Uint() (uint, error) {
+// UInt read uint.
+func (d *Decoder) UInt() (uint, error) {
 	return d.uint(strconv.IntSize)
 }
 
@@ -59,7 +59,7 @@ func (d *Decoder) Int32() (int32, error) {
 		return 0, errors.Wrap(err, "byte")
 	}
 	if c == '-' {
-		val, err := d.readUint32()
+		val, err := d.readUInt32()
 		if err != nil {
 			return 0, err
 		}
@@ -69,7 +69,7 @@ func (d *Decoder) Int32() (int32, error) {
 		return -int32(val), nil
 	}
 	d.unread()
-	val, err := d.readUint32()
+	val, err := d.readUInt32()
 	if err != nil {
 		return 0, err
 	}
@@ -79,12 +79,12 @@ func (d *Decoder) Int32() (int32, error) {
 	return int32(val), nil
 }
 
-// Uint32 read uint32
-func (d *Decoder) Uint32() (uint32, error) {
-	return d.readUint32()
+// UInt32 read uint32
+func (d *Decoder) UInt32() (uint32, error) {
+	return d.readUInt32()
 }
 
-func (d *Decoder) readUint32() (uint32, error) {
+func (d *Decoder) readUInt32() (uint32, error) {
 	c, err := d.byte()
 	if err != nil {
 		return 0, errors.Wrap(err, "byte")
@@ -187,7 +187,7 @@ func (d *Decoder) Int64() (int64, error) {
 		if err != nil {
 			return 0, err
 		}
-		val, err := d.readUint64(c)
+		val, err := d.readUInt64(c)
 		if err != nil {
 			return 0, err
 		}
@@ -196,7 +196,7 @@ func (d *Decoder) Int64() (int64, error) {
 		}
 		return -int64(val), nil
 	}
-	val, err := d.readUint64(c)
+	val, err := d.readUInt64(c)
 	if err != nil {
 		return 0, err
 	}
@@ -206,16 +206,16 @@ func (d *Decoder) Int64() (int64, error) {
 	return int64(val), nil
 }
 
-// Uint64 read uint64
-func (d *Decoder) Uint64() (uint64, error) {
+// UInt64 read uint64
+func (d *Decoder) UInt64() (uint64, error) {
 	c, err := d.byte()
 	if err != nil {
 		return 0, errors.Wrap(err, "byte")
 	}
-	return d.readUint64(c)
+	return d.readUInt64(c)
 }
 
-func (d *Decoder) readUint64(c byte) (uint64, error) {
+func (d *Decoder) readUInt64(c byte) (uint64, error) {
 	ind := intDigits[c]
 	if ind == 0 {
 		return 0, nil // single zero

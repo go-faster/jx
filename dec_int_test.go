@@ -22,7 +22,7 @@ func BenchmarkDecoder_Uint(b *testing.B) {
 	d := GetDecoder()
 	for i := 0; i < b.N; i++ {
 		d.ResetBytes(data)
-		if _, err := d.Uint(); err != nil {
+		if _, err := d.UInt(); err != nil {
 			b.Fatal(err)
 		}
 	}

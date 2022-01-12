@@ -14,7 +14,7 @@ func TestEncoder_Uint64(t *testing.T) {
 		return fmt.Sprintf("Test%d", i), func(t *testing.T) {
 			enc := GetEncoder()
 			enc.Reset()
-			enc.Uint64(i)
+			enc.UInt64(i)
 			require.Equal(t, enc.String(), strconv.FormatUint(i, 10))
 		}
 	}
@@ -37,7 +37,7 @@ func TestEncoder_Uint32(t *testing.T) {
 		return fmt.Sprintf("Test%d", i), func(t *testing.T) {
 			enc := GetEncoder()
 			enc.Reset()
-			enc.Uint32(i)
+			enc.UInt32(i)
 			require.Equal(t, enc.String(), strconv.FormatUint(uint64(i), 10))
 		}
 	}
@@ -60,7 +60,7 @@ func TestEncoder_Uint16(t *testing.T) {
 		return fmt.Sprintf("Test%d", i), func(t *testing.T) {
 			enc := GetEncoder()
 			enc.Reset()
-			enc.Uint16(i)
+			enc.UInt16(i)
 			require.Equal(t, enc.String(), strconv.FormatUint(uint64(i), 10))
 		}
 	}
@@ -83,7 +83,7 @@ func TestEncoder_Uint8(t *testing.T) {
 		return fmt.Sprintf("Test%d", i), func(t *testing.T) {
 			enc := GetEncoder()
 			enc.Reset()
-			enc.Uint8(i)
+			enc.UInt8(i)
 			require.Equal(t, enc.String(), strconv.FormatUint(uint64(i), 10))
 		}
 	}

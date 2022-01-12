@@ -21,8 +21,8 @@ func Test_false(t *testing.T) {
 func Test_write_true_false(t *testing.T) {
 	should := require.New(t)
 	w := GetEncoder()
-	w.True()
-	w.False()
+	w.Bool(true)
+	w.Bool(false)
 	w.Bool(false)
 	should.Equal("truefalsefalse", string(w.Bytes()))
 }

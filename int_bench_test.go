@@ -33,7 +33,7 @@ func BenchmarkEncoder_Int(b *testing.B) {
 		e := GetEncoder()
 		for i := 0; i < b.N; i++ {
 			e.Reset()
-			e.Uint64(v)
+			e.UInt64(v)
 		}
 	})
 }

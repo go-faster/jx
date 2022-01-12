@@ -9,18 +9,18 @@ import (
 	"strconv"
 )
 
-func (e *Encoder) float(v float64, bits int) {
+// Float writes float value to buffer.
+func (w *Writer) Float(v float64, bits int) {
 	if math.IsNaN(v) || math.IsInf(v, 0) {
 		// Like in ECMA:
 		// NaN and Infinity regardless of sign are represented
 		// as the String null.
 		//
 		// JSON.stringify({"foo":NaN}) -> {"foo":null}
-		e.Null()
+		w.Null()
 		return
 	}
 
-	e.comma()
 	// From go std sources, strconv/ftoa.go:
 
 	// Convert as if by ES6 number to string conversion.
@@ -28,7 +28,7 @@ func (e *Encoder) float(v float64, bits int) {
 	// See golang.org/issue/6384 and golang.org/issue/14135.
 	// Like fmt %g, but the exponent cutoffs are different
 	// and exponents themselves are not padded to two digits.
-	b := e.buf
+	b := w.Buf
 	abs := math.Abs(v)
 	fmt := byte('f')
 	// Note: Must use float32 comparisons for underlying float32 value to get precise cutoffs right.
@@ -46,5 +46,5 @@ func (e *Encoder) float(v float64, bits int) {
 			b = b[:n-1]
 		}
 	}
-	e.buf = b
+	w.Buf = b
 }
