@@ -55,12 +55,15 @@ func (m *Map) Append(k, v []byte) {
 	m.Values.Append(v)
 }
 
-func (m Map) Encode(e *Encoder) {
-	e.ObjStart()
-	defer e.ObjEnd()
+func (m Map) Write(w *Writer) {
+	w.ObjStart()
+	defer w.ObjEnd()
 	_ = m.Keys.ForEachBytes(func(i int, b []byte) error {
-		e.FieldStart(string(b))
-		e.Raw(m.Values.Elem(i))
+		if i > 0 {
+			w.Comma()
+		}
+		w.FieldStart(string(b))
+		w.Raw(m.Values.Elem(i))
 		return nil
 	})
 }
@@ -94,18 +97,18 @@ type OTEL struct {
 	Body       Raw
 }
 
-func (o *OTEL) Encode(e *Encoder) {
-	e.ObjStart()
-	defer e.ObjEnd()
+func (o *OTEL) Write(w *Writer) {
+	w.ObjStart()
+	defer w.ObjEnd()
 
-	e.FieldStart("Timestamp")
-	e.Num(o.Timestamp)
+	w.RawStr(`"Timestamp":`)
+	w.Num(o.Timestamp)
 
-	e.FieldStart("Attributes")
-	o.Attributes.Encode(e)
+	w.RawStr(`,"Attributes":`)
+	o.Attributes.Write(w)
 
-	e.FieldStart("Resource")
-	o.Resource.Encode(e)
+	w.RawStr(`,"Resource":`)
+	o.Resource.Write(w)
 
 	{
 		// Hex encoding.
@@ -113,36 +116,36 @@ func (o *OTEL) Encode(e *Encoder) {
 		var n int
 
 		n = hex.Encode(buf, o.TraceID[:])
-		e.FieldStart("TraceId")
-		e.Str(string(buf[:n]))
+		w.RawStr(`,"TraceId":`)
+		w.Str(string(buf[:n]))
 
 		n = hex.Encode(buf, o.SpanID[:])
-		e.FieldStart("SpanId")
-		e.Str(string(buf[:n]))
+		w.RawStr(`,"SpanId":`)
+		w.Str(string(buf[:n]))
 	}
 
 	if o.Severity > 0 && o.Severity <= 24 {
-		e.FieldStart("SeverityText")
+		w.RawStr(`,"SeverityText":`)
 		switch {
 		case o.Severity >= 1 && o.Severity <= 4:
-			e.Str("TRACE")
+			w.RawStr(`"TRACE"`)
 		case o.Severity >= 5 && o.Severity <= 8:
-			e.Str("DEBUG")
+			w.RawStr(`"DEBUG"`)
 		case o.Severity >= 9 && o.Severity <= 12:
-			e.Str("INFO")
+			w.RawStr(`"INFO"`)
 		case o.Severity >= 13 && o.Severity <= 16:
-			e.Str("WARN")
+			w.RawStr(`"WARN"`)
 		case o.Severity >= 17 && o.Severity <= 20:
-			e.Str("ERROR")
+			w.RawStr(`"ERROR"`)
 		case o.Severity >= 21 && o.Severity <= 24:
-			e.Str("FATAL")
+			w.RawStr(`"FATAL"`)
 		}
-		e.FieldStart("SeverityNumber")
-		e.UInt8(o.Severity)
+		w.RawStr(`,"SeverityNumber":`)
+		w.UInt8(o.Severity)
 	}
 
-	e.FieldStart("Body")
-	e.Raw(o.Body)
+	w.RawStr(`,"Body":`)
+	w.Raw(o.Body)
 }
 
 func (o *OTEL) Decode(d *Decoder) error {
@@ -223,12 +226,11 @@ func TestOTELDecode(t *testing.T) {
 	var v OTEL
 	require.NoError(t, v.Decode(d))
 
-	t.Run("Encode", func(t *testing.T) {
-		var e Encoder
-		e.SetIdent(2)
-		v.Encode(&e)
+	t.Run("Write", func(t *testing.T) {
+		var w Writer
+		v.Write(&w)
 
-		require.JSONEq(t, string(otelEx1), e.String())
+		require.JSONEq(t, string(otelEx1), w.String())
 	})
 }
 
@@ -247,19 +249,19 @@ func BenchmarkOTEL_Decode(b *testing.B) {
 	}
 }
 
-func BenchmarkOTEL_Encode(b *testing.B) {
+func BenchmarkOTEL_Write(b *testing.B) {
 	d := DecodeBytes(otelEx1)
 	var v OTEL
 
 	require.NoError(b, v.Decode(d))
 
 	b.ReportAllocs()
-	e := GetEncoder()
-	v.Encode(e)
-	b.SetBytes(int64(len(e.Bytes())))
+	var w Writer
+	v.Write(&w)
+	b.SetBytes(int64(len(w.Buf)))
 
 	for i := 0; i < b.N; i++ {
-		e.Reset()
-		v.Encode(e)
+		w.Reset()
+		v.Write(&w)
 	}
 }

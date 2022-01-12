@@ -78,9 +78,7 @@ func (w *Writer) Bool(v bool) {
 	}
 }
 
-// ObjStart writes object start, performing indentation if needed.
-//
-// Use Obj as convenience helper for writing objects.
+// ObjStart writes object start.
 func (w *Writer) ObjStart() {
 	w.byte('{')
 }
@@ -91,23 +89,22 @@ func (w *Writer) FieldStart(field string) {
 	w.byte(':')
 }
 
-// ObjEnd writes end of object token, performing indentation if needed.
-//
-// Use Obj as convenience helper for writing objects.
+// ObjEnd writes end of object token.
 func (w *Writer) ObjEnd() {
 	w.byte('}')
 }
 
-// ArrStart writes start of array, performing indentation if needed.
-//
-// Use Arr as convenience helper for writing arrays.
+// ArrStart writes start of array.
 func (w *Writer) ArrStart() {
 	w.byte('[')
 }
 
-// ArrEnd writes end of array, performing indentation if needed.
-//
-// Use Arr as convenience helper for writing arrays.
+// ArrEnd writes end of array.
 func (w *Writer) ArrEnd() {
 	w.byte(']')
+}
+
+// Comma writes comma.
+func (w *Writer) Comma() {
+	w.byte(',')
 }

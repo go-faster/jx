@@ -110,7 +110,7 @@ func TestNum(t *testing.T) {
 				assert.True(t, v.IsInt())
 				assert.False(t, v.Equal(Num{}))
 			})
-			t.Run("Encode", func(t *testing.T) {
+			t.Run("Write", func(t *testing.T) {
 				var e Encoder
 				e.Num(v)
 				require.Equal(t, e.String(), "123")
@@ -155,7 +155,7 @@ func TestNum(t *testing.T) {
 			f = 1.23
 		)
 		v := Num(s)
-		t.Run("Encode", func(t *testing.T) {
+		t.Run("Write", func(t *testing.T) {
 			var e Encoder
 			e.Num(v)
 			require.Equal(t, e.String(), s)
@@ -234,7 +234,7 @@ func BenchmarkNum(b *testing.B) {
 				}
 			}
 		})
-		b.Run("Encode", func(b *testing.B) {
+		b.Run("Write", func(b *testing.B) {
 			b.ReportAllocs()
 			var e Encoder
 			for i := 0; i < b.N; i++ {

@@ -53,7 +53,7 @@ goarch: amd64
 pkg: github.com/go-faster/jx
 cpu: AMD Ryzen 9 5950X 16-Core Processor
 BenchmarkOTEL_Decode-32  674.1 ns/op   741.71 MB/s  0 B/op  0 allocs/op
-BenchmarkOTEL_Encode-32  393.9 ns/op  1076.50 MB/s  0 B/op  0 allocs/op
+BenchmarkOTEL_Write-32   231.0 ns/op  1835.49 MB/s  0 B/op  0 allocs/op
 PASS
 ```
 
