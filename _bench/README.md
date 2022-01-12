@@ -7,21 +7,25 @@
 * mailru/easyjson
 * pquerna/ffjson
 
-## Hello world
-
-```json
-{"message": "Hello, world!"}
-```
-```
-goos: linux
-goarch: amd64
-pkg: bench
-cpu: AMD Ryzen 9 5950X 16-Core Processor
-BenchmarkSmall/Encode/jx/Encoder-32  1977728  617.9 ns/op   548.60 MB/s  0 B/op   0 allocs/op
-BenchmarkSmall/Encode/jx/Writer-32   4067817  294.9 ns/op  1149.71 MB/s  0 B/op   0 allocs/op
-BenchmarkSmall/Encode/std-32         1254765  931.3 ns/op   363.99 MB/s  0 B/op   0 allocs/op
-BenchmarkSmall/Encode/sonic-32       2534568  458.9 ns/op   738.80 MB/s  16 B/op  1 allocs/op
-BenchmarkSmall/Encode/easyjson-32    2493712  469.3 ns/op   722.29 MB/s  0 B/op   0 allocs/op
-PASS
-ok      bench   8.411s
-```
+| name                            | ns/op | MB/s    | B/op | Allocs |
+|---------------------------------|-------|---------|------|--------|
+| HelloWorld/Encode/Baseline      | 5.238 | 5345.77 | 0    | 0      |
+| HelloWorld/Encode/easyjson      | 28.99 | 965.97  | 0    | 0      |
+| HelloWorld/Encode/ffjson        | 93.15 | 300.59  | 16   | 1      |
+| HelloWorld/Encode/json-iterator | 44.71 | 626.24  | 0    | 0      |
+| HelloWorld/Encode/jx/Encoder    | 34.89 | 802.51  | 0    | 0      |
+| HelloWorld/Encode/jx/Writer     | 18.38 | 1523.38 | 0    | 0      |
+| HelloWorld/Encode/sonic         | 104.4 | 268.32  | 21   | 1      |
+| HelloWorld/Encode/std           | 101   | 277.3   | 0    | 0      |
+| HelloWorld/Scan/jscan           | 57.41 | 487.75  | 0    | 0      |
+| HelloWorld/Scan/jx              | 55.86 | 501.29  | 0    | 0      |
+| Small/Decode/easyjson           | 1629  | 208.1   | 32   | 7      |
+| Small/Decode/sonic              | 982.5 | 345.06  | 0    | 0      |
+| Small/Decode/std                | 8789  | 38.57   | 400  | 24     |
+| Small/Encode/easyjson           | 647.2 | 523.76  | 0    | 0      |
+| Small/Encode/jx/Encoder         | 769.1 | 440.76  | 0    | 0      |
+| Small/Encode/jx/Writer          | 408.4 | 829.98  | 0    | 0      |
+| Small/Encode/sonic              | 532.6 | 636.54  | 32   | 1      |
+| Small/Encode/std                | 1144  | 296.26  | 0    | 0      |
+| Small/Scan/jscan                | 802   | 422.69  | 0    | 0      |
+| Small/Scan/jx                   | 1118  | 303.2   | 0    | 0      |
