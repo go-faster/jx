@@ -12,8 +12,12 @@ import (
 	"github.com/go-faster/errors"
 )
 
-//go:embed testdata/file.json
-var benchData []byte
+var (
+	//go:embed testdata/file.json
+	benchData []byte
+	//go:embed testdata/floats.json
+	floatsData []byte
+)
 
 func Benchmark_large_file(b *testing.B) {
 	b.Run("JX", func(b *testing.B) {
@@ -163,37 +167,25 @@ func Benchmark_large_file(b *testing.B) {
 }
 
 func BenchmarkValid(b *testing.B) {
-	b.Run("JX", func(b *testing.B) {
-		b.ReportAllocs()
-		b.SetBytes(int64(len(benchData)))
-		var d Decoder
-		for n := 0; n < b.N; n++ {
-			d.ResetBytes(benchData)
-			if err := d.Validate(); err != nil {
-				b.Fatal(err)
+	bch := []struct {
+		name  string
+		input []byte
+	}{
+		{"Big", benchData},
+		{"Floats", floatsData},
+	}
+	for _, bench := range bch {
+		b.Run(bench.name, func(b *testing.B) {
+			b.ReportAllocs()
+			b.SetBytes(int64(len(bench.input)))
+			var d Decoder
+			for n := 0; n < b.N; n++ {
+				d.ResetBytes(bench.input)
+				if err := d.Validate(); err != nil {
+					b.Fatal(err)
+				}
 			}
-		}
-	})
-	b.Run("Std", func(b *testing.B) {
-		b.ReportAllocs()
-		b.SetBytes(int64(len(benchData)))
-
-		for n := 0; n < b.N; n++ {
-			if !json.Valid(benchData) {
-				b.Fatal("invalid")
-			}
-		}
-	})
-}
-
-func Benchmark_std_large_file(b *testing.B) {
-	b.ReportAllocs()
-	for n := 0; n < b.N; n++ {
-		var result []struct{}
-		err := json.Unmarshal(benchData, &result)
-		if err != nil {
-			b.Error(err)
-		}
+		})
 	}
 }
 
