@@ -80,6 +80,9 @@ func TestSkip(t *testing.T) {
 			"100a",    // invalid
 			"10.",     // invalid
 			"-0.12",   // valid
+			"0]",      // invalid
+			"0e]",     // invalid
+			"0e+]",    // invalid
 		},
 	}
 	testCases = append(testCases, numberCase)

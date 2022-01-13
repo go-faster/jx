@@ -97,16 +97,7 @@ func (d *Decoder) skipThreeBytes(b1, b2, b3 byte) error {
 }
 
 var (
-	closerSet = [256]byte{
-		',':  1,
-		']':  1,
-		'}':  1,
-		' ':  1,
-		'\t': 1,
-		'\n': 1,
-		'\r': 1,
-	}
-	digitSet = [256]byte{
+	skipNumberSet = [256]byte{
 		'0': 1,
 		'1': 1,
 		'2': 1,
@@ -117,6 +108,14 @@ var (
 		'7': 1,
 		'8': 1,
 		'9': 1,
+
+		',':  2,
+		']':  2,
+		'}':  2,
+		' ':  2,
+		'\t': 2,
+		'\n': 2,
+		'\r': 2,
 	}
 )
 
@@ -124,6 +123,10 @@ var (
 //
 // Assumes d.buf is not empty.
 func (d *Decoder) skipNumber() error {
+	const (
+		digitTag  byte = 1
+		closerTag byte = 2
+	)
 	c := d.buf[d.head]
 	d.head++
 	switch c {
@@ -133,7 +136,7 @@ func (d *Decoder) skipNumber() error {
 			return err
 		}
 		// Character after '-' must be a digit.
-		if digitSet[c] == 0 {
+		if skipNumberSet[c] != digitTag {
 			return badToken(c)
 		}
 		if c != '0' {
@@ -154,7 +157,7 @@ func (d *Decoder) skipNumber() error {
 		}
 
 		c = d.buf[d.head]
-		if closerSet[c] != 0 {
+		if skipNumberSet[c] == closerTag {
 			return nil
 		}
 		switch c {
@@ -168,13 +171,14 @@ func (d *Decoder) skipNumber() error {
 	}
 	for {
 		for i, c := range d.buf[d.head:d.tail] {
-			if closerSet[c] != 0 {
+			switch skipNumberSet[c] {
+			case closerTag:
 				d.head += i
 				return nil
-			}
-			if digitSet[c] != 0 {
+			case digitTag:
 				continue
 			}
+
 			switch c {
 			case '.':
 				d.head += i
@@ -203,18 +207,19 @@ stateDot:
 		var last byte = '.'
 		for {
 			for i, c := range d.buf[d.head:d.tail] {
-				if closerSet[c] != 0 {
+				switch skipNumberSet[c] {
+				case closerTag:
 					d.head += i
 					// Check that dot is not last character.
 					if last == '.' {
 						return io.ErrUnexpectedEOF
 					}
 					return nil
-				}
-				if digitSet[c] != 0 {
+				case digitTag:
 					last = c
 					continue
 				}
+
 				switch c {
 				case 'e', 'E':
 					if last == '.' {
@@ -249,14 +254,14 @@ stateExp:
 		if err != nil {
 			return err
 		}
-		if digitSet[numOrSign] == 0 {
-			// There must be a number after e.
+		if skipNumberSet[numOrSign] != digitTag { // If next character is not a digit, check for sign.
 			if numOrSign == '-' || numOrSign == '+' {
 				num, err := d.byte()
 				if err != nil {
 					return err
 				}
-				if digitSet[num] == 0 {
+				// There must be a number after sign.
+				if skipNumberSet[num] != digitTag {
 					return badToken(num)
 				}
 			} else {
@@ -266,11 +271,11 @@ stateExp:
 	}
 	for {
 		for i, c := range d.buf[d.head:d.tail] {
-			if closerSet[c] != 0 {
+			if skipNumberSet[c] == closerTag {
 				d.head += i
 				return nil
 			}
-			if digitSet[c] == 0 {
+			if skipNumberSet[c] == 0 {
 				return badToken(c)
 			}
 		}
