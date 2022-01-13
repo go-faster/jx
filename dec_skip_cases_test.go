@@ -12,6 +12,53 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var testStrings = []string{
+	`""`,          // valid
+	`"hello"`,     // valid
+	`"`,           // invalid
+	`"foo`,        // invalid
+	`"\`,          // invalid
+	`"\"`,         // invalid
+	`"\u`,         // invalid
+	`"\u1`,        // invalid
+	`"\u12`,       // invalid
+	`"\u123`,      // invalid
+	`"\u\n"`,      // invalid
+	`"\u1\n"`,     // invalid
+	`"\u12\n"`,    // invalid
+	`"\u12\n"`,    // invalid
+	`"\u123\n"`,   // invalid
+	`"\u1d`,       // invalid
+	`"\u$`,        // invalid
+	`"\21412`,     // invalid
+	`"\uD834\1`,   // invalid
+	`"\uD834\u3`,  // invalid
+	`"\uD834\`,    // invalid
+	`"\uD834`,     // invalid
+	`"\u07F9`,     // invalid
+	`"\u1234\n"`,  // valid
+	`"\x00"`,      // invalid
+	"\"\x00\"",    // invalid
+	"\"\t\"",      // invalid
+	"\"\\b\x06\"", // invalid
+	`"\t"`,        // valid
+	`"\n"`,        // valid
+	`"\r"`,        // valid
+	`"\b"`,        // valid
+	`"\f"`,        // valid
+	`"\/"`,        // valid
+	`"\\"`,        // valid
+	"\"\\u000X\"", // invalid
+	"\"\\uxx0X\"", // invalid
+	"\"\\uxxxx\"", // invalid
+	"\"\\u000.\"", // invalid
+	"\"\\u0000\"", // valid
+	"\"\\ua123\"", // valid
+	"\"\\uffff\"", // valid
+	"\"\\ueeee\"", // valid
+	"\"\\uFFFF\"", // valid
+}
+
 func TestDecoder_Skip(t *testing.T) {
 	type testCase struct {
 		ptr    interface{}
@@ -31,17 +78,8 @@ func TestDecoder_Skip(t *testing.T) {
 		},
 	})
 	testCases = append(testCases, testCase{
-		ptr: (*string)(nil),
-		inputs: []string{
-			`""`,       // valid
-			`"hello"`,  // valid
-			`"`,        // invalid
-			`"\"`,      // invalid
-			`"\x00"`,   // invalid
-			"\"\x00\"", // invalid
-			"\"\t\"",   // invalid
-			`"\t"`,     // valid
-		},
+		ptr:    (*string)(nil),
+		inputs: testStrings,
 	})
 	numberCase := testCase{
 		ptr: (*float64)(nil),
@@ -83,6 +121,7 @@ func TestDecoder_Skip(t *testing.T) {
 			"0.0e+0",  // valid
 			"0.0e+1",  // valid
 			"0.0e0+0", // invalid
+			"0.",      // invalid
 			"0..1",    // invalid, more dot
 			"1e+1",    // valid
 			"1+1",     // invalid
@@ -94,6 +133,8 @@ func TestDecoder_Skip(t *testing.T) {
 			"0]",      // invalid
 			"0e]",     // invalid
 			"0e+]",    // invalid
+			"1.2.3",   // invalid
+			"0.0.0",   // invalid
 		},
 	}
 	testCases = append(testCases, numberCase)
@@ -130,6 +171,21 @@ func TestDecoder_Skip(t *testing.T) {
 			`{"hello":{}}}`,              // invalid
 			`{"hello":  {  "hello": 1}}`, // valid
 			`{abc}`,                      // invalid
+			`{"logo": null,
+            "name": "Festival Présences 2014 \"Paris Berlin\"",
+            "subTopicIds": [
+                337184288,
+                337184283,
+                337184275
+            ],
+            "subjectCode": null,
+            "subtitle": null,
+            "topicIds": [
+                324846099,
+                107888604,
+                324846100
+            ]
+        }`, // valid
 		},
 	})
 
