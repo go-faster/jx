@@ -7,11 +7,12 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"testing/iotest"
 
 	"github.com/stretchr/testify/require"
 )
 
-func Test_skip(t *testing.T) {
+func TestSkip(t *testing.T) {
 	type testCase struct {
 		ptr    interface{}
 		inputs []string
@@ -37,6 +38,7 @@ func Test_skip(t *testing.T) {
 			"0",       // valid
 			"-",       // invalid
 			"+",       // invalid
+			"-1",      // valid
 			"+1",      // invalid
 			"-a",      // invalid
 			"-\x00",   // invalid, zero byte
@@ -46,6 +48,7 @@ func Test_skip(t *testing.T) {
 			"0e-1",    // valid
 			"0e-11",   // valid
 			"0e-1a",   // invalid
+			"1.e1",    // invalid
 			"0e-1+",   // invalid
 			"0e",      // invalid
 			"e",       // invalid
@@ -108,10 +111,15 @@ func Test_skip(t *testing.T) {
 		},
 	})
 
-	testDecode := func(iter *Decoder, stdErr error) func(t *testing.T) {
+	testDecode := func(iter *Decoder, input string, stdErr error) func(t *testing.T) {
 		return func(t *testing.T) {
-			should := require.New(t)
+			t.Cleanup(func() {
+				if t.Failed() {
+					t.Logf("Input: %q", input)
+				}
+			})
 
+			should := require.New(t)
 			if stdErr == nil {
 				should.NoError(iter.Skip())
 				should.ErrorIs(iter.Null(), io.ErrUnexpectedEOF)
@@ -133,15 +141,21 @@ func Test_skip(t *testing.T) {
 		t.Run(valType.Kind().String(), func(t *testing.T) {
 			for inputIdx, input := range testCase.inputs {
 				t.Run(fmt.Sprintf("Test%d", inputIdx), func(t *testing.T) {
-					t.Cleanup(func() {
-						if t.Failed() {
-							t.Logf("Input: %q", input)
-						}
-					})
 					ptrVal := reflect.New(valType)
 					stdErr := json.Unmarshal([]byte(input), ptrVal.Interface())
-					t.Run("Buffer", testDecode(DecodeStr(input), stdErr))
-					t.Run("Reader", testDecode(Decode(strings.NewReader(input), 512), stdErr))
+
+					t.Run("Buffer", testDecode(DecodeStr(input), input, stdErr))
+
+					r := strings.NewReader(input)
+					d := Decode(r, 512)
+					t.Run("Reader", testDecode(d, input, stdErr))
+
+					// FIMXE(tdakkota): fix string skipping
+					if valType.Kind() != reflect.String {
+						r.Reset(input)
+						obr := iotest.OneByteReader(r)
+						t.Run("OneByteReader", testDecode(Decode(obr, 512), input, stdErr))
+					}
 				})
 			}
 		})
