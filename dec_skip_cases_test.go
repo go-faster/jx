@@ -12,6 +12,53 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var testStrings = []string{
+	`""`,          // valid
+	`"hello"`,     // valid
+	`"`,           // invalid
+	`"foo`,        // invalid
+	`"\`,          // invalid
+	`"\"`,         // invalid
+	`"\u`,         // invalid
+	`"\u1`,        // invalid
+	`"\u12`,       // invalid
+	`"\u123`,      // invalid
+	`"\u\n"`,      // invalid
+	`"\u1\n"`,     // invalid
+	`"\u12\n"`,    // invalid
+	`"\u12\n"`,    // invalid
+	`"\u123\n"`,   // invalid
+	`"\u1d`,       // invalid
+	`"\u$`,        // invalid
+	`"\21412`,     // invalid
+	`"\uD834\1`,   // invalid
+	`"\uD834\u3`,  // invalid
+	`"\uD834\`,    // invalid
+	`"\uD834`,     // invalid
+	`"\u07F9`,     // invalid
+	`"\u1234\n"`,  // valid
+	`"\x00"`,      // invalid
+	"\"\x00\"",    // invalid
+	"\"\t\"",      // invalid
+	"\"\\b\x06\"", // invalid
+	`"\t"`,        // valid
+	`"\n"`,        // valid
+	`"\r"`,        // valid
+	`"\b"`,        // valid
+	`"\f"`,        // valid
+	`"\/"`,        // valid
+	`"\\"`,        // valid
+	"\"\\u000X\"", // invalid
+	"\"\\uxx0X\"", // invalid
+	"\"\\uxxxx\"", // invalid
+	"\"\\u000.\"", // invalid
+	"\"\\u0000\"", // valid
+	"\"\\ua123\"", // valid
+	"\"\\uffff\"", // valid
+	"\"\\ueeee\"", // valid
+	"\"\\uFFFF\"", // valid
+}
+
 func TestDecoder_Skip(t *testing.T) {
 	type testCase struct {
 		ptr    interface{}
@@ -31,44 +78,8 @@ func TestDecoder_Skip(t *testing.T) {
 		},
 	})
 	testCases = append(testCases, testCase{
-		ptr: (*string)(nil),
-		inputs: []string{
-			`""`,          // valid
-			`"hello"`,     // valid
-			`"`,           // invalid
-			`"\`,          // invalid
-			`"\"`,         // invalid
-			`"\u`,         // invalid
-			`"\u1`,        // invalid
-			`"\u12`,       // invalid
-			`"\u123`,      // invalid
-			`"\u\n"`,      // invalid
-			`"\u1\n"`,     // invalid
-			`"\u12\n"`,    // invalid
-			`"\u12\n"`,    // invalid
-			`"\u123\n"`,   // invalid
-			`"\u1234\n"`,  // valid
-			`"\x00"`,      // invalid
-			"\"\x00\"",    // invalid
-			"\"\t\"",      // invalid
-			"\"\\b\x06\"", // invalid
-			`"\t"`,        // valid
-			`"\n"`,        // valid
-			`"\r"`,        // valid
-			`"\b"`,        // valid
-			`"\f"`,        // valid
-			`"\/"`,        // valid
-			`"\\"`,        // valid
-			"\"\\u000X\"", // invalid
-			"\"\\uxx0X\"", // invalid
-			"\"\\uxxxx\"", // invalid
-			"\"\\u000.\"", // invalid
-			"\"\\u0000\"", // valid
-			"\"\\ua123\"", // valid
-			"\"\\uffff\"", // valid
-			"\"\\ueeee\"", // valid
-			"\"\\uFFFF\"", // valid
-		},
+		ptr:    (*string)(nil),
+		inputs: testStrings,
 	})
 	numberCase := testCase{
 		ptr: (*float64)(nil),
