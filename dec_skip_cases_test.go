@@ -12,13 +12,24 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSkip(t *testing.T) {
+func TestDecoder_Skip(t *testing.T) {
 	type testCase struct {
 		ptr    interface{}
 		inputs []string
 	}
 	var testCases []testCase
 
+	testCases = append(testCases, testCase{
+		ptr: (*bool)(nil),
+		inputs: []string{
+			"tru",
+			"fals",
+			"",
+			"nope",
+			"true",
+			"false",
+		},
+	})
 	testCases = append(testCases, testCase{
 		ptr: (*string)(nil),
 		inputs: []string{
@@ -104,6 +115,11 @@ func TestSkip(t *testing.T) {
 	testCases = append(testCases, testCase{
 		ptr: (*struct{})(nil),
 		inputs: []string{
+			"",                           // invalid
+			"nope",                       // invalid
+			"nul",                        // invalid
+			"nil",                        // invalid
+			"null",                       // valid
 			`{}`,                         // valid
 			`{"hello":"world"}`,          // valid
 			`{hello:"world"}`,            // invalid
