@@ -36,8 +36,12 @@ func TestDecoder_Skip(t *testing.T) {
 			`""`,          // valid
 			`"hello"`,     // valid
 			`"`,           // invalid
+			`"\`,          // invalid
 			`"\"`,         // invalid
-			`"\u"`,        // invalid
+			`"\u`,         // invalid
+			`"\u1`,        // invalid
+			`"\u12`,       // invalid
+			`"\u123`,      // invalid
 			`"\u\n"`,      // invalid
 			`"\u1\n"`,     // invalid
 			`"\u12\n"`,    // invalid
@@ -49,6 +53,21 @@ func TestDecoder_Skip(t *testing.T) {
 			"\"\t\"",      // invalid
 			"\"\\b\x06\"", // invalid
 			`"\t"`,        // valid
+			`"\n"`,        // valid
+			`"\r"`,        // valid
+			`"\b"`,        // valid
+			`"\f"`,        // valid
+			`"\/"`,        // valid
+			`"\\"`,        // valid
+			"\"\\u000X\"", // invalid
+			"\"\\uxx0X\"", // invalid
+			"\"\\uxxxx\"", // invalid
+			"\"\\u000.\"", // invalid
+			"\"\\u0000\"", // valid
+			"\"\\ua123\"", // valid
+			"\"\\uffff\"", // valid
+			"\"\\ueeee\"", // valid
+			"\"\\uFFFF\"", // valid
 		},
 	})
 	numberCase := testCase{
