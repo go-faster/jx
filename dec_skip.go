@@ -136,6 +136,10 @@ func (d *Decoder) skipNumber() error {
 		if digitSet[c] == 0 {
 			return badToken(c)
 		}
+		if c != '0' {
+			break
+		}
+		fallthrough
 	case '0':
 		// If buffer is empty, try to read more.
 		if d.head == d.tail {
@@ -195,64 +199,68 @@ func (d *Decoder) skipNumber() error {
 
 stateDot:
 	d.head++
-	for {
+	{
 		var last byte = '.'
-		for i, c := range d.buf[d.head:d.tail] {
-			if closerSet[c] != 0 {
-				d.head += i
-				if last == '.' {
-					return io.ErrUnexpectedEOF
+		for {
+			for i, c := range d.buf[d.head:d.tail] {
+				if closerSet[c] != 0 {
+					d.head += i
+					// Check that dot is not last character.
+					if last == '.' {
+						return io.ErrUnexpectedEOF
+					}
+					return nil
 				}
-				return nil
-			}
-			last = c
-			if digitSet[c] != 0 {
-				continue
-			}
-			switch c {
-			case 'e', 'E':
-				if i == 0 {
+				if digitSet[c] != 0 {
+					last = c
+					continue
+				}
+				switch c {
+				case 'e', 'E':
+					if last == '.' {
+						return badToken(c)
+					}
+					d.head += i
+					goto stateExp
+				default:
 					return badToken(c)
 				}
-				d.head += i
-				goto stateExp
-			default:
-				return badToken(c)
 			}
-		}
 
-		if err := d.read(); err != nil {
-			// There is no data anymore.
-			if err == io.EOF {
-				d.head = d.tail
-				if last == '.' {
-					return io.ErrUnexpectedEOF
+			if err := d.read(); err != nil {
+				// There is no data anymore.
+				if err == io.EOF {
+					d.head = d.tail
+					// Check that dot is not last character.
+					if last == '.' {
+						return io.ErrUnexpectedEOF
+					}
+					return nil
 				}
-				return nil
+				return err
 			}
-			return err
 		}
 	}
 stateExp:
 	d.head++
 	// There must be a number or sign after e.
 	{
-		v, err := d.byte()
+		numOrSign, err := d.byte()
 		if err != nil {
 			return err
 		}
-		if digitSet[v] == 0 {
+		if digitSet[numOrSign] == 0 {
 			// There must be a number after e.
-			if v == '-' || v == '+' {
-				v, err := d.byte()
+			if numOrSign == '-' || numOrSign == '+' {
+				num, err := d.byte()
 				if err != nil {
 					return err
 				}
-				if digitSet[v] == 0 {
-					return badToken(v)
+				if digitSet[num] == 0 {
+					return badToken(num)
 				}
 			} else {
-				return badToken(v)
+				return badToken(numOrSign)
 			}
 		}
 	}

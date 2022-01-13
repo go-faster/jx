@@ -41,6 +41,9 @@ func TestSkip(t *testing.T) {
 			"-1",      // valid
 			"+1",      // invalid
 			"-a",      // invalid
+			"-0",      // valid
+			"-00",     // invalid
+			"-01",     // invalid
 			"-\x00",   // invalid, zero byte
 			"0.1",     // valid
 			"0e1",     // valid
