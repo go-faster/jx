@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -106,6 +107,27 @@ func Test_skip(t *testing.T) {
 			`{abc}`,                      // invalid
 		},
 	})
+
+	testDecode := func(iter *Decoder, stdErr error) func(t *testing.T) {
+		return func(t *testing.T) {
+			should := require.New(t)
+
+			if stdErr == nil {
+				should.NoError(iter.Skip())
+				should.ErrorIs(iter.Null(), io.ErrUnexpectedEOF)
+			} else {
+				should.Error(func() error {
+					if err := iter.Skip(); err != nil {
+						return err
+					}
+					if err := iter.Skip(); err != io.EOF {
+						return err
+					}
+					return nil
+				}())
+			}
+		}
+	}
 	for _, testCase := range testCases {
 		valType := reflect.TypeOf(testCase.ptr).Elem()
 		t.Run(valType.Kind().String(), func(t *testing.T) {
@@ -116,24 +138,10 @@ func Test_skip(t *testing.T) {
 							t.Logf("Input: %q", input)
 						}
 					})
-					should := require.New(t)
 					ptrVal := reflect.New(valType)
 					stdErr := json.Unmarshal([]byte(input), ptrVal.Interface())
-					iter := DecodeStr(input)
-					if stdErr == nil {
-						should.NoError(iter.Skip())
-						should.ErrorIs(iter.Null(), io.ErrUnexpectedEOF)
-					} else {
-						should.Error(func() error {
-							if err := iter.Skip(); err != nil {
-								return err
-							}
-							if err := iter.Skip(); err != io.EOF {
-								return err
-							}
-							return nil
-						}())
-					}
+					t.Run("Buffer", testDecode(DecodeStr(input), stdErr))
+					t.Run("Reader", testDecode(Decode(strings.NewReader(input), 512), stdErr))
 				})
 			}
 		})

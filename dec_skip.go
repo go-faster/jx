@@ -186,6 +186,7 @@ func (d *Decoder) skipNumber() error {
 		if err := d.read(); err != nil {
 			// There is no data anymore.
 			if err == io.EOF {
+				d.head = d.tail
 				return nil
 			}
 			return err
@@ -223,6 +224,7 @@ stateDot:
 		if err := d.read(); err != nil {
 			// There is no data anymore.
 			if err == io.EOF {
+				d.head = d.tail
 				if last == '.' {
 					return io.ErrUnexpectedEOF
 				}
@@ -268,6 +270,7 @@ stateExp:
 		if err := d.read(); err != nil {
 			// There is no data anymore.
 			if err == io.EOF {
+				d.head = d.tail
 				return nil
 			}
 			return err
