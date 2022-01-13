@@ -141,6 +141,21 @@ func TestDecoder_Skip(t *testing.T) {
 			`{"hello":{}}}`,              // invalid
 			`{"hello":  {  "hello": 1}}`, // valid
 			`{abc}`,                      // invalid
+			`{"logo": null,
+            "name": "Festival Présences 2014 \"Paris Berlin\"",
+            "subTopicIds": [
+                337184288,
+                337184283,
+                337184275
+            ],
+            "subjectCode": null,
+            "subtitle": null,
+            "topicIds": [
+                324846099,
+                107888604,
+                324846100
+            ]
+        }`, // valid
 		},
 	})
 
