@@ -165,10 +165,21 @@ func (d *Decoder) Next() Type {
 	return types[v]
 }
 
-func (d *Decoder) consume(c byte) error {
-	got, err := d.more()
-	if err != nil {
-		return err
+var spaceSet = [256]byte{
+	' ': 1, '\n': 1, '\t': 1, '\r': 1,
+}
+
+func (d *Decoder) consume(c byte) (err error) {
+	buf := d.buf[d.head:d.tail]
+	var got byte
+	if len(buf) > 0 && spaceSet[buf[0]] == 0 {
+		d.head++
+		got = buf[0]
+	} else {
+		got, err = d.more()
+		if err != nil {
+			return err
+		}
 	}
 	if c != got {
 		return badToken(got)
