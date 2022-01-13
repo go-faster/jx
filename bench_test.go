@@ -5,7 +5,6 @@ package jx
 
 import (
 	"embed"
-	_ "embed"
 	"path"
 	"testing"
 
@@ -13,7 +12,7 @@ import (
 )
 
 var (
-	//go:embed testdata/file.json
+	//go:embed testdata/medium.json
 	benchData []byte
 	//go:embed testdata
 	testdata embed.FS
