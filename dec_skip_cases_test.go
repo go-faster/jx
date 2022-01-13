@@ -33,14 +33,22 @@ func TestDecoder_Skip(t *testing.T) {
 	testCases = append(testCases, testCase{
 		ptr: (*string)(nil),
 		inputs: []string{
-			`""`,       // valid
-			`"hello"`,  // valid
-			`"`,        // invalid
-			`"\"`,      // invalid
-			`"\x00"`,   // invalid
-			"\"\x00\"", // invalid
-			"\"\t\"",   // invalid
-			`"\t"`,     // valid
+			`""`,          // valid
+			`"hello"`,     // valid
+			`"`,           // invalid
+			`"\"`,         // invalid
+			`"\u"`,        // invalid
+			`"\u\n"`,      // invalid
+			`"\u1\n"`,     // invalid
+			`"\u12\n"`,    // invalid
+			`"\u12\n"`,    // invalid
+			`"\u123\n"`,   // invalid
+			`"\u1234\n"`,  // valid
+			`"\x00"`,      // invalid
+			"\"\x00\"",    // invalid
+			"\"\t\"",      // invalid
+			"\"\\b\x06\"", // invalid
+			`"\t"`,        // valid
 		},
 	})
 	numberCase := testCase{
@@ -83,6 +91,7 @@ func TestDecoder_Skip(t *testing.T) {
 			"0.0e+0",  // valid
 			"0.0e+1",  // valid
 			"0.0e0+0", // invalid
+			"0.",      // invalid
 			"0..1",    // invalid, more dot
 			"1e+1",    // valid
 			"1+1",     // invalid
@@ -94,6 +103,8 @@ func TestDecoder_Skip(t *testing.T) {
 			"0]",      // invalid
 			"0e]",     // invalid
 			"0e+]",    // invalid
+			"1.2.3",   // invalid
+			"0.0.0",   // invalid
 		},
 	}
 	testCases = append(testCases, numberCase)
