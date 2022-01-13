@@ -69,7 +69,7 @@ func BenchmarkDecoder_Base64Append(b *testing.B) {
 		512,
 		1024,
 	} {
-		b.Run(fmt.Sprintf("%d", n), func(b *testing.B) {
+		b.Run(fmt.Sprintf("%db", n), func(b *testing.B) {
 			var v []byte
 			for i := 0; i < n; i++ {
 				v = append(v, byte(i%256))

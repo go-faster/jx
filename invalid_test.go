@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_invalid_float(t *testing.T) {
+func TestInvalidFloat(t *testing.T) {
 	inputs := []string{
 		`1.e1`, // dot without following digit
 		`1.`,   // dot can not be the last char
@@ -31,7 +31,7 @@ func Test_invalid_float(t *testing.T) {
 	}
 }
 
-func TestValid_positive(t *testing.T) {
+func TestValidPositive(t *testing.T) {
 	for _, tt := range []struct {
 		Name  string
 		Value string
@@ -59,7 +59,7 @@ func TestValid_positive(t *testing.T) {
 	}
 }
 
-func TestValid_negative(t *testing.T) {
+func TestValidNegative(t *testing.T) {
 	for _, tt := range []struct {
 		Name  string
 		Value string

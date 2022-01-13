@@ -125,18 +125,3 @@ func TestDecoder_Null(t *testing.T) {
 		require.Error(t, d.Null())
 	}
 }
-
-func TestDecoder_Skip(t *testing.T) {
-	for _, s := range []string{
-		"",
-		"nope",
-		"nul",
-		"nil",
-		"tru",
-		"fals",
-		"1.2.3",
-	} {
-		d := DecodeStr(s)
-		require.Error(t, d.Skip())
-	}
-}
