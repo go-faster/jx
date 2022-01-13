@@ -6,17 +6,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_skip_number_in_array(t *testing.T) {
+func TestSkip_number_in_array(t *testing.T) {
+	var err error
+	a := require.New(t)
 	d := DecodeStr(`[-0.12, "stream"]`)
-	d.Elem()
-	d.Skip()
-	d.Elem()
+	_, err = d.Elem()
+	a.NoError(err)
+	err = d.Skip()
+	a.NoError(err)
+	_, err = d.Elem()
+	a.NoError(err)
 	if s, _ := d.Str(); s != "stream" {
 		t.FailNow()
 	}
 }
 
-func Test_skip_string_in_array(t *testing.T) {
+func TestSkip_string_in_array(t *testing.T) {
 	d := DecodeStr(`["hello", "stream"]`)
 	d.Elem()
 	d.Skip()
@@ -26,7 +31,7 @@ func Test_skip_string_in_array(t *testing.T) {
 	}
 }
 
-func Test_skip_null(t *testing.T) {
+func TestSkip_null(t *testing.T) {
 	d := DecodeStr(`[null , "stream"]`)
 	d.Elem()
 	d.Skip()
@@ -36,7 +41,7 @@ func Test_skip_null(t *testing.T) {
 	}
 }
 
-func Test_skip_true(t *testing.T) {
+func TestSkip_true(t *testing.T) {
 	d := DecodeStr(`[true , "stream"]`)
 	d.Elem()
 	d.Skip()
@@ -46,7 +51,7 @@ func Test_skip_true(t *testing.T) {
 	}
 }
 
-func Test_skip_false(t *testing.T) {
+func TestSkip_false(t *testing.T) {
 	d := DecodeStr(`[false , "stream"]`)
 	d.Elem()
 	d.Skip()
@@ -56,7 +61,7 @@ func Test_skip_false(t *testing.T) {
 	}
 }
 
-func Test_skip_array(t *testing.T) {
+func TestSkip_array(t *testing.T) {
 	d := DecodeStr(`[[1, [2, [3], 4]], "stream"]`)
 	d.Elem()
 	d.Skip()
@@ -66,7 +71,7 @@ func Test_skip_array(t *testing.T) {
 	}
 }
 
-func Test_skip_empty_array(t *testing.T) {
+func TestSkip_empty_array(t *testing.T) {
 	d := DecodeStr(`[ [ ], "stream"]`)
 	d.Elem()
 	d.Skip()
@@ -76,7 +81,7 @@ func Test_skip_empty_array(t *testing.T) {
 	}
 }
 
-func Test_skip_nested(t *testing.T) {
+func TestSkip_nested(t *testing.T) {
 	d := DecodeStr(`[ {"a" : [{"stream": "c"}], "d": 102 }, "stream"]`)
 	if _, err := d.Elem(); err != nil {
 		t.Fatal(err)
@@ -90,7 +95,7 @@ func Test_skip_nested(t *testing.T) {
 	require.Equal(t, "stream", s)
 }
 
-func Test_skip_simple_nested(t *testing.T) {
+func TestSkip_simple_nested(t *testing.T) {
 	d := DecodeStr(`["foo", "bar", "baz"]`)
 	require.NoError(t, d.Skip())
 }
