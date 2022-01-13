@@ -33,37 +33,46 @@ func Test_skip(t *testing.T) {
 	numberCase := testCase{
 		ptr: (*float64)(nil),
 		inputs: []string{
-			"0",      // valid
-			"-",      // invalid
-			"+1",     // invalid
-			"-a",     // invalid
-			"-\x00",  // invalid, zero byte
-			"0.1",    // valid
-			"0e1",    // valid
-			"0e+1",   // valid
-			"0e-1",   // valid
-			"0e-11",  // valid
-			"0e-1a",  // invalid
-			"0e-1+",  // invalid
-			"0e",     // invalid
-			"-e",     // invalid
-			"+e",     // invalid
-			".e",     // invalid
-			"0.e",    // invalid
-			"0.e",    // invalid
-			"0.0e",   // invalid
-			"0.0e1",  // valid
-			"0.0e+1", // valid
-			"0.0e+",  // invalid
-			"0.0e-",  // invalid
-			"0..1",   // invalid, more dot
-			"1e+1",   // valid
-			"1+1",    // invalid
-			"1E1",    // valid, e or E
-			"1ee1",   // invalid
-			"100a",   // invalid
-			"10.",    // invalid
-			"-0.12",  // valid
+			"0",       // valid
+			"-",       // invalid
+			"+",       // invalid
+			"+1",      // invalid
+			"-a",      // invalid
+			"-\x00",   // invalid, zero byte
+			"0.1",     // valid
+			"0e1",     // valid
+			"0e+1",    // valid
+			"0e-1",    // valid
+			"0e-11",   // valid
+			"0e-1a",   // invalid
+			"0e-1+",   // invalid
+			"0e",      // invalid
+			"e",       // invalid
+			"-e",      // invalid
+			"+e",      // invalid
+			".e",      // invalid
+			"e.",      // invalid
+			"0.e",     // invalid
+			"0-e",     // invalid
+			"0e-",     // invalid
+			"0e+",     // invalid
+			"0.0e",    // invalid
+			"0.0e1",   // valid
+			"0.0e+",   // invalid
+			"0.0e-",   // invalid
+			"0e0+0",   // invalid
+			"0.e0+0",  // invalid
+			"0.0e+0",  // valid
+			"0.0e+1",  // valid
+			"0.0e0+0", // invalid
+			"0..1",    // invalid, more dot
+			"1e+1",    // valid
+			"1+1",     // invalid
+			"1E1",     // valid, e or E
+			"1ee1",    // invalid
+			"100a",    // invalid
+			"10.",     // invalid
+			"-0.12",   // valid
 		},
 	}
 	testCases = append(testCases, numberCase)

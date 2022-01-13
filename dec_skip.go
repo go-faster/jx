@@ -233,50 +233,33 @@ stateDot:
 	}
 stateExp:
 	d.head++
-	for {
-		var last byte = 'e'
-		for i, c := range d.buf[d.head:d.tail] {
-			if closerSet[c] != 0 {
-				d.head += i
-				if last == 'e' {
-					return io.ErrUnexpectedEOF
-				}
-				return nil
-			}
-			last = c
-			if digitSet[c] == 0 {
-				if c == '-' || c == '+' {
-					d.head += i
-					goto stateExpAfterSign
-				}
-				return badToken(c)
-			}
-		}
-
-		if err := d.read(); err != nil {
-			// There is no data anymore.
-			if err == io.EOF {
-				if last == 'e' {
-					return io.ErrUnexpectedEOF
-				}
-				return nil
-			}
+	// There must be a number or sign after e.
+	{
+		v, err := d.byte()
+		if err != nil {
 			return err
 		}
+		if digitSet[v] == 0 {
+			// There must be a number after e.
+			if v == '-' || v == '+' {
+				v, err := d.byte()
+				if err != nil {
+					return err
+				}
+				if digitSet[v] == 0 {
+					return badToken(v)
+				}
+			} else {
+				return badToken(v)
+			}
+		}
 	}
-stateExpAfterSign:
-	d.head++
 	for {
-		var last byte = '+'
 		for i, c := range d.buf[d.head:d.tail] {
 			if closerSet[c] != 0 {
 				d.head += i
-				if last == '+' {
-					return io.ErrUnexpectedEOF
-				}
 				return nil
 			}
-			last = c
 			if digitSet[c] == 0 {
 				return badToken(c)
 			}
@@ -285,9 +268,6 @@ stateExpAfterSign:
 		if err := d.read(); err != nil {
 			// There is no data anymore.
 			if err == io.EOF {
-				if last == '+' {
-					return io.ErrUnexpectedEOF
-				}
 				return nil
 			}
 			return err
