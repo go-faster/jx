@@ -130,6 +130,9 @@ func (d *Decoder) strSlow(v value) (value, error) {
 				return v, errors.Wrap(err, "escape")
 			}
 		default:
+			if c < ' ' {
+				return value{}, badToken(c)
+			}
 			v = v.byte(c)
 		}
 	}

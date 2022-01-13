@@ -156,12 +156,9 @@ func TestSkip(t *testing.T) {
 					d := Decode(r, 512)
 					t.Run("Reader", testDecode(d, input, stdErr))
 
-					// FIMXE(tdakkota): fix string skipping
-					if valType.Kind() != reflect.String {
-						r.Reset(input)
-						obr := iotest.OneByteReader(r)
-						t.Run("OneByteReader", testDecode(Decode(obr, 512), input, stdErr))
-					}
+					r.Reset(input)
+					obr := iotest.OneByteReader(r)
+					t.Run("OneByteReader", testDecode(Decode(obr, 512), input, stdErr))
 				})
 			}
 		})
