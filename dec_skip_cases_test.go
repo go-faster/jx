@@ -59,6 +59,45 @@ var testStrings = []string{
 	"\"\\uFFFF\"", // valid
 }
 
+var testObj = []string{
+	"",                              // invalid
+	"nope",                          // invalid
+	"nul",                           // invalid
+	"nil",                           // invalid
+	"null",                          // valid
+	`{`,                             // invalid
+	`{}`,                            // valid
+	`{"1}`,                          // invalid
+	`{"1:}`,                         // invalid
+	`{"1,}`,                         // invalid
+	`{"1":}`,                        // invalid
+	`{"\1":}`,                       // invalid
+	`{"1",}`,                        // invalid
+	`{"1":,}`,                       // invalid
+	`{"hello":"world"}`,             // valid
+	`{hello:"world"}`,               // invalid
+	`{"hello:"world"}`,              // invalid
+	`{"hello","world"}`,             // invalid
+	`{"hello":{}`,                   // invalid
+	`{"hello":{}}`,                  // valid
+	`{"hello":{}}}`,                 // invalid
+	`{"hello":  {  "hello": 1}}`,    // valid
+	`{abc}`,                         // invalid
+	`invalid`,                       // invalid
+	`{"foo"`,                        // invalid
+	`{"foo"bar`,                     // invalid
+	`{"foo": "bar",`,                // invalid
+	`{"foo": "bar", true`,           // invalid
+	`{"foo": "bar", "bar":`,         // invalid
+	`{"foo": "bar", "bar":t`,        // invalid
+	`{"foo": "bar", "bar":true`,     // invalid
+	`{"foo": "bar", "bar"false`,     // invalid
+	`{"foo": "bar", "bar": "bar"""`, // invalid
+	`{"foo":`,                       // invalid
+	`{"foo": "bar"`,                 // invalid
+	`{"foo": "bar`,                  // invalid
+}
+
 func TestDecoder_Skip(t *testing.T) {
 	type testCase struct {
 		ptr    interface{}
@@ -154,47 +193,8 @@ func TestDecoder_Skip(t *testing.T) {
 	}
 	testCases = append(testCases, arrayCase)
 	testCases = append(testCases, testCase{
-		ptr: (*struct{})(nil),
-		inputs: []string{
-			"",                           // invalid
-			"nope",                       // invalid
-			"nul",                        // invalid
-			"nil",                        // invalid
-			"null",                       // valid
-			`{`,                          // invalid
-			`{}`,                         // valid
-			`{"1}`,                       // invalid
-			`{"1:}`,                      // invalid
-			`{"1,}`,                      // invalid
-			`{"1":}`,                     // invalid
-			`{"\1":}`,                    // invalid
-			`{"1",}`,                     // invalid
-			`{"1":,}`,                    // invalid
-			`{"hello":"world"}`,          // valid
-			`{hello:"world"}`,            // invalid
-			`{"hello:"world"}`,           // invalid
-			`{"hello","world"}`,          // invalid
-			`{"hello":{}`,                // invalid
-			`{"hello":{}}`,               // valid
-			`{"hello":{}}}`,              // invalid
-			`{"hello":  {  "hello": 1}}`, // valid
-			`{abc}`,                      // invalid
-			`{"logo": null,
-            "name": "Festival Présences 2014 \"Paris Berlin\"",
-            "subTopicIds": [
-                337184288,
-                337184283,
-                337184275
-            ],
-            "subjectCode": null,
-            "subtitle": null,
-            "topicIds": [
-                324846099,
-                107888604,
-                324846100
-            ]
-        }`, // valid
-		},
+		ptr:    (*struct{})(nil),
+		inputs: testObj,
 	})
 
 	testDecode := func(iter *Decoder, input string, stdErr error) func(t *testing.T) {
