@@ -4,20 +4,15 @@ import (
 	"github.com/go-faster/errors"
 )
 
-func skipObjBytes(d *Decoder, _ []byte) error { return d.Skip() }
-
 // ObjBytes calls f for every key in object, using byte slice as key.
 //
 // The key value is valid only until f is not returned.
 func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
-	skip := f == nil
-	if skip {
-		// No callback is provided, skipping object.
-		// Drop keys, skip values.
-		f = skipObjBytes
-	}
 	if err := d.consume('{'); err != nil {
 		return errors.Wrap(err, "start")
+	}
+	if f == nil {
+		return d.skipObj()
 	}
 	if err := d.incDepth(); err != nil {
 		return errors.Wrap(err, "inc")
@@ -31,7 +26,7 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 	}
 	d.unread()
 
-	k, err := d.str(value{ignore: skip, raw: true})
+	k, err := d.str(value{raw: true})
 	if err != nil {
 		return errors.Wrap(err, "str")
 	}
@@ -52,7 +47,7 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 		return errors.Wrap(err, "next")
 	}
 	for c == ',' {
-		k, err := d.str(value{ignore: skip, raw: true})
+		k, err := d.str(value{raw: true})
 		if err != nil {
 			return errors.Wrap(err, "str")
 		}
