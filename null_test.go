@@ -44,3 +44,25 @@ func Test_decode_null_skip(t *testing.T) {
 		t.FailNow()
 	}
 }
+
+func TestNullError(t *testing.T) {
+	a := require.New(t)
+	var (
+		b     = [4]byte{'n', 'u', 'l', 'l'}
+		valid = b
+	)
+	for i := range b {
+		// Reset buffer.
+		b = valid
+		for c := byte(0); c < 255; c++ {
+			// Skip expected value.
+			if valid[i] == c {
+				continue
+			}
+			b[i] = c
+			var token badTokenErr
+			a.ErrorAs(DecodeBytes(b[:]).Null(), &token)
+			a.Equalf(c, token.Token, "%c != %c (%q)", c, token.Token, b)
+		}
+	}
+}
