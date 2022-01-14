@@ -59,12 +59,11 @@ var testStrings = []string{
 	"\"\\uFFFF\"", // valid
 }
 
-var testObj = []string{
+var testObjs = []string{
 	"",                              // invalid
 	"nope",                          // invalid
 	"nul",                           // invalid
 	"nil",                           // invalid
-	"null",                          // valid
 	`{`,                             // invalid
 	`{}`,                            // valid
 	`{"1}`,                          // invalid
@@ -96,6 +95,25 @@ var testObj = []string{
 	`{"foo":`,                       // invalid
 	`{"foo": "bar"`,                 // invalid
 	`{"foo": "bar`,                  // invalid
+}
+
+var testArrs = []string{
+	`[]`,             // valid
+	`[1]`,            // valid
+	`[  1, "hello"]`, // valid
+	`[abc]`,          // invalid
+	`[`,              // invalid
+	`[,`,             // invalid
+	`[[]`,            // invalid
+	"[true,f",        // invalid
+	"[true",          // invalid
+	"[true,",         // invalid
+	"[true]",         // invalid
+	"[true,]",        // invalid
+	"[true,false",    // invalid
+	"[true,false,",   // invalid
+	"[true,false,]",  // invalid
+	"[true,false}",   // invalid
 }
 
 func TestDecoder_Skip(t *testing.T) {
@@ -178,15 +196,8 @@ func TestDecoder_Skip(t *testing.T) {
 	}
 	testCases = append(testCases, numberCase)
 	arrayCase := testCase{
-		ptr: (*[]interface{})(nil),
-		inputs: []string{
-			`[]`,             // valid
-			`[1]`,            // valid
-			`[  1, "hello"]`, // valid
-			`[abc]`,          // invalid
-			`[`,              // invalid
-			`[[]`,            // invalid
-		},
+		ptr:    (*[]interface{})(nil),
+		inputs: append([]string(nil), testArrs...),
 	}
 	for _, c := range numberCase.inputs {
 		arrayCase.inputs = append(arrayCase.inputs, `[`+c+`]`)
@@ -194,7 +205,7 @@ func TestDecoder_Skip(t *testing.T) {
 	testCases = append(testCases, arrayCase)
 	testCases = append(testCases, testCase{
 		ptr:    (*struct{})(nil),
-		inputs: testObj,
+		inputs: testObjs,
 	})
 
 	testDecode := func(iter *Decoder, input string, stdErr error) func(t *testing.T) {

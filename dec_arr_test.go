@@ -1,6 +1,7 @@
 package jx
 
 import (
+	"encoding/json"
 	"io"
 	"testing"
 
@@ -25,14 +26,14 @@ func TestDecoder_Arr(t *testing.T) {
 		require.ErrorIs(t, d.Arr(nil), io.ErrUnexpectedEOF)
 	})
 	t.Run("Invalid", func(t *testing.T) {
-		for _, s := range []string{
-			"[true,f",
-			"[true,false",
-			"[true,false,",
-			"[true,false}",
-		} {
+		for _, s := range testArrs {
+			checker := require.Error
+			if json.Valid([]byte(s)) {
+				checker = require.NoError
+			}
+
 			d := DecodeStr(s)
-			require.Error(t, d.Arr(nil))
+			checker(t, d.Arr(crawlValue), s)
 		}
 	})
 	t.Run("Whitespace", func(t *testing.T) {
