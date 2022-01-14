@@ -7,53 +7,67 @@ import (
 	"github.com/go-faster/errors"
 )
 
-// Null reads a json object as null and
-// returns whether it's a null or not.
-func (d *Decoder) Null() error {
-	const encodedNull = 'n' | 'u'<<8 | 'l'<<16 | 'l'<<24
-
-	if buf := d.buf[d.head:d.tail]; len(buf) >= 4 {
-		c := uint32(buf[0]) | uint32(buf[1])<<8 | uint32(buf[2])<<16 | uint32(buf[3])<<24
-		if mask := c ^ encodedNull; mask != 0 {
-			idx := bits.TrailingZeros32(mask) / 8
-			return badToken(buf[idx])
-		}
-		d.head += 4
+func (d *Decoder) readExact4(b *[4]byte) error {
+	if buf := d.buf[d.head:d.tail]; len(buf) >= len(b) {
+		d.head += copy(b[:], buf[:4])
 		return nil
 	}
 
-	var buf [4]byte
-	n := copy(buf[:], d.buf[d.head:d.tail])
-	if err := d.readAtLeast(4 - n); err != nil {
+	n := copy(b[:], d.buf[d.head:d.tail])
+	if err := d.readAtLeast(len(b) - n); err != nil {
 		return err
 	}
-	copy(buf[n:], d.buf[d.head:d.tail])
+	d.head += copy(b[n:], d.buf[d.head:d.tail])
+	return nil
+}
 
+func findInvalidToken4(buf [4]byte, mask uint32) error {
 	c := uint32(buf[0]) | uint32(buf[1])<<8 | uint32(buf[2])<<16 | uint32(buf[3])<<24
-	if mask := c ^ encodedNull; mask != 0 {
-		idx := bits.TrailingZeros32(mask) / 8
-		return badToken(buf[idx])
+	idx := bits.TrailingZeros32(c^mask) / 8
+	return badToken(buf[idx])
+}
+
+// Null reads a json object as null and
+// returns whether it's a null or not.
+func (d *Decoder) Null() error {
+	var buf [4]byte
+	if err := d.readExact4(&buf); err != nil {
+		return err
 	}
-	d.head += 4
+
+	if string(buf[:]) != "null" {
+		const encodedNull = 'n' | 'u'<<8 | 'l'<<16 | 'l'<<24
+		return findInvalidToken4(buf, encodedNull)
+	}
 	return nil
 }
 
 // Bool reads a json object as Bool
 func (d *Decoder) Bool() (bool, error) {
-	c, err := d.next()
-	if err != nil {
+	var buf [4]byte
+	if err := d.readExact4(&buf); err != nil {
 		return false, err
 	}
-	switch c {
-	case 't':
-		if err := d.skipThreeBytes('r', 'u', 'e'); err != nil {
+
+	switch string(buf[:]) {
+	case "true":
+		return true, nil
+	case "fals":
+		if err := d.consume('e'); err != nil {
 			return false, err
 		}
-		return true, nil
-	case 'f':
-		return false, d.skipFourBytes('a', 'l', 's', 'e')
+		return false, nil
 	default:
-		return false, badToken(c)
+		switch c := buf[0]; c {
+		case 't':
+			const encodedTrue = 't' | 'r'<<8 | 'u'<<16 | 'e'<<24
+			return false, findInvalidToken4(buf, encodedTrue)
+		case 'f':
+			const encodedAlse = 'a' | 'l'<<8 | 's'<<16 | 'e'<<24
+			return false, findInvalidToken4(buf, encodedAlse)
+		default:
+			return false, badToken(c)
+		}
 	}
 }
 
@@ -70,11 +84,12 @@ func (d *Decoder) Skip() error {
 		}
 		return nil
 	case 'n':
-		return d.skipThreeBytes('u', 'l', 'l') // null
-	case 't':
-		return d.skipThreeBytes('r', 'u', 'e') // true
-	case 'f':
-		return d.skipFourBytes('a', 'l', 's', 'e') // false
+		d.unread()
+		return d.Null()
+	case 't', 'f':
+		d.unread()
+		_, err := d.Bool()
+		return err
 	case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		d.unread()
 		return d.skipNumber()
@@ -91,32 +106,6 @@ func (d *Decoder) Skip() error {
 	default:
 		return badToken(c)
 	}
-}
-
-func (d *Decoder) skipFourBytes(b1, b2, b3, b4 byte) error {
-	for _, b := range [...]byte{b1, b2, b3, b4} {
-		c, err := d.byte()
-		if err != nil {
-			return err
-		}
-		if c != b {
-			return badToken(c)
-		}
-	}
-	return nil
-}
-
-func (d *Decoder) skipThreeBytes(b1, b2, b3 byte) error {
-	for _, b := range [...]byte{b1, b2, b3} {
-		c, err := d.byte()
-		if err != nil {
-			return err
-		}
-		if c != b {
-			return badToken(c)
-		}
-	}
-	return nil
 }
 
 var (
