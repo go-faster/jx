@@ -170,21 +170,24 @@ var spaceSet = [256]byte{
 }
 
 func (d *Decoder) consume(c byte) (err error) {
-	buf := d.buf[d.head:d.tail]
-	var got byte
-	if len(buf) > 0 && spaceSet[buf[0]] == 0 {
-		d.head++
-		got = buf[0]
-	} else {
-		got, err = d.more()
-		if err != nil {
+	for {
+		buf := d.buf[d.head:d.tail]
+		for i, got := range buf {
+			switch spaceSet[got] {
+			default:
+				d.head += i + 1
+				if c != got {
+					return badToken(got)
+				}
+				return nil
+			case 1:
+				continue
+			}
+		}
+		if err = d.read(); err != nil {
 			return err
 		}
 	}
-	if c != got {
-		return badToken(got)
-	}
-	return nil
 }
 
 // more is next but io.EOF is unexpected.
@@ -201,12 +204,12 @@ func (d *Decoder) next() (byte, error) {
 	for {
 		buf := d.buf[d.head:d.tail]
 		for i, c := range buf {
-			switch c {
-			case ' ', '\n', '\t', '\r':
-				continue
+			switch spaceSet[c] {
 			default:
 				d.head += i + 1
 				return c, nil
+			case 1:
+				continue
 			}
 		}
 		if err := d.read(); err != nil {
