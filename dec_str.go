@@ -22,15 +22,11 @@ func (d *Decoder) StrAppend(b []byte) ([]byte, error) {
 }
 
 type value struct {
-	buf    []byte
-	raw    bool // false forces buf reuse
-	ignore bool
+	buf []byte
+	raw bool // false forces buf reuse
 }
 
 func (v value) rune(r rune) value {
-	if v.ignore {
-		return v
-	}
 	return value{
 		buf: appendRune(v.buf, r),
 		raw: v.raw,
@@ -38,9 +34,6 @@ func (v value) rune(r rune) value {
 }
 
 func (v value) byte(b byte) value {
-	if v.ignore {
-		return v
-	}
 	return value{
 		buf: append(v.buf, b),
 		raw: v.raw,
@@ -72,10 +65,6 @@ func (d *Decoder) str(v value) (value, error) {
 		}
 		if c == '"' {
 			// End of string in fast path.
-			if v.ignore {
-				d.head += i + 1
-				return value{}, nil
-			}
 			str := buf[:i]
 			d.head += i + 1
 			if v.raw {

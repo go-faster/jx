@@ -161,7 +161,15 @@ func TestDecoder_Skip(t *testing.T) {
 			"nul",                        // invalid
 			"nil",                        // invalid
 			"null",                       // valid
+			`{`,                          // invalid
 			`{}`,                         // valid
+			`{"1}`,                       // invalid
+			`{"1:}`,                      // invalid
+			`{"1,}`,                      // invalid
+			`{"1":}`,                     // invalid
+			`{"\1":}`,                    // invalid
+			`{"1",}`,                     // invalid
+			`{"1":,}`,                    // invalid
 			`{"hello":"world"}`,          // valid
 			`{hello:"world"}`,            // invalid
 			`{"hello:"world"}`,           // invalid

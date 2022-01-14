@@ -309,6 +309,9 @@ var (
 	}
 )
 
+// skipStr reads one JSON string.
+//
+// Assumes first quote was consumed.
 func (d *Decoder) skipStr() error {
 readStr:
 	for {
@@ -356,9 +359,53 @@ readEscaped:
 	goto readStr
 }
 
+// skipObj reads JSON object.
+//
+// Assumes first bracket was consumed.
 func (d *Decoder) skipObj() error {
-	d.unread()
-	return d.Obj(nil)
+	if err := d.incDepth(); err != nil {
+		return errors.Wrap(err, "inc")
+	}
+
+	c, err := d.more()
+	if err != nil {
+		return errors.Wrap(err, "next")
+	}
+	switch c {
+	case '}':
+		return d.decDepth()
+	case '"':
+		d.unread()
+	default:
+		return badToken(c)
+	}
+
+	for {
+		if err := d.consume('"'); err != nil {
+			return err
+		}
+		if err := d.skipStr(); err != nil {
+			return errors.Wrap(err, "read field name")
+		}
+		if err := d.consume(':'); err != nil {
+			return errors.Wrap(err, "field")
+		}
+		if err := d.Skip(); err != nil {
+			return err
+		}
+		c, err := d.more()
+		if err != nil {
+			return errors.Wrap(err, "read comma")
+		}
+		switch c {
+		case ',':
+			continue
+		case '}':
+			return d.decDepth()
+		default:
+			return badToken(c)
+		}
+	}
 }
 
 func (d *Decoder) skipArr() error {
