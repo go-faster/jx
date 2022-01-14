@@ -408,7 +408,38 @@ func (d *Decoder) skipObj() error {
 	}
 }
 
+// skipArr reads JSON array.
+//
+// Assumes first bracket was consumed.
 func (d *Decoder) skipArr() error {
+	if err := d.incDepth(); err != nil {
+		return errors.Wrap(err, "inc")
+	}
+
+	c, err := d.more()
+	if err != nil {
+		return errors.Wrap(err, "next")
+	}
+	if c == ']' {
+		return d.decDepth()
+	}
 	d.unread()
-	return d.Arr(nil)
+
+	for {
+		if err := d.Skip(); err != nil {
+			return err
+		}
+		c, err := d.more()
+		if err != nil {
+			return errors.Wrap(err, "read comma")
+		}
+		switch c {
+		case ',':
+			continue
+		case ']':
+			return d.decDepth()
+		default:
+			return badToken(c)
+		}
+	}
 }

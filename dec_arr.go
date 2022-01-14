@@ -33,15 +33,13 @@ func (d *Decoder) Elem() (ok bool, err error) {
 	}
 }
 
-func skipArr(d *Decoder) error { return d.Skip() }
-
 // Arr decodes array and invokes callback on each array element.
 func (d *Decoder) Arr(f func(d *Decoder) error) error {
-	if f == nil {
-		f = skipArr
-	}
 	if err := d.consume('['); err != nil {
 		return errors.Wrap(err, "start")
+	}
+	if f == nil {
+		return d.skipArr()
 	}
 	if err := d.incDepth(); err != nil {
 		return errors.Wrap(err, "inc")
