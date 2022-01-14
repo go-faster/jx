@@ -254,6 +254,9 @@ func (d *Decoder) readAtLeast(min int) error {
 
 	n, err := io.ReadAtLeast(d.reader, d.buf, min)
 	if err != nil {
+		if err == io.EOF && n == 0 {
+			return io.ErrUnexpectedEOF
+		}
 		return err
 	}
 
