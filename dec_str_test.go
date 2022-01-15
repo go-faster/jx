@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 	"testing/iotest"
+	"unicode/utf8"
 
 	"github.com/stretchr/testify/require"
 )
@@ -35,8 +36,14 @@ func TestUnexpectedTokenErr_Error(t *testing.T) {
 }
 
 func TestDecoder_Str(t *testing.T) {
-	testStr := func(d *Decoder, valid bool) func(t *testing.T) {
+	testStr := func(d *Decoder, input string, valid bool) func(t *testing.T) {
 		return func(t *testing.T) {
+			t.Cleanup(func() {
+				if t.Failed() {
+					t.Logf("Input: %q", input)
+				}
+			})
+
 			_, err := d.Str()
 			if valid {
 				require.NoError(t, err)
@@ -45,19 +52,21 @@ func TestDecoder_Str(t *testing.T) {
 			}
 		}
 	}
-	for _, input := range testStrings {
+	for i, input := range testStrings {
 		valid := json.Valid([]byte(input))
 
-		t.Run("Buffer", testStr(DecodeStr(input), valid))
+		t.Run(fmt.Sprintf("Test%d", i), func(t *testing.T) {
+			t.Run("Buffer", testStr(DecodeStr(input), input, valid))
 
-		r := strings.NewReader(input)
-		d := Decode(r, 512)
-		t.Run("Reader", testStr(d, valid))
+			r := strings.NewReader(input)
+			d := Decode(r, 512)
+			t.Run("Reader", testStr(d, input, valid))
 
-		r.Reset(input)
-		obr := iotest.OneByteReader(r)
-		d.Reset(obr)
-		t.Run("OneByteReader", testStr(d, valid))
+			r.Reset(input)
+			obr := iotest.OneByteReader(r)
+			d.Reset(obr)
+			t.Run("OneByteReader", testStr(d, input, valid))
+		})
 	}
 }
 
@@ -92,14 +101,17 @@ func benchmarkDecoderStrBytes(str string) func(b *testing.B) {
 }
 
 func BenchmarkDecoder_StrBytes(b *testing.B) {
-	for _, size := range []int{
-		2, 8, 16, 64, 128, 1024,
-	} {
-		b.Run("Escaped", func(b *testing.B) {
-			b.Run(fmt.Sprintf("%db", size), benchmarkDecoderStrBytes(strings.Repeat("ф", size/'ф')))
-		})
-		b.Run("Plain", func(b *testing.B) {
-			b.Run(fmt.Sprintf("%db", size), benchmarkDecoderStrBytes(strings.Repeat("a", size)))
-		})
+	runBench := func(char string) func(b *testing.B) {
+		return func(b *testing.B) {
+			for _, size := range []int{
+				2, 8, 16, 64, 128, 1024,
+			} {
+				count := utf8.RuneCountInString(char)
+				b.Run(fmt.Sprintf("%db", size), benchmarkDecoderStrBytes(strings.Repeat(char, size/count)))
+			}
+		}
 	}
+
+	b.Run("Plain", runBench("a"))
+	b.Run("Escaped", runBench("ф"))
 }
