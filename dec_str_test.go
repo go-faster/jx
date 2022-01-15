@@ -93,8 +93,13 @@ func benchmarkDecoderStrBytes(str string) func(b *testing.B) {
 
 func BenchmarkDecoder_StrBytes(b *testing.B) {
 	for _, size := range []int{
-		1, 8, 16, 64, 128, 1024,
+		2, 8, 16, 64, 128, 1024,
 	} {
-		b.Run(fmt.Sprintf("%db", size), benchmarkDecoderStrBytes(strings.Repeat("a", size)))
+		b.Run("Escaped", func(b *testing.B) {
+			b.Run(fmt.Sprintf("%db", size), benchmarkDecoderStrBytes(strings.Repeat("ф", size/'ф')))
+		})
+		b.Run("Plain", func(b *testing.B) {
+			b.Run(fmt.Sprintf("%db", size), benchmarkDecoderStrBytes(strings.Repeat("a", size)))
+		})
 	}
 }
