@@ -185,6 +185,9 @@ func (d *Decoder) consume(c byte) (err error) {
 			}
 		}
 		if err = d.read(); err != nil {
+			if err == io.EOF {
+				return io.ErrUnexpectedEOF
+			}
 			return err
 		}
 	}
