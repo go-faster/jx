@@ -12,52 +12,59 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var testStrings = []string{
-	`""`,          // valid
-	`"hello"`,     // valid
-	`"`,           // invalid
-	`"foo`,        // invalid
-	`"\`,          // invalid
-	`"\"`,         // invalid
-	`"\u`,         // invalid
-	`"\u1`,        // invalid
-	`"\u12`,       // invalid
-	`"\u123`,      // invalid
-	`"\u\n"`,      // invalid
-	`"\u1\n"`,     // invalid
-	`"\u12\n"`,    // invalid
-	`"\u12\n"`,    // invalid
-	`"\u123\n"`,   // invalid
-	`"\u1d`,       // invalid
-	`"\u$`,        // invalid
-	`"\21412`,     // invalid
-	`"\uD834\1`,   // invalid
-	`"\uD834\u3`,  // invalid
-	`"\uD834\`,    // invalid
-	`"\uD834`,     // invalid
-	`"\u07F9`,     // invalid
-	`"\u1234\n"`,  // valid
-	`"\x00"`,      // invalid
-	"\"\x00\"",    // invalid
-	"\"\t\"",      // invalid
-	"\"\\b\x06\"", // invalid
-	`"\t"`,        // valid
-	`"\n"`,        // valid
-	`"\r"`,        // valid
-	`"\b"`,        // valid
-	`"\f"`,        // valid
-	`"\/"`,        // valid
-	`"\\"`,        // valid
-	"\"\\u000X\"", // invalid
-	"\"\\uxx0X\"", // invalid
-	"\"\\uxxxx\"", // invalid
-	"\"\\u000.\"", // invalid
-	"\"\\u0000\"", // valid
-	"\"\\ua123\"", // valid
-	"\"\\uffff\"", // valid
-	"\"\\ueeee\"", // valid
-	"\"\\uFFFF\"", // valid
-}
+var testStrings = append([]string{
+	`""`,                   // valid
+	`"hello"`,              // valid
+	`"`,                    // invalid
+	`"foo`,                 // invalid
+	`"\`,                   // invalid
+	`"\"`,                  // invalid
+	`"\u`,                  // invalid
+	`"\u1`,                 // invalid
+	`"\u12`,                // invalid
+	`"\u123`,               // invalid
+	`"\u\n"`,               // invalid
+	`"\u1\n"`,              // invalid
+	`"\u12\n"`,             // invalid
+	`"\u12\n"`,             // invalid
+	`"\u123\n"`,            // invalid
+	`"\u1d`,                // invalid
+	`"\u$`,                 // invalid
+	`"\21412`,              // invalid
+	`"\uD834\1`,            // invalid
+	`"\uD834\u3`,           // invalid
+	`"\uD834\`,             // invalid
+	`"\uD834`,              // invalid
+	`"\u07F9`,              // invalid
+	`"\u1234\n"`,           // valid
+	`"\x00"`,               // invalid
+	"\"\x00\"",             // invalid
+	"\"\t\"",               // invalid
+	"\"\\b\x06\"",          // invalid
+	`"\t"`,                 // valid
+	`"\n"`,                 // valid
+	`"\r"`,                 // valid
+	`"\b"`,                 // valid
+	`"\f"`,                 // valid
+	`"\/"`,                 // valid
+	`"\\"`,                 // valid
+	"\"\\u000X\"",          // invalid
+	"\"\\uxx0X\"",          // invalid
+	"\"\\uxxxx\"",          // invalid
+	"\"\\u000.\"",          // invalid
+	"\"\\u0000\"",          // valid
+	"\"\\ua123\"",          // valid
+	"\"\\uffff\"",          // valid
+	"\"\\ueeee\"",          // valid
+	"\"\\uFFFF\"",          // valid
+	`"ab\n` + "\x00" + `"`, // invalid
+}, func() (r []string) {
+	// Generate tests for invalid space sequences.
+	for i := byte(0); i <= ' '; i++ {
+		r = append(r, `"`+string(i)+`"`)
+	}
+	return r
+}()...)
 
 var testObjs = []string{
 	"",                              // invalid

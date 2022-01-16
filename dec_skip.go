@@ -325,18 +325,70 @@ var (
 //
 // Assumes first quote was consumed.
 func (d *Decoder) skipStr() error {
+	var (
+		c byte
+		i int
+	)
 readStr:
 	for {
-		for i, c := range d.buf[d.head:d.tail] {
-			switch {
-			case c == '"':
-				d.head += i + 1
-				return nil
-			case c == '\\':
-				d.head += i + 1
-				goto readEscaped
-			case c < ' ':
-				return badToken(c)
+		i = 0
+		buf := d.buf[d.head:d.tail]
+		for len(buf) >= 8 {
+			c = buf[0]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			c = buf[1]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			c = buf[2]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			c = buf[3]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			c = buf[4]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			c = buf[5]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			c = buf[6]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			c = buf[7]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			buf = buf[8:]
+		}
+		var n int
+		for n, c = range buf {
+			if safeSet[c] != 0 {
+				i += n
+				goto readTok
 			}
 		}
 
@@ -348,25 +400,34 @@ readStr:
 		}
 	}
 
-readEscaped:
-	v, err := d.byte()
-	if err != nil {
-		return err
-	}
-	switch escapedStrSet[v] {
-	case 1:
-	case 2:
-		for i := 0; i < 4; i++ {
-			h, err := d.byte()
-			if err != nil {
-				return err
-			}
-			if hexSet[h] == 0 {
-				return badToken(h)
-			}
+readTok:
+	switch {
+	case c == '"':
+		d.head += i + 1
+		return nil
+	case c == '\\':
+		d.head += i + 1
+		v, err := d.byte()
+		if err != nil {
+			return err
 		}
-	default:
-		return badToken(v)
+		switch escapedStrSet[v] {
+		case 1:
+		case 2:
+			for i := 0; i < 4; i++ {
+				h, err := d.byte()
+				if err != nil {
+					return err
+				}
+				if hexSet[h] == 0 {
+					return badToken(h)
+				}
+			}
+		default:
+			return badToken(v)
+		}
+	case c < ' ':
+		return badToken(c)
 	}
 	goto readStr
 }
