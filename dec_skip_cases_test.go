@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var testStrings = []string{
+var testStrings = append([]string{
 	`""`,                   // valid
 	`"hello"`,              // valid
 	`"`,                    // invalid
@@ -58,7 +58,13 @@ var testStrings = []string{
 	"\"\\ueeee\"",          // valid
 	"\"\\uFFFF\"",          // valid
 	`"ab\n` + "\x00" + `"`, // invalid
-}
+}, func() (r []string) {
+	// Generate tests for invalid space sequences.
+	for i := byte(0); i <= ' '; i++ {
+		r = append(r, `"`+string(i)+`"`)
+	}
+	return r
+}()...)
 
 var testObjs = []string{
 	"",                              // invalid
