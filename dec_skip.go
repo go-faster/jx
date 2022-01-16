@@ -53,8 +53,12 @@ func (d *Decoder) Bool() (bool, error) {
 	case "true":
 		return true, nil
 	case "fals":
-		if err := d.consume('e'); err != nil {
+		c, err := d.byte()
+		if err != nil {
 			return false, err
+		}
+		if c != 'e' {
+			return false, badToken(c)
 		}
 		return false, nil
 	default:
