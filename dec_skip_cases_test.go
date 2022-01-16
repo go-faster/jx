@@ -70,6 +70,7 @@ var testObjs = []string{
 	"",                              // invalid
 	"nope",                          // invalid
 	"nul",                           // invalid
+	"fals e",                        // invalid
 	"nil",                           // invalid
 	`{`,                             // invalid
 	`{}`,                            // valid
