@@ -295,7 +295,7 @@ func TestOTELDecode(t *testing.T) {
 	})
 }
 
-func BenchmarkOTEL_Decode(b *testing.B) {
+func BenchmarkOTEL(b *testing.B) {
 	var v OTEL
 	dec := DecodeBytes(otelEx1)
 	require.NoError(b, v.Decode(dec))
@@ -311,6 +311,18 @@ func BenchmarkOTEL_Decode(b *testing.B) {
 			d.ResetBytes(otelEx1)
 			if err := vDec.Decode(d); err != nil {
 				b.Fatal(err)
+			}
+		}
+	})
+	b.Run("Validate", func(b *testing.B) {
+		d := GetDecoder()
+		b.ReportAllocs()
+		b.SetBytes(int64(len(otelEx1)))
+
+		for i := 0; i < b.N; i++ {
+			d.ResetBytes(otelEx1)
+			if d.Validate() != nil {
+				b.Fatal("invalid")
 			}
 		}
 	})
