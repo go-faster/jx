@@ -57,26 +57,88 @@ func (d *Decoder) str(v value) (value, error) {
 	if err := d.consume('"'); err != nil {
 		return value{}, errors.Wrap(err, "start")
 	}
-	buf := d.buf[d.head:d.tail]
-	for i, c := range buf {
-		if c == '\\' {
-			// Character is escaped, fallback to slow path.
-			break
-		}
-		if c == '"' {
-			// End of string in fast path.
-			str := buf[:i]
-			d.head += i + 1
-			if v.raw {
-				return value{buf: str}, nil
+	var (
+		c byte
+		i int
+	)
+	for {
+		buf := d.buf[d.head:d.tail]
+		for len(buf) >= 8 {
+			c = buf[0]
+			if safeSet[c] != 0 {
+				goto readTok
 			}
-			return value{buf: append(v.buf, str...)}, nil
+			i++
+
+			c = buf[1]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			c = buf[2]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			c = buf[3]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			c = buf[4]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			c = buf[5]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			c = buf[6]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			c = buf[7]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			buf = buf[8:]
 		}
-		if c < ' ' {
-			return value{}, errors.Wrap(badToken(c), "control character")
+		var n int
+		for n, c = range buf {
+			if safeSet[c] != 0 {
+				i += n
+				goto readTok
+			}
 		}
+		return d.strSlow(v)
 	}
-	return d.strSlow(v)
+readTok:
+	switch {
+	case c == '"':
+		buf := d.buf[d.head:d.tail]
+		// End of string in fast path.
+		str := buf[:i]
+		d.head += i + 1
+		if v.raw {
+			return value{buf: str}, nil
+		}
+		return value{buf: append(v.buf, str...)}, nil
+	case c == '\\':
+		return d.strSlow(v)
+	default:
+		return v, badToken(c)
+	}
 }
 
 // StrBytes returns string value as sub-slice of internal buffer.
