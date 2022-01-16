@@ -22,7 +22,7 @@ See [usage](#Usage) for examples. Mostly suitable for fast low-level json manipu
 with high control. Used in [ogen](https://github.com/ogen-go/ogen) project for
 json (un)marshaling code generation based on json and OpenAPI schemas.
 
-Also, `jx` is pretty fast.
+For example, we have following OpenTelemetry log entry:
 
 ```json
 {
@@ -45,20 +45,14 @@ Also, `jx` is pretty fast.
 }
 ```
 
-This OpenTelemetry log entry has the following benchmarks:
-```console
-$ go test -bench OTEL
-goos: linux
-goarch: amd64
-pkg: github.com/go-faster/jx
-cpu: AMD Ryzen 9 5950X 16-Core Processor
-BenchmarkOTEL_Decode-32  674.1 ns/op   741.71 MB/s  0 B/op  0 allocs/op
-BenchmarkOTEL_Write-32   231.0 ns/op  1835.49 MB/s  0 B/op  0 allocs/op
-PASS
-```
-
 Flexibility of `jx` enables highly efficient semantic-aware encoding and decoding,
-e.g. using `[16]byte` for `TraceId` with zero-allocation `hex` encoding in json.
+e.g. using `[16]byte` for `TraceId` with zero-allocation `hex` encoding in json:
+
+| Name     | Speed        | Allocations   |
+|----------|--------------|---------------|
+| Decode   | 970 MB/s     | 0 allocs/op   |
+| Encode   | 1104 MB/s    | 0 allocs/op   |
+| Write    | 1800 MB/s    | 0 allocs/op   |
 
 See [otel_test.go](./otel_test.go) for example.
 
@@ -83,7 +77,8 @@ simplified implementation and reduced scope, allowing to focus on json stream pr
 ## Usage
 
 * [Decoding](#decode)
-* [Encoding](#decode)
+* [Encoding](#encode)
+* [Writer](#writer)
 * [Raw message](#raw)
 * [Number](#number)
 * [Base64](#base64)
@@ -156,6 +151,12 @@ fmt.Println("Buffer len:", len(e.Bytes()))
 // Output: {"values":[4,8,15,16,23,42]}
 // Buffer len: 28
 ```
+
+### Writer
+
+Use [jx.Writer](https://pkg.go.dev/github.com/go-faster/jx#Writer) for low level json writing.
+
+No automatic commas or indentation for lowest possible overhead, useful for code generated json encoding.
 
 ### Raw
 Use [jx.Decoder.Raw](https://pkg.go.dev/github.com/go-faster/jx#Decoder.Raw) to read raw json values, similar to `json.RawMessage`.
