@@ -48,11 +48,11 @@ For example, we have following OpenTelemetry log entry:
 Flexibility of `jx` enables highly efficient semantic-aware encoding and decoding,
 e.g. using `[16]byte` for `TraceId` with zero-allocation `hex` encoding in json:
 
-| Name     | Speed        | Allocations   |
-|----------|--------------|---------------|
-| Decode   | 970 MB/s     | 0 allocs/op   |
-| Encode   | 1104 MB/s    | 0 allocs/op   |
-| Write    | 1800 MB/s    | 0 allocs/op   |
+| Name   | Speed     | Allocations |
+|--------|-----------|-------------|
+| Decode | 970 MB/s  | 0 allocs/op |
+| Encode | 1104 MB/s | 0 allocs/op |
+| Write  | 1800 MB/s | 0 allocs/op |
 
 See [otel_test.go](./otel_test.go) for example.
 
