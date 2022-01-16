@@ -56,7 +56,7 @@ func TestSuite(t *testing.T) {
 					t.Logf("Reject: %v", decodeErr)
 				}
 			default:
-				t.Fatalf("Unkown prefix %q", action)
+				t.Fatalf("Unknown prefix %q", action)
 			}
 		})
 	}
