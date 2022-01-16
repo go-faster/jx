@@ -6,10 +6,30 @@ package jx
 import (
 	"bytes"
 	"encoding/json"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/go-faster/errors"
+	"github.com/stretchr/testify/require"
 )
+
+func addCorpus(f *testing.F) {
+	f.Helper()
+	dir := filepath.Join("testdata", "test_parsing")
+	files, err := os.ReadDir(dir)
+	require.NoError(f, err)
+	for _, d := range files {
+		if d.IsDir() || !strings.HasSuffix(d.Name(), ".json") {
+			continue
+		}
+		name := filepath.Join(dir, d.Name())
+		data, err := os.ReadFile(name)
+		require.NoError(f, err)
+		f.Add(data)
+	}
+}
 
 func FuzzValid(f *testing.F) {
 	for _, s := range []string{
@@ -22,6 +42,7 @@ func FuzzValid(f *testing.F) {
 	} {
 		f.Add([]byte(s))
 	}
+	addCorpus(f)
 	f.Fuzz(func(t *testing.T, data []byte) {
 		var (
 			std = json.Valid(data)
@@ -43,6 +64,7 @@ func FuzzDecEnc(f *testing.F) {
 	f.Add([]byte(`"a\ufffdz"`))
 	f.Add([]byte(`"\\nH\\tel\\tl\\ro\\\\World\\r\n\rHello\r\tHi"`))
 	f.Add([]byte(`"key:\"/registry/runtimeclasses/\" range_end:\"/registry/runtimeclasses0\" count_only:true "`))
+	addCorpus(f)
 	f.Fuzz(func(t *testing.T, data []byte) {
 		r := GetDecoder()
 		r.ResetBytes(data)
