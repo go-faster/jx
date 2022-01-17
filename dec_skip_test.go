@@ -1,87 +1,40 @@
 package jx
 
 import (
+	"fmt"
+	"io"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
-func TestSkip_number_in_array(t *testing.T) {
-	var err error
-	a := require.New(t)
-	d := DecodeStr(`[-0.12, "stream"]`)
-	_, err = d.Elem()
-	a.NoError(err)
-	err = d.Skip()
-	a.NoError(err)
-	_, err = d.Elem()
-	a.NoError(err)
-	if s, _ := d.Str(); s != "stream" {
-		t.FailNow()
-	}
+func TestDecoder_SkipArrayNested(t *testing.T) {
+	runTestCases(t, []string{
+		`[-0.12, "stream"]`,
+		`["hello", "stream"]`,
+		`[null , "stream"]`,
+		`[true , "stream"]`,
+		`[false , "stream"]`,
+		`[[1, [2, [3], 4]], "stream"]`,
+		`[ [ ], "stream"]`,
+	}, func(t *testing.T, d *Decoder) error {
+		var err error
+		a := require.New(t)
+		_, err = d.Elem()
+		a.NoError(err)
+		err = d.Skip()
+		a.NoError(err)
+		_, err = d.Elem()
+		a.NoError(err)
+		if s, _ := d.Str(); s != "stream" {
+			t.FailNow()
+		}
+		return nil
+	})
 }
 
-func TestSkip_string_in_array(t *testing.T) {
-	d := DecodeStr(`["hello", "stream"]`)
-	d.Elem()
-	d.Skip()
-	d.Elem()
-	if s, _ := d.Str(); s != "stream" {
-		t.FailNow()
-	}
-}
-
-func TestSkip_null(t *testing.T) {
-	d := DecodeStr(`[null , "stream"]`)
-	d.Elem()
-	d.Skip()
-	d.Elem()
-	if s, _ := d.Str(); s != "stream" {
-		t.FailNow()
-	}
-}
-
-func TestSkip_true(t *testing.T) {
-	d := DecodeStr(`[true , "stream"]`)
-	d.Elem()
-	d.Skip()
-	d.Elem()
-	if s, _ := d.Str(); s != "stream" {
-		t.FailNow()
-	}
-}
-
-func TestSkip_false(t *testing.T) {
-	d := DecodeStr(`[false , "stream"]`)
-	d.Elem()
-	d.Skip()
-	d.Elem()
-	if s, _ := d.Str(); s != "stream" {
-		t.FailNow()
-	}
-}
-
-func TestSkip_array(t *testing.T) {
-	d := DecodeStr(`[[1, [2, [3], 4]], "stream"]`)
-	d.Elem()
-	d.Skip()
-	d.Elem()
-	if s, _ := d.Str(); s != "stream" {
-		t.FailNow()
-	}
-}
-
-func TestSkip_empty_array(t *testing.T) {
-	d := DecodeStr(`[ [ ], "stream"]`)
-	d.Elem()
-	d.Skip()
-	d.Elem()
-	if s, _ := d.Str(); s != "stream" {
-		t.FailNow()
-	}
-}
-
-func TestSkip_nested(t *testing.T) {
+func TestDecoderSkip_Nested(t *testing.T) {
 	d := DecodeStr(`[ {"a" : [{"stream": "c"}], "d": 102 }, "stream"]`)
 	if _, err := d.Elem(); err != nil {
 		t.Fatal(err)
@@ -95,33 +48,35 @@ func TestSkip_nested(t *testing.T) {
 	require.Equal(t, "stream", s)
 }
 
-func TestSkip_simple_nested(t *testing.T) {
+func TestDecoderSkip_SimpleNested(t *testing.T) {
 	d := DecodeStr(`["foo", "bar", "baz"]`)
 	require.NoError(t, d.Skip())
 }
 
-func TestDecoder_Bool(t *testing.T) {
-	for _, s := range []string{
-		"tru",
-		"fals",
-		"",
-		"nope",
-	} {
-		d := DecodeStr(s)
-		v, err := d.Bool()
-		require.False(t, v)
-		require.Error(t, err)
+func TestDecoder_skipNumber(t *testing.T) {
+	inputs := []string{
+		`0`,
+		`120`,
+		`0.`,
+		`0.0e`,
+		`0.0e+1`,
+	}
+	sr := strings.NewReader("")
+	er := &errReader{}
+	for i, tt := range inputs {
+		t.Run(fmt.Sprintf("Test%d", i), func(t *testing.T) {
+			sr.Reset(tt)
+			d := Decode(io.MultiReader(sr, er), len(tt))
+			require.NoError(t, d.read())
+			require.Error(t, d.skipNumber())
+		})
 	}
 }
 
-func TestDecoder_Null(t *testing.T) {
-	for _, s := range []string{
-		"",
-		"nope",
-		"nul",
-		"nil",
-	} {
-		d := DecodeStr(s)
-		require.Error(t, d.Null())
+func TestDecoder_SkipObjDepth(t *testing.T) {
+	var input []byte
+	for i := 0; i <= maxDepth; i++ {
+		input = append(input, `{"1":`...)
 	}
+	require.Error(t, DecodeBytes(input).Skip())
 }

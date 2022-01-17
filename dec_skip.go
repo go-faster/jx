@@ -2,78 +2,9 @@ package jx
 
 import (
 	"io"
-	"math/bits"
 
 	"github.com/go-faster/errors"
 )
-
-func (d *Decoder) readExact4(b *[4]byte) error {
-	if buf := d.buf[d.head:d.tail]; len(buf) >= len(b) {
-		d.head += copy(b[:], buf[:4])
-		return nil
-	}
-
-	n := copy(b[:], d.buf[d.head:d.tail])
-	if err := d.readAtLeast(len(b) - n); err != nil {
-		return err
-	}
-	d.head += copy(b[n:], d.buf[d.head:d.tail])
-	return nil
-}
-
-func findInvalidToken4(buf [4]byte, mask uint32) error {
-	c := uint32(buf[0]) | uint32(buf[1])<<8 | uint32(buf[2])<<16 | uint32(buf[3])<<24
-	idx := bits.TrailingZeros32(c^mask) / 8
-	return badToken(buf[idx])
-}
-
-// Null reads a json object as null and
-// returns whether it's a null or not.
-func (d *Decoder) Null() error {
-	var buf [4]byte
-	if err := d.readExact4(&buf); err != nil {
-		return err
-	}
-
-	if string(buf[:]) != "null" {
-		const encodedNull = 'n' | 'u'<<8 | 'l'<<16 | 'l'<<24
-		return findInvalidToken4(buf, encodedNull)
-	}
-	return nil
-}
-
-// Bool reads a json object as Bool
-func (d *Decoder) Bool() (bool, error) {
-	var buf [4]byte
-	if err := d.readExact4(&buf); err != nil {
-		return false, err
-	}
-
-	switch string(buf[:]) {
-	case "true":
-		return true, nil
-	case "fals":
-		c, err := d.byte()
-		if err != nil {
-			return false, err
-		}
-		if c != 'e' {
-			return false, badToken(c)
-		}
-		return false, nil
-	default:
-		switch c := buf[0]; c {
-		case 't':
-			const encodedTrue = 't' | 'r'<<8 | 'u'<<16 | 'e'<<24
-			return false, findInvalidToken4(buf, encodedTrue)
-		case 'f':
-			const encodedAlse = 'a' | 'l'<<8 | 's'<<16 | 'e'<<24
-			return false, findInvalidToken4(buf, encodedAlse)
-		default:
-			return false, badToken(c)
-		}
-	}
-}
 
 // Skip skips a json object and positions to relatively the next json object.
 func (d *Decoder) Skip() error {

@@ -1,12 +1,10 @@
 package jx
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
 	"testing"
-	"testing/iotest"
 	"unicode/utf8"
 
 	"github.com/stretchr/testify/require"
@@ -36,38 +34,10 @@ func TestUnexpectedTokenErr_Error(t *testing.T) {
 }
 
 func TestDecoder_Str(t *testing.T) {
-	testStr := func(d *Decoder, input string, valid bool) func(t *testing.T) {
-		return func(t *testing.T) {
-			t.Cleanup(func() {
-				if t.Failed() {
-					t.Logf("Input: %q", input)
-				}
-			})
-
-			_, err := d.Str()
-			if valid {
-				require.NoError(t, err)
-			} else {
-				require.Error(t, err)
-			}
-		}
-	}
-	for i, input := range testStrings {
-		valid := json.Valid([]byte(input))
-
-		t.Run(fmt.Sprintf("Test%d", i), func(t *testing.T) {
-			t.Run("Buffer", testStr(DecodeStr(input), input, valid))
-
-			r := strings.NewReader(input)
-			d := Decode(r, 512)
-			t.Run("Reader", testStr(d, input, valid))
-
-			r.Reset(input)
-			obr := iotest.OneByteReader(r)
-			d.Reset(obr)
-			t.Run("OneByteReader", testStr(d, input, valid))
-		})
-	}
+	runTestCases(t, testStrings, func(t *testing.T, d *Decoder) error {
+		_, err := d.Str()
+		return err
+	})
 }
 
 func Benchmark_appendRune(b *testing.B) {
