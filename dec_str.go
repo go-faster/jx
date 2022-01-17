@@ -2,6 +2,7 @@ package jx
 
 import (
 	"fmt"
+	"io"
 	"unicode/utf16"
 	"unicode/utf8"
 
@@ -58,10 +59,13 @@ func (d *Decoder) str(v value) (value, error) {
 		return value{}, errors.Wrap(err, "start")
 	}
 	var (
-		c byte
-		i int
+		c      byte
+		i      int
+		copied bool
 	)
+readStr:
 	for {
+		i = 0
 		buf := d.buf[d.head:d.tail]
 		for len(buf) >= 8 {
 			c = buf[0]
@@ -114,32 +118,48 @@ func (d *Decoder) str(v value) (value, error) {
 
 			buf = buf[8:]
 		}
-		var n int
-		for n, c = range buf {
+		for _, c = range buf {
 			if safeSet[c] != 0 {
-				i += n
 				goto readTok
 			}
+			i++
 		}
-		return d.strSlow(v)
+
+		v.buf = append(v.buf, d.buf[d.head:d.head+i]...)
+		copied = true
+		if err := d.read(); err != nil {
+			if err == io.EOF {
+				return value{}, io.ErrUnexpectedEOF
+			}
+			return value{}, err
+		}
 	}
 readTok:
-	; // Bug in cover tool, see https://github.com/golang/go/issues/28319.
+	buf := d.buf[d.head:d.tail]
+	str := buf[:i]
+	d.head += i + 1
+
 	switch {
 	case c == '"':
-		buf := d.buf[d.head:d.tail]
-		// End of string in fast path.
-		str := buf[:i]
-		d.head += i + 1
-		if v.raw {
+		if v.raw && !copied {
 			return value{buf: str}, nil
 		}
 		return value{buf: append(v.buf, str...)}, nil
 	case c == '\\':
-		return d.strSlow(v)
+		copied = true
+		v.buf = append(v.buf, str...)
+		c, err := d.byte()
+		if err != nil {
+			return value{}, errors.Wrap(err, "next")
+		}
+		v, err = d.escapedChar(v, c)
+		if err != nil {
+			return v, errors.Wrap(err, "escape")
+		}
 	default:
 		return v, badToken(c)
 	}
+	goto readStr
 }
 
 // StrBytes returns string value as sub-slice of internal buffer.
@@ -160,34 +180,6 @@ func (d *Decoder) Str() (string, error) {
 		return "", err
 	}
 	return string(s), nil
-}
-
-func (d *Decoder) strSlow(v value) (value, error) {
-	for {
-		c, err := d.byte()
-		if err != nil {
-			return value{}, errors.Wrap(err, "next")
-		}
-		switch c {
-		case '"':
-			// End of string.
-			return v, nil
-		case '\\':
-			c, err := d.byte()
-			if err != nil {
-				return value{}, errors.Wrap(err, "next")
-			}
-			v, err = d.escapedChar(v, c)
-			if err != nil {
-				return v, errors.Wrap(err, "escape")
-			}
-		default:
-			if c < ' ' {
-				return value{}, badToken(c)
-			}
-			v = v.byte(c)
-		}
-	}
 }
 
 func (d *Decoder) escapedChar(v value, c byte) (value, error) {

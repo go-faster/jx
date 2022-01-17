@@ -145,6 +145,19 @@ var testStrings = append([]string{
 	for i := byte(0); i <= ' '; i++ {
 		r = append(r, `"`+string(i)+`"`)
 	}
+	// Generate tests to ensure unroll correctness.
+	for i := byte('0'); i <= '9'; i++ {
+		// Generates "0", "11", "222" ...
+		n := int(i - '0' + 1)
+		str := strings.Repeat(string(i), n)
+		r = append(r, `"`+str+`"`)
+		if n > 2 {
+			// Insert newline.
+			// Generates "22\n2", "333\n3" ...
+			str = str[:n-2] + `\n` + str[n-1:]
+			r = append(r, `"`+str+`"`)
+		}
+	}
 	return r
 }()...)
 

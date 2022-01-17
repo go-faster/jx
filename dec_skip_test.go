@@ -27,9 +27,10 @@ func TestDecoder_SkipArrayNested(t *testing.T) {
 		a.NoError(err)
 		_, err = d.Elem()
 		a.NoError(err)
-		if s, _ := d.Str(); s != "stream" {
-			t.FailNow()
-		}
+
+		s, err := d.Str()
+		a.NoError(err)
+		a.Equal("stream", s)
 		return nil
 	})
 }
