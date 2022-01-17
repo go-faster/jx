@@ -39,7 +39,9 @@ func TestDecoder_ObjectBytes(t *testing.T) {
 			input = append(input, `{"1":`...)
 		}
 		d := DecodeBytes(input)
-		require.ErrorIs(t, d.ObjBytes(nil), errMaxDepth)
+		require.ErrorIs(t, d.ObjBytes(func(d *Decoder, key []byte) error {
+			return crawlValue(d)
+		}), errMaxDepth)
 	})
 	t.Run("Invalid", func(t *testing.T) {
 		for _, s := range testObjs {

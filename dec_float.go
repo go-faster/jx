@@ -16,6 +16,7 @@ var floatDigits []int8
 const invalidCharForNumber = int8(-1)
 const endOfNumber = int8(-2)
 const dotInNumber = int8(-3)
+const maxFloat64 = 1<<63 - 1
 
 func init() {
 	floatDigits = make([]int8, 256)
@@ -213,15 +214,19 @@ func (d *Decoder) Float64() (float64, error) {
 	if err != nil {
 		return 0, errors.Wrap(err, "byte")
 	}
-	if c == '-' {
+	switch c {
+	case '-':
 		v, err := d.positiveFloat64()
 		if err != nil {
 			return 0, err
 		}
 		return -v, err
+	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+		d.unread()
+		return d.positiveFloat64()
+	default:
+		return 0, badToken(c)
 	}
-	d.unread()
-	return d.positiveFloat64()
 }
 
 func (d *Decoder) positiveFloat64() (float64, error) {
@@ -333,8 +338,12 @@ func validateFloat(str []byte) error {
 	if str[0] == '-' {
 		return errors.New("double minus")
 	}
-	if len(str) >= 2 && str[0] == '0' && str[1] == '0' {
-		return errors.New("leading zero")
+	if len(str) >= 2 && str[0] == '0' {
+		switch str[1] {
+		case 'e', 'E', '.':
+		default:
+			return errors.New("leading zero")
+		}
 	}
 	dotPos := bytes.IndexByte(str, '.')
 	if dotPos != -1 {

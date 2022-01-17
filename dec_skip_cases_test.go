@@ -12,6 +12,88 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var testBools = []string{
+	"",
+	"tru",
+	"fals",
+	"fal\x00e",
+	"fals\x00",
+	"f\x00\x00\x00\x00",
+	"nope",
+	"true",
+	"false",
+}
+
+var testNumbers = []string{
+	"",                      // invalid
+	"0",                     // valid
+	"-",                     // invalid
+	"--",                    // invalid
+	"+",                     // invalid
+	".",                     // invalid
+	"e",                     // invalid
+	"E",                     // invalid
+	"-.",                    // invalid
+	"-1",                    // valid
+	"--1",                   // invalid
+	"+1",                    // invalid
+	"++1",                   // invalid
+	"-a",                    // invalid
+	"-0",                    // valid
+	"00",                    // invalid
+	"01",                    // invalid
+	".00",                   // invalid
+	"00.1",                  // invalid
+	"-00",                   // invalid
+	"-01",                   // invalid
+	"-\x00",                 // invalid, zero byte
+	"0.1",                   // valid
+	"0e1",                   // valid
+	"0e+1",                  // valid
+	"0e-1",                  // valid
+	"0e-11",                 // valid
+	"0e-1a",                 // invalid
+	"1.e1",                  // invalid
+	"0e-1+",                 // invalid
+	"0e",                    // invalid
+	"e",                     // invalid
+	"-e",                    // invalid
+	"+e",                    // invalid
+	".e",                    // invalid
+	"e.",                    // invalid
+	"0.e",                   // invalid
+	"0-e",                   // invalid
+	"0e-",                   // invalid
+	"0e+",                   // invalid
+	"0.0e",                  // invalid
+	"0.0e1",                 // valid
+	"0.0e+",                 // invalid
+	"0.0e-",                 // invalid
+	"0e0+0",                 // invalid
+	"0.e0+0",                // invalid
+	"0.0e+0",                // valid
+	"0.0e+1",                // valid
+	"0.0e0+0",               // invalid
+	"0.",                    // invalid
+	"1.",                    // invalid
+	"0..1",                  // invalid, more dot
+	"1e+1",                  // valid
+	"1+1",                   // invalid
+	"1E1",                   // valid, e or E
+	"1ee1",                  // invalid
+	"100a",                  // invalid
+	"10.",                   // invalid
+	"-0.12",                 // valid
+	"0]",                    // invalid
+	"0e]",                   // invalid
+	"0e+]",                  // invalid
+	"1.2.3",                 // invalid
+	"0.0.0",                 // invalid
+	"9223372036854775807",   // valid
+	"9223372036854775808",   // valid
+	"9223372036854775807.1", // valid
+}
+
 var testStrings = append([]string{
 	`""`,                   // valid
 	`"hello"`,              // valid
@@ -132,75 +214,16 @@ func TestDecoder_Skip(t *testing.T) {
 	var testCases []testCase
 
 	testCases = append(testCases, testCase{
-		ptr: (*bool)(nil),
-		inputs: []string{
-			"tru",
-			"fals",
-			"",
-			"nope",
-			"true",
-			"false",
-		},
+		ptr:    (*bool)(nil),
+		inputs: testBools,
 	})
 	testCases = append(testCases, testCase{
 		ptr:    (*string)(nil),
 		inputs: testStrings,
 	})
 	numberCase := testCase{
-		ptr: (*float64)(nil),
-		inputs: []string{
-			"0",       // valid
-			"-",       // invalid
-			"+",       // invalid
-			"-1",      // valid
-			"+1",      // invalid
-			"-a",      // invalid
-			"-0",      // valid
-			"-00",     // invalid
-			"-01",     // invalid
-			"-\x00",   // invalid, zero byte
-			"0.1",     // valid
-			"0e1",     // valid
-			"0e+1",    // valid
-			"0e-1",    // valid
-			"0e-11",   // valid
-			"0e-1a",   // invalid
-			"1.e1",    // invalid
-			"0e-1+",   // invalid
-			"0e",      // invalid
-			"e",       // invalid
-			"-e",      // invalid
-			"+e",      // invalid
-			".e",      // invalid
-			"e.",      // invalid
-			"0.e",     // invalid
-			"0-e",     // invalid
-			"0e-",     // invalid
-			"0e+",     // invalid
-			"0.0e",    // invalid
-			"0.0e1",   // valid
-			"0.0e+",   // invalid
-			"0.0e-",   // invalid
-			"0e0+0",   // invalid
-			"0.e0+0",  // invalid
-			"0.0e+0",  // valid
-			"0.0e+1",  // valid
-			"0.0e0+0", // invalid
-			"0.",      // invalid
-			"0..1",    // invalid, more dot
-			"1e+1",    // valid
-			"1+1",     // invalid
-			"1E1",     // valid, e or E
-			"1ee1",    // invalid
-			"100a",    // invalid
-			"10.",     // invalid
-			"-0.12",   // valid
-			"0]",      // invalid
-			"0e]",     // invalid
-			"0e+]",    // invalid
-			"1.2.3",   // invalid
-			"0.0.0",   // invalid
-		},
+		ptr:    (*float64)(nil),
+		inputs: testNumbers,
 	}
 	testCases = append(testCases, numberCase)
 	arrayCase := testCase{

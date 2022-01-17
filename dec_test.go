@@ -2,11 +2,50 @@ package jx
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
 	"io"
+	"strings"
 	"testing"
+	"testing/iotest"
 
 	"github.com/stretchr/testify/require"
 )
+
+func runTestCases(t *testing.T, cases []string, cb func(t *testing.T, d *Decoder) error) {
+	testCase := func(d *Decoder, input string, valid bool) func(t *testing.T) {
+		return func(t *testing.T) {
+			t.Cleanup(func() {
+				if t.Failed() {
+					t.Logf("Input: %q", input)
+				}
+			})
+
+			err := cb(t, d)
+			if valid {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+		}
+	}
+	for i, input := range cases {
+		valid := json.Valid([]byte(input))
+
+		t.Run(fmt.Sprintf("Test%d", i), func(t *testing.T) {
+			t.Run("Buffer", testCase(DecodeStr(input), input, valid))
+
+			r := strings.NewReader(input)
+			d := Decode(r, 512)
+			t.Run("Reader", testCase(d, input, valid))
+
+			r.Reset(input)
+			obr := iotest.OneByteReader(r)
+			d.Reset(obr)
+			t.Run("OneByteReader", testCase(d, input, valid))
+		})
+	}
+}
 
 func TestType_String(t *testing.T) {
 	met := map[string]bool{}
