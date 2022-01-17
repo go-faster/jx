@@ -27,13 +27,17 @@ func runTestdata(fatal func(...interface{}), cb func(name string, data []byte)) 
 		if e.IsDir() {
 			continue
 		}
-		name := path.Join("testdata", e.Name())
-		data, err := testdata.ReadFile(name)
-		if err != nil {
-			fatal(err)
-		}
-		cb(e.Name(), data)
+		runTestdataFile(e.Name(), fatal, cb)
 	}
+}
+
+func runTestdataFile(file string, fatal func(...interface{}), cb func(name string, data []byte)) {
+	name := path.Join("testdata", file)
+	data, err := testdata.ReadFile(name)
+	if err != nil {
+		fatal(err)
+	}
+	cb(file, data)
 }
 
 func BenchmarkFile_Decode(b *testing.B) {
