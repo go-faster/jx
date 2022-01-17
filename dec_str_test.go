@@ -5,7 +5,6 @@ import (
 	"io"
 	"strings"
 	"testing"
-	"unicode/utf8"
 
 	"github.com/stretchr/testify/require"
 )
@@ -49,12 +48,8 @@ func Benchmark_appendRune(b *testing.B) {
 	}
 }
 
-func benchmarkDecoderStrBytes(str string) func(b *testing.B) {
+func benchmarkDecoderStrBytes(data []byte) func(b *testing.B) {
 	return func(b *testing.B) {
-		e := GetEncoder()
-		e.Str(str)
-		data := e.Bytes()
-
 		d := GetDecoder()
 
 		b.SetBytes(int64(len(data)))
@@ -71,17 +66,26 @@ func benchmarkDecoderStrBytes(str string) func(b *testing.B) {
 }
 
 func BenchmarkDecoder_StrBytes(b *testing.B) {
-	runBench := func(char string) func(b *testing.B) {
+	runBench := func(char string, maxCount int) func(b *testing.B) {
 		return func(b *testing.B) {
-			for _, size := range []int{
-				2, 8, 16, 64, 128, 1024,
+			for _, count := range []int{
+				1, 8, 16, 64, 128, 1024,
 			} {
-				count := utf8.RuneCountInString(char)
-				b.Run(fmt.Sprintf("%db", size), benchmarkDecoderStrBytes(strings.Repeat(char, size/count)))
+				if maxCount > 0 && count >= maxCount {
+					break
+				}
+				e := GetEncoder()
+				str := strings.Repeat(char, count)
+				e.StrEscape(str)
+				data := e.Bytes()
+
+				b.Run(fmt.Sprintf("%db", len(data)-2), benchmarkDecoderStrBytes(data))
 			}
 		}
 	}
 
-	b.Run("Plain", runBench("a"))
-	b.Run("Escaped", runBench("ф"))
+	b.Run("Plain", runBench("a", -1))
+	b.Run("EscapedNewline", runBench("\n", -1))
+	b.Run("EscapedUnicode", runBench("\f", -1))
+	b.Run("Mixed", runBench("aaaa\naaaa\faaaaa", 64))
 }
