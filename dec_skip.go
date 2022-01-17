@@ -336,6 +336,7 @@ readStr:
 	}
 
 readTok:
+	; // Bug in cover tool, see https://github.com/golang/go/issues/28319.
 	switch {
 	case c == '"':
 		d.head += i + 1

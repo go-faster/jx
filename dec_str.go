@@ -124,6 +124,7 @@ func (d *Decoder) str(v value) (value, error) {
 		return d.strSlow(v)
 	}
 readTok:
+	; // Bug in cover tool, see https://github.com/golang/go/issues/28319.
 	switch {
 	case c == '"':
 		buf := d.buf[d.head:d.tail]
