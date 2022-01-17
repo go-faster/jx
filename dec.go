@@ -16,7 +16,7 @@ func (t Type) String() string {
 	case Number:
 		return "number"
 	case Null:
-		return "nil"
+		return "null"
 	case Bool:
 		return "bool"
 	case Array:
