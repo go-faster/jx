@@ -2,6 +2,7 @@ package jx
 
 import (
 	"bytes"
+	"io"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -40,31 +41,18 @@ func decodeStr(t *testing.T, s string, f func(d *Decoder)) {
 
 func TestDecoder_Float(t *testing.T) {
 	t.Run("Invalid", func(t *testing.T) {
-		for _, s := range []string{
-			``,
-			`-`,
-			`-.`,
-			`.`,
-			`.-`,
-			`00`,
-			`.00`,
-			`00.1`,
-		} {
-			t.Run(s, func(t *testing.T) {
-				t.Run("64", func(t *testing.T) {
-					decodeStr(t, s, func(d *Decoder) {
-						_, err := d.Float64()
-						require.Error(t, err, s)
-					})
-				})
-				t.Run("32", func(t *testing.T) {
-					decodeStr(t, s, func(d *Decoder) {
-						_, err := d.Float32()
-						require.Error(t, err, s)
-					})
-				})
-			})
-		}
+		runTestCases(t, testNumbers, func(t *testing.T, d *Decoder) error {
+			_, err := d.Float64()
+			if err != nil {
+				return err
+			}
+			if err := d.Skip(); err != nil {
+				if err != io.EOF && err != io.ErrUnexpectedEOF {
+					return err
+				}
+			}
+			return nil
+		})
 	})
 	t.Run("Slow", func(t *testing.T) {
 		s := `,0.1`
