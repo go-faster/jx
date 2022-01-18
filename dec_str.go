@@ -260,6 +260,8 @@ func (d *Decoder) Str() (string, error) {
 
 func (d *Decoder) escapedChar(v value, c byte) (value, error) {
 	switch val := escapedStrSet[c]; val {
+	default:
+		v.buf = append(v.buf, val)
 	case 'u':
 		r1, err := d.readU4()
 		if err != nil {
@@ -294,17 +296,15 @@ func (d *Decoder) escapedChar(v value, c byte) (value, error) {
 		} else {
 			v = v.rune(r1)
 		}
-	default:
-		v.buf = append(v.buf, val)
 	case 0:
 		return v, errors.Wrap(badToken(c), "bad escape: %w")
 	}
 	return v, nil
 }
 
-func (d *Decoder) readU4() (v rune, err error) {
+func (d *Decoder) readU4() (v rune, _ error) {
 	var b [4]byte
-	if err = d.readExact4(&b); err != nil {
+	if err := d.readExact4(&b); err != nil {
 		return 0, err
 	}
 	for _, c := range b {
