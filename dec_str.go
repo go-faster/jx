@@ -59,9 +59,97 @@ func (d *Decoder) str(v value) (value, error) {
 		return value{}, errors.Wrap(err, "start")
 	}
 	var (
-		c      byte
-		i      int
-		copied bool
+		c byte
+		i int
+	)
+	for {
+		buf := d.buf[d.head:d.tail]
+		for len(buf) >= 8 {
+			c = buf[0]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			c = buf[1]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			c = buf[2]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			c = buf[3]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			c = buf[4]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			c = buf[5]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			c = buf[6]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			c = buf[7]
+			if safeSet[c] != 0 {
+				goto readTok
+			}
+			i++
+
+			buf = buf[8:]
+		}
+		var n int
+		for n, c = range buf {
+			if safeSet[c] != 0 {
+				i += n
+				goto readTok
+			}
+		}
+		return d.strSlow(v)
+	}
+readTok:
+	buf := d.buf[d.head:d.tail]
+	str := buf[:i]
+
+	switch {
+	case c == '"':
+		// Skip string + last quote.
+		d.head += i + 1
+		if v.raw {
+			return value{buf: str}, nil
+		}
+		return value{buf: append(v.buf, str...)}, nil
+	case c == '\\':
+		// Skip only string, keep quote in buffer.
+		d.head += i
+		// We need a copy anyway, because string is escaped.
+		return d.strSlow(value{buf: append(v.buf, str...)})
+	default:
+		return v, badToken(c)
+	}
+}
+
+func (d *Decoder) strSlow(v value) (value, error) {
+	var (
+		c byte
+		i int
 	)
 readStr:
 	for {
@@ -126,7 +214,6 @@ readStr:
 		}
 
 		v.buf = append(v.buf, d.buf[d.head:d.head+i]...)
-		copied = true
 		if err := d.read(); err != nil {
 			if err == io.EOF {
 				return value{}, io.ErrUnexpectedEOF
@@ -141,12 +228,8 @@ readTok:
 
 	switch {
 	case c == '"':
-		if v.raw && !copied {
-			return value{buf: str}, nil
-		}
 		return value{buf: append(v.buf, str...)}, nil
 	case c == '\\':
-		copied = true
 		v.buf = append(v.buf, str...)
 		c, err := d.byte()
 		if err != nil {
