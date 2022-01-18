@@ -34,13 +34,6 @@ func (v value) rune(r rune) value {
 	}
 }
 
-func (v value) byte(b byte) value {
-	return value{
-		buf: append(v.buf, b),
-		raw: v.raw,
-	}
-}
-
 // badTokenErr means that Token was unexpected while decoding.
 type badTokenErr struct {
 	Token byte

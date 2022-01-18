@@ -89,3 +89,10 @@ func BenchmarkDecoder_StrBytes(b *testing.B) {
 	b.Run("EscapedUnicode", runBench("\f", -1))
 	b.Run("Mixed", runBench("aaaa\naaaa\faaaaa", 64))
 }
+
+func TestDecoder_strSlow(t *testing.T) {
+	r := errReader{}
+	d := Decode(r, 1)
+	_, err := d.strSlow(value{})
+	require.ErrorIs(t, err, r.Err())
+}
