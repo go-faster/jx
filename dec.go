@@ -45,23 +45,9 @@ const (
 	Object
 )
 
-var hexDigits []byte
 var types []Type
 
 func init() {
-	hexDigits = make([]byte, 256)
-	for i := 0; i < len(hexDigits); i++ {
-		hexDigits[i] = 255
-	}
-	for i := '0'; i <= '9'; i++ {
-		hexDigits[i] = byte(i - '0')
-	}
-	for i := 'a'; i <= 'f'; i++ {
-		hexDigits[i] = byte((i - 'a') + 10)
-	}
-	for i := 'A'; i <= 'F'; i++ {
-		hexDigits[i] = byte((i - 'A') + 10)
-	}
 	types = make([]Type, 256)
 	for i := range types {
 		types[i] = Invalid

@@ -140,10 +140,27 @@ var testStrings = append([]string{
 	"\"\\ueeee\"",          // valid
 	"\"\\uFFFF\"",          // valid
 	`"ab\n` + "\x00" + `"`, // invalid
+	`"\n0123456"`,
 }, func() (r []string) {
 	// Generate tests for invalid space sequences.
 	for i := byte(0); i <= ' '; i++ {
 		r = append(r, `"`+string(i)+`"`)
+	}
+	// Generate tests to ensure unroll correctness.
+	for i := byte('0'); i <= '9'; i++ {
+		// Generates "0", "11", "222" ...
+		n := int(i - '0' + 1)
+		str := strings.Repeat(string(i), n)
+		r = append(r, `"`+str+`"`)
+		if n > 2 {
+			// Insert newline.
+			// Generates "22\n2", "333\n3" ...
+			str = str[:n-2] + `\n` + str[n-1:]
+			r = append(r, `"`+str+`"`)
+			// Generates "2\n22", "3\n333" ...
+			str = str[:1] + `\n` + str[2:]
+			r = append(r, `"`+str+`"`)
+		}
 	}
 	return r
 }()...)
@@ -185,6 +202,9 @@ var testObjs = []string{
 	`{"foo":`,                       // invalid
 	`{"foo": "bar"`,                 // invalid
 	`{"foo": "bar`,                  // invalid
+	`{"foo": "bar",}`,               // invalid
+	`{"foo": "bar", true}`,          // invalid
+	"{\n\"foo\"\n: \n10e1   \n, \n\"bar\"\n: \ntrue\n}", // valid
 }
 
 var testArrs = []string{
