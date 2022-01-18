@@ -259,7 +259,7 @@ func (d *Decoder) Str() (string, error) {
 }
 
 func (d *Decoder) escapedChar(v value, c byte) (value, error) {
-	switch c {
+	switch val := escapedStrSet[c]; val {
 	case 'u':
 		r1, err := d.readU4()
 		if err != nil {
@@ -294,45 +294,25 @@ func (d *Decoder) escapedChar(v value, c byte) (value, error) {
 		} else {
 			v = v.rune(r1)
 		}
-	case '"':
-		v = v.rune('"')
-	case '\\':
-		v = v.rune('\\')
-	case '/':
-		v = v.rune('/')
-	case 'b':
-		v = v.rune('\b')
-	case 'f':
-		v = v.rune('\f')
-	case 'n':
-		v = v.rune('\n')
-	case 'r':
-		v = v.rune('\r')
-	case 't':
-		v = v.rune('\t')
 	default:
+		v.buf = append(v.buf, val)
+	case 0:
 		return v, errors.Wrap(badToken(c), "bad escape: %w")
 	}
 	return v, nil
 }
 
-func (d *Decoder) readU4() (rune, error) {
-	var v rune
-	for i := 0; i < 4; i++ {
-		c, err := d.byte()
-		if err != nil {
-			return 0, err
-		}
-		switch {
-		case c >= '0' && c <= '9':
-			v = v*16 + rune(c-'0')
-		case c >= 'a' && c <= 'f':
-			v = v*16 + rune(c-'a'+10)
-		case c >= 'A' && c <= 'F':
-			v = v*16 + rune(c-'A'+10)
-		default:
+func (d *Decoder) readU4() (v rune, err error) {
+	var b [4]byte
+	if err = d.readExact4(&b); err != nil {
+		return 0, err
+	}
+	for _, c := range b {
+		val := hexSet[c]
+		if val == 0 {
 			return 0, badToken(c)
 		}
+		v = v*16 + rune(val-1)
 	}
 	return v, nil
 }

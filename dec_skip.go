@@ -240,19 +240,26 @@ stateExp:
 
 var (
 	escapedStrSet = [256]byte{
-		'"': 1, '\\': 1, '/': 1, 'b': 1, 'f': 1, 'n': 1, 'r': 1, 't': 1,
-		'u': 2,
+		'"':  '"',
+		'\\': '\\',
+		'/':  '/',
+		'b':  '\b',
+		'f':  '\f',
+		'n':  '\n',
+		'r':  '\r',
+		't':  '\t',
+		'u':  'u',
 	}
 	hexSet = [256]byte{
-		'0': 1, '1': 1, '2': 1, '3': 1,
-		'4': 1, '5': 1, '6': 1, '7': 1,
-		'8': 1, '9': 1,
+		'0': 0x0 + 1, '1': 0x1 + 1, '2': 0x2 + 1, '3': 0x3 + 1,
+		'4': 0x4 + 1, '5': 0x5 + 1, '6': 0x6 + 1, '7': 0x7 + 1,
+		'8': 0x8 + 1, '9': 0x9 + 1,
 
-		'A': 1, 'B': 1, 'C': 1, 'D': 1,
-		'E': 1, 'F': 1,
+		'A': 0xA + 1, 'B': 0xB + 1, 'C': 0xC + 1, 'D': 0xD + 1,
+		'E': 0xE + 1, 'F': 0xF + 1,
 
-		'a': 1, 'b': 1, 'c': 1, 'd': 1,
-		'e': 1, 'f': 1,
+		'a': 0xa + 1, 'b': 0xb + 1, 'c': 0xc + 1, 'd': 0xd + 1,
+		'e': 0xe + 1, 'f': 0xf + 1,
 	}
 )
 
@@ -348,8 +355,7 @@ readTok:
 			return err
 		}
 		switch escapedStrSet[v] {
-		case 1:
-		case 2:
+		case 'u':
 			for i := 0; i < 4; i++ {
 				h, err := d.byte()
 				if err != nil {
@@ -359,7 +365,7 @@ readTok:
 					return badToken(h)
 				}
 			}
-		default:
+		case 0:
 			return badToken(v)
 		}
 	case c < ' ':
