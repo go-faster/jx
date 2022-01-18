@@ -39,6 +39,13 @@ func TestDecoder_Str(t *testing.T) {
 	})
 }
 
+func TestDecoder_strSlow(t *testing.T) {
+	r := errReader{}
+	d := Decode(r, 1)
+	_, err := d.strSlow(value{})
+	require.ErrorIs(t, err, r.Err())
+}
+
 func Benchmark_appendRune(b *testing.B) {
 	b.ReportAllocs()
 	buf := make([]byte, 0, 4)
@@ -46,6 +53,28 @@ func Benchmark_appendRune(b *testing.B) {
 		buf = buf[:0]
 		buf = appendRune(buf, 'f')
 	}
+}
+
+func BenchmarkDecoder_escapedChar(b *testing.B) {
+	bench := func(char byte, data []byte) func(b *testing.B) {
+		return func(b *testing.B) {
+			d := DecodeBytes(data)
+			v := value{buf: make([]byte, 0, 16)}
+
+			b.ReportAllocs()
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				d.ResetBytes(data)
+				v.buf = v.buf[:0]
+				if _, err := d.escapedChar(v, char); err != nil {
+					b.Fatal(err)
+				}
+			}
+		}
+	}
+	b.Run("Unicode", bench('u', []byte(`000c`)))
+	b.Run("Newline", bench('n', nil))
 }
 
 func benchmarkDecoderStrBytes(data []byte) func(b *testing.B) {
@@ -88,11 +117,4 @@ func BenchmarkDecoder_StrBytes(b *testing.B) {
 	b.Run("EscapedNewline", runBench("\n", -1))
 	b.Run("EscapedUnicode", runBench("\f", -1))
 	b.Run("Mixed", runBench("aaaa\naaaa\faaaaa", 64))
-}
-
-func TestDecoder_strSlow(t *testing.T) {
-	r := errReader{}
-	d := Decode(r, 1)
-	_, err := d.strSlow(value{})
-	require.ErrorIs(t, err, r.Err())
 }
