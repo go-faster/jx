@@ -7,7 +7,9 @@ import (
 )
 
 func TestWriter_Reset(t *testing.T) {
-	var w Writer
+	w := GetWriter()
+	defer PutWriter(w)
+
 	w.True()
 	require.NotEmpty(t, w.Buf)
 	w.Reset()
@@ -15,6 +17,9 @@ func TestWriter_Reset(t *testing.T) {
 }
 
 func TestWriter_String(t *testing.T) {
-	w := Writer{Buf: []byte(`true`)}
+	w := GetWriter()
+	defer PutWriter(w)
+
+	w.True()
 	require.Equal(t, "true", w.String())
 }
