@@ -19,6 +19,11 @@ var (
 			return &Encoder{}
 		},
 	}
+	writerPool = &sync.Pool{
+		New: func() interface{} {
+			return &Writer{}
+		},
+	}
 	decPool = &sync.Pool{
 		New: func() interface{} {
 			return &Decoder{}
@@ -47,4 +52,15 @@ func PutEncoder(e *Encoder) {
 	e.Reset()
 	e.SetIdent(0)
 	encPool.Put(e)
+}
+
+// GetWriter returns *Writer from pool.
+func GetWriter() *Writer {
+	return writerPool.Get().(*Writer)
+}
+
+// PutWriter puts *Writer to pool
+func PutWriter(e *Writer) {
+	e.Reset()
+	writerPool.Put(e)
 }

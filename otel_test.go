@@ -327,14 +327,17 @@ func BenchmarkOTEL(b *testing.B) {
 		}
 	})
 	b.Run("Write", func(b *testing.B) {
+		w := GetWriter()
+		defer PutWriter(w)
+		v.Write(w)
+
 		b.ReportAllocs()
-		var w Writer
-		v.Write(&w)
 		b.SetBytes(int64(len(w.Buf)))
+		b.ResetTimer()
 
 		for i := 0; i < b.N; i++ {
 			w.Reset()
-			v.Write(&w)
+			v.Write(w)
 		}
 	})
 	b.Run("Encode", func(b *testing.B) {
