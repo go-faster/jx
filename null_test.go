@@ -59,6 +59,10 @@ func TestNullError(t *testing.T) {
 			if valid[i] == c {
 				continue
 			}
+			// Skip space as first character.
+			if i == 0 && spaceSet[c] == 1 {
+				continue
+			}
 			b[i] = c
 			var token badTokenErr
 			a.ErrorAs(DecodeBytes(b[:]).Null(), &token)
