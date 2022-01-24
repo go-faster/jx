@@ -458,3 +458,15 @@ func (d *Decoder) skipArr() error {
 		}
 	}
 }
+
+// skipSpace skips space characters.
+//
+// Returns io.ErrUnexpectedEOF if got io.EOF.
+func (d *Decoder) skipSpace() error {
+	// Skip space.
+	if _, err := d.more(); err != nil {
+		return err
+	}
+	d.unread()
+	return nil
+}

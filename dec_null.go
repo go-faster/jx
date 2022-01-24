@@ -3,6 +3,10 @@ package jx
 // Null reads a json object as null and
 // returns whether it's a null or not.
 func (d *Decoder) Null() error {
+	if err := d.skipSpace(); err != nil {
+		return err
+	}
+
 	var buf [4]byte
 	if err := d.readExact4(&buf); err != nil {
 		return err

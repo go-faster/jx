@@ -2,6 +2,10 @@ package jx
 
 // Bool reads a json object as Bool
 func (d *Decoder) Bool() (bool, error) {
+	if err := d.skipSpace(); err != nil {
+		return false, err
+	}
+
 	var buf [4]byte
 	if err := d.readExact4(&buf); err != nil {
 		return false, err
