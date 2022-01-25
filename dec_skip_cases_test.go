@@ -208,22 +208,29 @@ var testObjs = []string{
 }
 
 var testArrs = []string{
-	`[]`,             // valid
-	`[1]`,            // valid
-	`[  1, "hello"]`, // valid
-	`[abc]`,          // invalid
-	`[`,              // invalid
-	`[,`,             // invalid
-	`[[]`,            // invalid
-	"[true,f",        // invalid
-	"[true",          // invalid
-	"[true,",         // invalid
-	"[true]",         // invalid
-	"[true,]",        // invalid
-	"[true,false",    // invalid
-	"[true,false,",   // invalid
-	"[true,false,]",  // invalid
-	"[true,false}",   // invalid
+	`[]`,                          // valid
+	`[ ]`,                         // valid
+	"[1]",                         // valid
+	"[true]",                      // valid
+	"[null]",                      // valid
+	`[ 1]`,                        // valid
+	`[ true]`,                     // valid
+	`[ null]`,                     // valid
+	`[ "abc"   ` + "\n]",          // valid
+	`[ "abc",` + "\n" + `"text"]`, // valid
+	`[  1, "hello"]`,              // valid
+	`[abc]`,                       // invalid
+	`[`,                           // invalid
+	`[,`,                          // invalid
+	`[[]`,                         // invalid
+	"[true,f",                     // invalid
+	"[true",                       // invalid
+	"[true,",                      // invalid
+	"[true,]",                     // invalid
+	"[true,false",                 // invalid
+	"[true,false,",                // invalid
+	"[true,false,]",               // invalid
+	"[true,false}",                // invalid
 }
 
 func TestDecoder_Skip(t *testing.T) {

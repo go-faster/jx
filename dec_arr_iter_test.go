@@ -33,4 +33,14 @@ func TestDecoder_ArrIter(t *testing.T) {
 		d := DecodeStr(s)
 		checker(t, testIter(d), s)
 	}
+	t.Run("Depth", func(t *testing.T) {
+		d := DecodeStr(`[`)
+		// Emulate depth
+		d.depth = maxDepth
+		require.ErrorIs(t, testIter(d), errMaxDepth)
+	})
+	t.Run("Empty", func(t *testing.T) {
+		d := DecodeStr(``)
+		require.ErrorIs(t, testIter(d), io.ErrUnexpectedEOF)
+	})
 }
