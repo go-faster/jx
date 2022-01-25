@@ -2,6 +2,7 @@ package jx
 
 import (
 	"encoding/json"
+	"io"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -13,19 +14,15 @@ func TestDecoder_ArrIter(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		for {
-			ok, err := iter.Next()
-			if err != nil {
-				return err
-			}
-			if !ok {
-				return nil
-			}
-
+		for iter.Next() {
 			if err := d.Skip(); err != nil {
 				return err
 			}
 		}
+		if iter.Next() {
+			panic("BUG")
+		}
+		return iter.Err()
 	}
 	for _, s := range testArrs {
 		checker := require.Error

@@ -125,19 +125,15 @@ func BenchmarkDecodeBools(b *testing.B) {
 			if err != nil {
 				b.Fatal(err)
 			}
-			for {
-				ok, err := iter.Next()
-				if err != nil {
-					b.Fatal(err)
-				}
-				if !ok {
-					break
-				}
+			for iter.Next() {
 				v, err := d.Bool()
 				if err != nil {
 					b.Fatal(err)
 				}
 				r = append(r, v)
+			}
+			if err := iter.Err(); err != nil {
+				b.Fatal(err)
 			}
 		}
 	})

@@ -1,10 +1,13 @@
 package jx
 
-import "github.com/go-faster/errors"
+import (
+	"github.com/go-faster/errors"
+)
 
 // ArrIter is decoding array iterator.
 type ArrIter struct {
 	d      *Decoder
+	err    error
 	closed bool
 	comma  bool
 }
@@ -25,27 +28,35 @@ func (d *Decoder) ArrIter() (ArrIter, error) {
 }
 
 // Next consumes element and returns false, if there is no elements anymore.
-func (i *ArrIter) Next() (bool, error) {
+func (i *ArrIter) Next() bool {
 	if i.closed {
-		return false, nil
+		return false
 	}
 
 	dec := i.d
 	c, err := dec.more()
 	if err != nil {
-		return false, err
+		i.err = err
+		return false
 	}
 	if c == ']' {
 		i.closed = true
-		return false, dec.decDepth()
+		i.err = dec.decDepth()
+		return false
 	}
 	if i.comma {
 		if c != ',' {
-			return false, badToken(c)
+			i.err = badToken(c)
+			return false
 		}
 	} else {
 		dec.unread()
 	}
 	i.comma = true
-	return true, nil
+	return true
+}
+
+// Err returns the error, if any, that was encountered during iteration.
+func (i *ArrIter) Err() error {
+	return i.err
 }
