@@ -21,12 +21,14 @@ type Num []byte
 
 func (n Num) dec() Decoder {
 	head := 0
+	tail := len(n)
 	if n.Str() {
 		head = 1
+		tail--
 	}
 	return Decoder{
 		buf:  n,
-		tail: len(n),
+		tail: tail,
 		head: head,
 	}
 }
