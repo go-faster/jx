@@ -215,98 +215,12 @@ func (d *Decoder) Float64() (float64, error) {
 		return 0, errors.Wrap(err, "byte")
 	}
 	switch c {
-	case '-':
-		v, err := d.positiveFloat64()
-		if err != nil {
-			return 0, err
-		}
-		return -v, err
-	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+	case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		d.unread()
-		return d.positiveFloat64()
+		return d.atof64()
 	default:
 		return 0, badToken(c)
 	}
-}
-
-func (d *Decoder) positiveFloat64() (float64, error) {
-	i := d.head
-	// First char.
-	if i == d.tail {
-		return d.float64Slow()
-	}
-	c := d.buf[i]
-	i++
-	ind := floatDigits[c]
-	switch ind {
-	case invalidCharForNumber:
-		return d.float64Slow()
-	case endOfNumber:
-		return 0, errors.New("empty")
-	case dotInNumber:
-		return 0, errors.New("leading dot")
-	case 0:
-		if i == d.tail {
-			return d.float64Slow()
-		}
-		c = d.buf[i]
-		switch c {
-		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-			return 0, errors.New("leading zero")
-		}
-	}
-	value := uint64(ind)
-	// Chars before dot.
-NonDecimal:
-	for ; i < d.tail; i++ {
-		c = d.buf[i]
-		ind := floatDigits[c]
-		switch ind {
-		case invalidCharForNumber:
-			return d.float64Slow()
-		case endOfNumber:
-			d.head = i
-			return float64(value), nil
-		case dotInNumber:
-			break NonDecimal
-		}
-		if value > uint64SafeToMultiple10 {
-			return d.float64Slow()
-		}
-		value = (value << 3) + (value << 1) + uint64(ind) // value = value * 10 + ind;
-	}
-	// chars after dot
-	if c == '.' {
-		i++
-		decimalPlaces := 0
-		if i == d.tail {
-			return d.float64Slow()
-		}
-		for ; i < d.tail; i++ {
-			c = d.buf[i]
-			ind := floatDigits[c]
-			switch ind {
-			case endOfNumber:
-				if decimalPlaces > 0 && decimalPlaces < len(pow10) {
-					d.head = i
-					return float64(value) / float64(pow10[decimalPlaces]), nil
-				}
-				// too many decimal places
-				return d.float64Slow()
-			case invalidCharForNumber, dotInNumber:
-				return d.float64Slow()
-			}
-			decimalPlaces++
-			// Not checking for uint64SafeToMultiple10 here because
-			// if condition is positive value multiplied by 10 is
-			// guaranteed to be bigger than maxFloat64.
-			value = (value << 3) + (value << 1) + uint64(ind)
-			if value > maxFloat64 {
-				return d.float64Slow()
-			}
-		}
-	}
-	return d.float64Slow()
 }
 
 func (d *Decoder) floatSlow(size int) (float64, error) {
@@ -327,8 +241,6 @@ func (d *Decoder) floatSlow(size int) (float64, error) {
 
 	return val, nil
 }
-
-func (d *Decoder) float64Slow() (float64, error) { return d.floatSlow(size64) }
 
 func validateFloat(str []byte) error {
 	// strconv.ParseFloat is not validating `1.` or `1.e1`
