@@ -30,81 +30,243 @@ var testBools = []string{
 	"\tfalse",
 }
 
-var testNumbers = []string{
-	"",                        // invalid
-	"0",                       // valid
-	"-",                       // invalid
-	"--",                      // invalid
-	"+",                       // invalid
-	".",                       // invalid
-	"e",                       // invalid
-	"E",                       // invalid
-	"-.",                      // invalid
-	"-1",                      // valid
-	"--1",                     // invalid
-	"+1",                      // invalid
-	"++1",                     // invalid
-	"-a",                      // invalid
-	"-0",                      // valid
-	"00",                      // invalid
-	"01",                      // invalid
-	".00",                     // invalid
-	"00.1",                    // invalid
-	"-00",                     // invalid
-	"-01",                     // invalid
-	"-\x00",                   // invalid, zero byte
-	"0.1",                     // valid
-	"0e1",                     // valid
-	"0e+1",                    // valid
-	"0e-1",                    // valid
-	"0e-11",                   // valid
-	"0e-1a",                   // invalid
-	"1.e1",                    // invalid
-	"0e-1+",                   // invalid
-	"0e",                      // invalid
-	"e",                       // invalid
-	"-e",                      // invalid
-	"+e",                      // invalid
-	".e",                      // invalid
-	"e.",                      // invalid
-	"0.e",                     // invalid
-	"0-e",                     // invalid
-	"0e-",                     // invalid
-	"0e+",                     // invalid
-	"0.0e",                    // invalid
-	"0.0e1",                   // valid
-	"0.0e+",                   // invalid
-	"0.0e-",                   // invalid
-	"0e0+0",                   // invalid
-	"0.e0+0",                  // invalid
-	"0.0e+0",                  // valid
-	"0.0e+1",                  // valid
-	"0.0e0+0",                 // invalid
-	"0.",                      // invalid
-	"1.",                      // invalid
-	"0..1",                    // invalid, more dot
-	"1e+1",                    // valid
-	"1+1",                     // invalid
-	"1E1",                     // valid, e or E
-	"1ee1",                    // invalid
-	"100a",                    // invalid
-	"10.",                     // invalid
-	"-0.12",                   // valid
-	"0]",                      // invalid
-	"0e]",                     // invalid
-	"0e+]",                    // invalid
-	"1.2.3",                   // invalid
-	"0.0.0",                   // invalid
-	"9223372036854775807",     // valid
-	"9223372036854775808",     // valid
-	"9223372036854775807.1",   // valid
-	" 9223372036854775807",    // valid
-	" 9223372036854775808",    // valid
-	" 9223372036854775807.1",  // valid
-	"\n9223372036854775807",   // valid
-	"\n9223372036854775808",   // valid
-	"\n9223372036854775807.1", // valid
-}
+var testNumbers = append([]string{
+	"",                            // invalid
+	"0",                           // valid
+	"-",                           // invalid
+	"--",                          // invalid
+	"+",                           // invalid
+	".",                           // invalid
+	"e",                           // invalid
+	"E",                           // invalid
+	"-.",                          // invalid
+	"-1",                          // valid
+	"--1",                         // invalid
+	"+1",                          // invalid
+	"++1",                         // invalid
+	"-a",                          // invalid
+	"-0",                          // valid
+	"00",                          // invalid
+	"01",                          // invalid
+	".00",                         // invalid
+	"00.1",                        // invalid
+	"-00",                         // invalid
+	"-01",                         // invalid
+	"-\x00",                       // invalid, zero byte
+	"0.1",                         // valid
+	"0e0",                         // valid
+	"-0e0",                        // valid
+	"+0e0",                        // valid
+	"0e-0",                        // valid
+	"-0e-0",                       // valid
+	"+0e-0",                       // valid
+	"0e+0",                        // valid
+	"-0e+0",                       // valid
+	"+0e+0",                       // valid
+	"0e+01234567890123456789",     // valid
+	"0.00e-01234567890123456789",  // valid
+	"-0e+01234567890123456789",    // valid
+	"-0.00e-01234567890123456789", // valid
+	"0e1",                         // valid
+	"0e+1",                        // valid
+	"0e-1",                        // valid
+	"0e-11",                       // valid
+	"0e-1a",                       // invalid
+	"1.e1",                        // invalid
+	"0e-1+",                       // invalid
+	"0e",                          // invalid
+	"0.e",                         // invalid
+	"0-e",                         // invalid
+	"0e-",                         // invalid
+	"0e+",                         // invalid
+	"0.0e",                        // invalid
+	"0.0e1",                       // valid
+	"0.0e+",                       // invalid
+	"0.0e-",                       // invalid
+	"0e0+0",                       // invalid
+	"0.e0+0",                      // invalid
+	"0.0e+0",                      // valid
+	"0.0e+1",                      // valid
+	"0.0e0+0",                     // invalid
+	"e",                           // invalid
+	"-e",                          // invalid
+	"+e",                          // invalid
+	".e",                          // invalid
+	"e.",                          // invalid
+	"0.",                          // invalid
+	"1.",                          // invalid
+	"0..1",                        // invalid, more dot
+	"0.1.",                        // invalid, more dot
+	"1..",                         // invalid, more dot
+	"1e+1",                        // valid
+	"1+1",                         // invalid
+	"1E1",                         // valid, e or E
+	"1ee1",                        // invalid
+	"100a",                        // invalid
+	"10.",                         // invalid
+	"-0.12",                       // valid
+	"0]",                          // invalid
+	"0e]",                         // invalid
+	"0e+]",                        // invalid
+	"1.2.3",                       // invalid
+	"0.0.0",                       // invalid
+	"9223372036854775807",         // valid
+	"9223372036854775808",         // valid
+	"9223372036854775807.1",       // valid
+	" 9223372036854775807",        // valid
+	" 9223372036854775808",        // valid
+	" 9223372036854775807.1",      // valid
+	"\n9223372036854775807",       // valid
+	"\n9223372036854775808",       // valid
+	"\n9223372036854775807.1",     // valid
+}, []string{
+	// Test cases from strconv.
+
+	// Copyright 2009 The Go Authors. All rights reserved.
+	// Use of this source code is governed by a BSD-style
+	// license that can be found in the LICENSE file.
+	"1e23",
+	"1E23",
+	"100000000000000000000000",
+	"1e-100",
+	"123456700",
+	"99999999999999974834176",
+	"100000000000000000000001",
+	"100000000000000008388608",
+	"100000000000000016777215",
+	"100000000000000016777216",
+	"1e-20",
+	"625e-3",
+
+	// zeros
+	"0",
+	"0e0",
+	"-0e0",
+	"+0e0",
+	"0e-0",
+	"-0e-0",
+	"+0e-0",
+	"0e+0",
+	"-0e+0",
+	"+0e+0",
+	"0e+01234567890123456789",
+	"0.00e-01234567890123456789",
+	"-0e+01234567890123456789",
+	"-0.00e-01234567890123456789",
+
+	"0e291",
+	"0e292",
+	"0e347",
+	"0e348",
+	"-0e291",
+	"-0e292",
+	"-0e347",
+	"-0e348",
+
+	// NaNs
+	"nan",
+	"NaN",
+	"NAN",
+
+	// Infs
+	"inf",
+	"-Inf",
+	"+INF",
+	"-Infinity",
+	"+INFINITY",
+	"Infinity",
+
+	// largest float64
+	"1.7976931348623157e308",
+	"-1.7976931348623157e308",
+
+	// next float64 - too large
+	// "1.7976931348623159e308",  // json.Valid checks overflow.
+	// "-1.7976931348623159e308", // json.Valid checks overflow.
+
+	// the border is ...158079
+	// borderline - okay
+	"1.7976931348623158e308",
+	"-1.7976931348623158e308",
+	// borderline - too large
+	// "1.797693134862315808e308",  // json.Valid checks overflow.
+	// "-1.797693134862315808e308", // json.Valid checks overflow.
+
+	// a little too large
+	"1e308",
+	// "2e308", // json.Valid checks overflow.
+	// "1e309", // json.Valid checks overflow.
+
+	// way too large
+	// "1e310",     // json.Valid check overflow.
+	// "-1e310",    // json.Valid check overflow.
+	// "1e400",     // json.Valid check overflow.
+	// "-1e400",    // json.Valid check overflow.
+	// "1e400000",  // json.Valid check overflow.
+	// "-1e400000", // json.Valid check overflow.
+
+	// denormalized
+	"1e-305",
+	"1e-306",
+	"1e-307",
+	"1e-308",
+	"1e-309",
+	"1e-310",
+	"1e-322",
+	// smallest denormal
+	"5e-324",
+	"4e-324",
+	"3e-324",
+	// too small
+	"2e-324",
+	// way too small
+	"1e-350",
+	"1e-400000",
+
+	// try to overflow exponent
+	"1e-4294967296",
+	// "1e+4294967296", // json.Valid check overflow.
+	"1e-18446744073709551616",
+	// "1e+18446744073709551616", // json.Valid check overflow.
+
+	// Parse errors
+	"1e",
+	"1e-",
+	".e-1",
+	"1\x00.2",
+
+	// https://www.exploringbinary.com/java-hangs-when-converting-2-2250738585072012e-308/
+	"2.2250738585072012e-308",
+	// https://www.exploringbinary.com/php-hangs-on-numeric-value-2-2250738585072011e-308/
+	"2.2250738585072011e-308",
+
+	// A very large number (initially wrongly parsed by the fast algorithm).
+	"4.630813248087435e+307",
+
+	// A different kind of very large number.
+	"22.222222222222222",
+	"2." + strings.Repeat("2", 4000) + "e+1",
+
+	// Exactly halfway between 1 and math.Nextafter(1, 2).
+	// Round to even (down).
+	"1.00000000000000011102230246251565404236316680908203125",
+	// Slightly lower; still round down.
+	"1.00000000000000011102230246251565404236316680908203124",
+	// Slightly higher; round up.
+	"1.00000000000000011102230246251565404236316680908203126",
+	// Slightly higher, but you have to read all the way to the end.
+	"1.00000000000000011102230246251565404236316680908203125" + strings.Repeat("0", 10000) + "1",
+
+	// Halfway between x := math.Nextafter(1, 2) and math.Nextafter(x, 2)
+	// Round to even (up).
+	"1.00000000000000033306690738754696212708950042724609375",
+
+	// Halfway between 1090544144181609278303144771584 and 1090544144181609419040633126912
+	// (15497564393479157p+46, should round to even 15497564393479156p+46, issue 36657)
+	"1090544144181609348671888949248",
+	// slightly above, rounds up
+	"1090544144181609348835077142190",
+}...)
 
 var testStrings = append([]string{
 	`""`,                   // valid
