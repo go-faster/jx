@@ -119,6 +119,7 @@ var testNumbers = append([]string{
 	"\n9223372036854775807",       // valid
 	"\n9223372036854775808",       // valid
 	"\n9223372036854775807.1",     // valid
+	"-12.000000",                  // valid
 }, []string{
 	// Test cases from strconv.
 

@@ -40,20 +40,6 @@ func decodeStr(t *testing.T, s string, f func(d *Decoder)) {
 }
 
 func TestDecoder_Float(t *testing.T) {
-	t.Run("Invalid", func(t *testing.T) {
-		runTestCases(t, testNumbers, func(t *testing.T, d *Decoder) error {
-			_, err := d.Float64()
-			if err != nil {
-				return err
-			}
-			if err := d.Skip(); err != nil {
-				if err != io.EOF && err != io.ErrUnexpectedEOF {
-					return err
-				}
-			}
-			return nil
-		})
-	})
 	t.Run("Slow", func(t *testing.T) {
 		s := `,0.1`
 		t.Run("64", func(t *testing.T) {
@@ -69,6 +55,18 @@ func TestDecoder_Float(t *testing.T) {
 			require.NoError(t, err)
 			t.Logf("%f", v)
 		})
+	})
+	runTestCases(t, testNumbers, func(t *testing.T, d *Decoder) error {
+		_, err := d.Float64()
+		if err != nil {
+			return err
+		}
+		if err := d.Skip(); err != nil {
+			if err != io.EOF && err != io.ErrUnexpectedEOF {
+				return err
+			}
+		}
+		return nil
 	})
 }
 
