@@ -133,7 +133,7 @@ func TestDecoder_Float64(t *testing.T) {
 }
 
 func BenchmarkDecoder_Float64(b *testing.B) {
-	runTestdataFile("floats.json", b.Fatal, func(name string, data []byte) {
+	run := func(name string, data []byte) {
 		b.Run(name, func(b *testing.B) {
 			d := GetDecoder()
 			cb := func(d *Decoder) error {
@@ -151,5 +151,8 @@ func BenchmarkDecoder_Float64(b *testing.B) {
 				}
 			}
 		})
-	})
+	}
+
+	runTestdataFile("floats.json", b.Fatal, run)
+	runTestdataFile("integers.json", b.Fatal, run)
 }
