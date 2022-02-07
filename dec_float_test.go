@@ -131,26 +131,48 @@ func TestDecoder_Float64(t *testing.T) {
 }
 
 func BenchmarkDecoder_Float64(b *testing.B) {
-	run := func(name string, data []byte) {
-		b.Run(name, func(b *testing.B) {
-			d := GetDecoder()
-			cb := func(d *Decoder) error {
-				_, err := d.Float64()
-				return err
-			}
-			b.ReportAllocs()
-			b.ResetTimer()
-
-			for i := 0; i < b.N; i++ {
-				d.ResetBytes(data)
-
-				if err := d.Arr(cb); err != nil {
-					b.Fatal(err)
+	b.Run("Array", func(b *testing.B) {
+		run := func(name string, data []byte) {
+			b.Run(name, func(b *testing.B) {
+				d := GetDecoder()
+				cb := func(d *Decoder) error {
+					_, err := d.Float64()
+					return err
 				}
-			}
-		})
-	}
+				b.ReportAllocs()
+				b.ResetTimer()
 
-	runTestdataFile("floats.json", b.Fatal, run)
-	runTestdataFile("integers.json", b.Fatal, run)
+				for i := 0; i < b.N; i++ {
+					d.ResetBytes(data)
+
+					if err := d.Arr(cb); err != nil {
+						b.Fatal(err)
+					}
+				}
+			})
+		}
+
+		runTestdataFile("floats.json", b.Fatal, run)
+		runTestdataFile("integers.json", b.Fatal, run)
+	})
+	b.Run("One", func(b *testing.B) {
+		run := func(name string, data []byte) {
+			b.Run(name, func(b *testing.B) {
+				d := GetDecoder()
+				b.ReportAllocs()
+				b.ResetTimer()
+
+				for i := 0; i < b.N; i++ {
+					d.ResetBytes(data)
+
+					if _, err := d.Float64(); err != nil {
+						b.Fatal(err)
+					}
+				}
+			})
+		}
+		run("Float", []byte("0.31152244431052484"))
+		run("Integer", []byte("31152244431052484"))
+		run("Zero", []byte("0"))
+	})
 }
