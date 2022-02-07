@@ -1,16 +1,13 @@
 package jx
 
 import (
-	"bytes"
 	"io"
 	"math/big"
-	"strconv"
 
 	"github.com/go-faster/errors"
 )
 
 var (
-	pow10       = [...]uint64{1, 10, 100, 1000, 10000, 100000, 1000000}
 	floatDigits [256]int8
 )
 
@@ -34,6 +31,12 @@ func init() {
 	floatDigits['\t'] = endOfNumber
 	floatDigits['\n'] = endOfNumber
 	floatDigits['.'] = dotInNumber
+}
+
+type floatInfo struct {
+	mantbits uint
+	expbits  uint
+	bias     int
 }
 
 // BigFloat read big.Float
@@ -73,94 +76,13 @@ func (d *Decoder) Float32() (float32, error) {
 	if err != nil {
 		return 0, errors.Wrap(err, "byte")
 	}
-	if c != '-' {
-		d.unread()
-	}
-	v, err := d.positiveFloat32()
-	if err != nil {
-		return 0, err
-	}
-	if c == '-' {
-		v *= -1
-	}
-	return v, nil
-}
 
-func (d *Decoder) positiveFloat32() (float32, error) {
-	i := d.head
-	// First char.
-	if i == d.tail {
-		return d.f32Slow()
+	switch c {
+	case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+		return d.atof32(c)
+	default:
+		return 0, badToken(c)
 	}
-	c := d.buf[i]
-	i++
-	ind := floatDigits[c]
-	switch ind {
-	case invalidCharForNumber:
-		return d.f32Slow()
-	case endOfNumber:
-		return 0, errors.New("empty")
-	case dotInNumber:
-		return 0, errors.New("leading dot")
-	case 0:
-		if i == d.tail {
-			return d.f32Slow()
-		}
-		c = d.buf[i]
-		switch c {
-		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-			return 0, errors.New("leading zero")
-		}
-	}
-	value := uint64(ind)
-	// Chars before dot.
-NonDecimalLoop:
-	for ; i < d.tail; i++ {
-		c = d.buf[i]
-		ind := floatDigits[c]
-		switch ind {
-		case invalidCharForNumber:
-			return d.f32Slow()
-		case endOfNumber:
-			d.head = i
-			return float32(value), nil
-		case dotInNumber:
-			break NonDecimalLoop
-		}
-		if value > uint64SafeToMultiple10 {
-			return d.f32Slow()
-		}
-		value = (value << 3) + (value << 1) + uint64(ind) // value = value * 10 + ind;
-	}
-	// Chars after dot.
-	if c == '.' {
-		i++
-		decimalPlaces := 0
-		if i == d.tail {
-			return d.f32Slow()
-		}
-		for ; i < d.tail; i++ {
-			c = d.buf[i]
-			ind := floatDigits[c]
-			switch ind {
-			case endOfNumber:
-				if decimalPlaces > 0 && decimalPlaces < len(pow10) {
-					d.head = i
-					return float32(float64(value) / float64(pow10[decimalPlaces])), nil
-				}
-				// too many decimal places
-				return d.f32Slow()
-			case invalidCharForNumber, dotInNumber:
-				return d.f32Slow()
-			}
-			decimalPlaces++
-			if value > uint64SafeToMultiple10 {
-				return d.f32Slow()
-			}
-			value = (value << 3) + (value << 1) + uint64(ind)
-		}
-	}
-	return d.f32Slow()
 }
 
 func (d *Decoder) number() []byte {
@@ -196,18 +118,6 @@ func (d *Decoder) numberAppend(b []byte) ([]byte, error) {
 	}
 }
 
-const (
-	size32 = 32
-)
-
-func (d *Decoder) f32Slow() (float32, error) {
-	v, err := d.floatSlow(size32)
-	if err != nil {
-		return 0, err
-	}
-	return float32(v), err
-}
-
 // Float64 read float64
 func (d *Decoder) Float64() (float64, error) {
 	c, err := d.more()
@@ -223,50 +133,234 @@ func (d *Decoder) Float64() (float64, error) {
 	}
 }
 
-func (d *Decoder) floatSlow(size int) (float64, error) {
-	var buf [32]byte
+// readFloat reads a decimal mantissa and exponent from Decoder.
+func (d *Decoder) readFloat(c byte) (mantissa uint64, exp int, neg, trunc bool, _ error) {
+	const (
+		digitTag  byte = 1
+		closerTag byte = 2
+	)
+	// digits
+	var (
+		maxMantDigits = 19 // 10^19 fits in uint64
+		nd            = 0
+		ndMant        = 0
+		dp            = 0
 
-	str, err := d.numberAppend(buf[:0])
-	if err != nil {
-		return 0, errors.Wrap(err, "number")
-	}
-	if err := validateFloat(str); err != nil {
-		return 0, errors.Wrap(err, "invalid")
-	}
+		sawDot = false
 
-	val, err := strconv.ParseFloat(string(str), size)
-	if err != nil {
-		return 0, err
-	}
+		e     = 0
+		eSign = 0
+	)
+	defer func() {
+		if !sawDot {
+			dp = nd
+		}
 
-	return val, nil
-}
+		if eSign != 0 {
+			dp += e * eSign
+		}
+		if mantissa != 0 {
+			exp = dp - ndMant
+		}
+	}()
 
-func validateFloat(str []byte) error {
-	// strconv.ParseFloat is not validating `1.` or `1.e1`
-	if len(str) == 0 {
-		return errors.New("empty")
-	}
-	if str[0] == '-' {
-		return errors.New("double minus")
-	}
-	if len(str) >= 2 && str[0] == '0' {
-		switch str[1] {
-		case 'e', 'E', '.':
+	// Check that buffer is not empty.
+	switch c {
+	case '-':
+		neg = true
+
+		c, err := d.byte()
+		if err != nil {
+			return 0, 0, false, false, err
+		}
+		// Character after '-' must be a digit.
+		if skipNumberSet[c] != digitTag {
+			return 0, 0, false, false, badToken(c)
+		}
+		if c != '0' {
+			d.unread()
+			break
+		}
+		fallthrough
+	case '0':
+		dp--
+
+		// If buffer is empty, try to read more.
+		if d.head == d.tail {
+			err := d.read()
+			if err != nil {
+				// There is no data anymore.
+				if err == io.EOF {
+					return
+				}
+				return 0, 0, false, false, err
+			}
+		}
+
+		c = d.buf[d.head]
+		if skipNumberSet[c] == closerTag {
+			return
+		}
+		switch c {
+		case '.':
+			goto stateDot
+		case 'e', 'E':
+			goto stateExp
 		default:
-			return errors.New("leading zero")
+			return 0, 0, false, false, badToken(c)
+		}
+	default:
+		d.unread()
+	}
+	for {
+		for i, c := range d.buf[d.head:d.tail] {
+			switch skipNumberSet[c] {
+			case closerTag:
+				d.head += i
+				return
+			case digitTag:
+				nd++
+				if ndMant < maxMantDigits {
+					mantissa = (mantissa << 3) + (mantissa << 1) + uint64(floatDigits[c])
+					ndMant++
+				} else if c != '0' {
+					trunc = true
+				}
+				continue
+			}
+
+			switch c {
+			case '.':
+				d.head += i
+				goto stateDot
+			case 'e', 'E':
+				d.head += i
+				goto stateExp
+			default:
+				return 0, 0, false, false, badToken(c)
+			}
+		}
+
+		if err := d.read(); err != nil {
+			// There is no data anymore.
+			if err == io.EOF {
+				d.head = d.tail
+				return
+			}
+			return 0, 0, false, false, err
 		}
 	}
-	dotPos := bytes.IndexByte(str, '.')
-	if dotPos != -1 {
-		if dotPos == len(str)-1 {
-			return errors.New("dot as last char")
-		}
-		switch str[dotPos+1] {
-		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-		default:
-			return errors.New("no digit after dot")
+
+stateDot:
+	dp = nd
+	sawDot = true
+	d.head++
+	{
+		var last byte = '.'
+		for {
+			for i, c := range d.buf[d.head:d.tail] {
+				switch skipNumberSet[c] {
+				case closerTag:
+					d.head += i
+					// Check that dot is not last character.
+					if last == '.' {
+						return 0, 0, false, false, io.ErrUnexpectedEOF
+					}
+					return
+				case digitTag:
+					last = c
+
+					if c == '0' && nd == 0 {
+						dp--
+						continue
+					}
+					nd++
+					if ndMant < maxMantDigits {
+						mantissa = (mantissa << 3) + (mantissa << 1) + uint64(floatDigits[c])
+						ndMant++
+					} else if c != '0' {
+						trunc = true
+					}
+					continue
+				}
+
+				switch c {
+				case 'e', 'E':
+					if last == '.' {
+						return 0, 0, false, false, badToken(c)
+					}
+					d.head += i
+					goto stateExp
+				default:
+					return 0, 0, false, false, badToken(c)
+				}
+			}
+
+			if err := d.read(); err != nil {
+				// There is no data anymore.
+				if err == io.EOF {
+					d.head = d.tail
+					// Check that dot is not last character.
+					if last == '.' {
+						return 0, 0, false, false, io.ErrUnexpectedEOF
+					}
+					return
+				}
+				return 0, 0, false, false, err
+			}
 		}
 	}
-	return nil
+stateExp:
+	d.head++
+	eSign = 1
+	// There must be a number or sign after e.
+	{
+		numOrSign, err := d.byte()
+		if err != nil {
+			return 0, 0, false, false, err
+		}
+		if skipNumberSet[numOrSign] != digitTag { // If next character is not a digit, check for sign.
+			if numOrSign == '-' || numOrSign == '+' {
+				if numOrSign == '-' {
+					eSign = -1
+				}
+				num, err := d.byte()
+				if err != nil {
+					return 0, 0, false, false, err
+				}
+				// There must be a number after sign.
+				if skipNumberSet[num] != digitTag {
+					return 0, 0, false, false, badToken(num)
+				}
+				e = e*10 + int(num) - '0'
+			} else {
+				return 0, 0, false, false, badToken(numOrSign)
+			}
+		} else {
+			e = e*10 + int(numOrSign) - '0'
+		}
+	}
+	for {
+		for i, c := range d.buf[d.head:d.tail] {
+			if skipNumberSet[c] == closerTag {
+				d.head += i
+				return
+			}
+			if skipNumberSet[c] == 0 {
+				return 0, 0, false, false, badToken(c)
+			}
+			if e < 10000 {
+				e = e*10 + int(c) - '0'
+			}
+		}
+
+		if err := d.read(); err != nil {
+			// There is no data anymore.
+			if err == io.EOF {
+				d.head = d.tail
+				return
+			}
+			return 0, 0, false, false, err
+		}
+	}
 }

@@ -74,7 +74,7 @@ func eiselLemire64(man uint64, exp10 int, neg bool) (f float64, ok bool) {
 	retMantissa >>= 1
 	if retMantissa>>53 > 0 {
 		retMantissa >>= 1
-		retExp2 += 1
+		retExp2++
 	}
 	// retExp2 is a uint64. Zero or underflow means that we're in subnormal
 	// float64 space. 0x7FF or above means that we're in Inf/NaN float64 space.
@@ -149,7 +149,7 @@ func eiselLemire32(man uint64, exp10 int, neg bool) (f float32, ok bool) {
 	retMantissa >>= 1
 	if retMantissa>>24 > 0 {
 		retMantissa >>= 1
-		retExp2 += 1
+		retExp2++
 	}
 	// retExp2 is a uint64. Zero or underflow means that we're in subnormal
 	// float32 space. 0xFF or above means that we're in Inf/NaN float32 space.
