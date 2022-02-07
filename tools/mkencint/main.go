@@ -9,6 +9,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"path/filepath"
 	"strconv"
 	"text/template"
 	"unicode"
@@ -107,7 +108,7 @@ func run() error {
 
 	var w io.Writer = os.Stdout
 	if path := *o; path != "" {
-		f, err := os.Create(path)
+		f, err := os.Create(filepath.Clean(path))
 		if err != nil {
 			return err
 		}

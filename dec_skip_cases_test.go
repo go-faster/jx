@@ -94,7 +94,9 @@ var testNumbers = append([]string{
 	".e",                          // invalid
 	"e.",                          // invalid
 	"0.",                          // invalid
+	"0-",                          // invalid
 	"1.",                          // invalid
+	"1-",                          // invalid
 	"0..1",                        // invalid, more dot
 	"0.1.",                        // invalid, more dot
 	"1..",                         // invalid, more dot

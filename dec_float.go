@@ -9,17 +9,18 @@ import (
 	"github.com/go-faster/errors"
 )
 
-var pow10 = []uint64{1, 10, 100, 1000, 10000, 100000, 1000000}
+var (
+	pow10       = [...]uint64{1, 10, 100, 1000, 10000, 100000, 1000000}
+	floatDigits [256]int8
+)
 
-var floatDigits []int8
-
-const invalidCharForNumber = int8(-1)
-const endOfNumber = int8(-2)
-const dotInNumber = int8(-3)
-const maxFloat64 = 1<<63 - 1
+const (
+	invalidCharForNumber = int8(-1)
+	endOfNumber          = int8(-2)
+	dotInNumber          = int8(-3)
+)
 
 func init() {
-	floatDigits = make([]int8, 256)
 	for i := 0; i < len(floatDigits); i++ {
 		floatDigits[i] = invalidCharForNumber
 	}
@@ -197,7 +198,6 @@ func (d *Decoder) numberAppend(b []byte) ([]byte, error) {
 
 const (
 	size32 = 32
-	size64 = 64
 )
 
 func (d *Decoder) f32Slow() (float32, error) {
@@ -214,10 +214,10 @@ func (d *Decoder) Float64() (float64, error) {
 	if err != nil {
 		return 0, errors.Wrap(err, "byte")
 	}
+
 	switch c {
 	case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-		d.unread()
-		return d.atof64()
+		return d.atof64(c)
 	default:
 		return 0, badToken(c)
 	}

@@ -7,11 +7,10 @@ package jx
 import "io"
 
 // readFloat reads a decimal mantissa and exponent from Decoder.
-func (d *Decoder) readFloat() (mantissa uint64, exp int, neg, trunc bool, _ error) {
+func (d *Decoder) readFloat(c byte) (mantissa uint64, exp int, neg, trunc bool, _ error) {
 	const (
-		digitTag  byte   = 1
-		closerTag byte   = 2
-		base      uint64 = 10
+		digitTag  byte = 1
+		closerTag byte = 2
 	)
 	// digits
 	var (
@@ -39,10 +38,6 @@ func (d *Decoder) readFloat() (mantissa uint64, exp int, neg, trunc bool, _ erro
 	}()
 
 	// Check that buffer is not empty.
-	c, err := d.more()
-	if err != nil {
-		return 0, 0, false, false, err
-	}
 	switch c {
 	case '-':
 		neg = true
@@ -97,14 +92,9 @@ func (d *Decoder) readFloat() (mantissa uint64, exp int, neg, trunc bool, _ erro
 				d.head += i
 				return
 			case digitTag:
-				if c == '0' && nd == 0 {
-					dp--
-					continue
-				}
 				nd++
 				if ndMant < maxMantDigits {
-					mantissa *= base
-					mantissa += uint64(c - '0')
+					mantissa = (mantissa << 3) + (mantissa << 1) + uint64(floatDigits[c])
 					ndMant++
 				} else if c != '0' {
 					trunc = true
@@ -159,8 +149,7 @@ stateDot:
 					}
 					nd++
 					if ndMant < maxMantDigits {
-						mantissa *= base
-						mantissa += uint64(c - '0')
+						mantissa = (mantissa << 3) + (mantissa << 1) + uint64(floatDigits[c])
 						ndMant++
 					} else if c != '0' {
 						trunc = true
@@ -340,8 +329,8 @@ func atof32exact(mantissa uint64, exp int, neg bool) (f float32, ok bool) {
 	return
 }
 
-func (d *Decoder) atof64() (f float64, err error) {
-	mantissa, exp, neg, trunc, err := d.readFloat()
+func (d *Decoder) atof64(c byte) (_ float64, err error) {
+	mantissa, exp, neg, trunc, err := d.readFloat(c)
 	if err != nil {
 		return 0, err
 	}
@@ -367,5 +356,5 @@ func (d *Decoder) atof64() (f float64, err error) {
 		}
 	}
 
-	return f, err
+	return 0, err
 }
