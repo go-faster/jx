@@ -7,6 +7,7 @@ import (
 	"io"
 	"math"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -54,63 +55,76 @@ func TestEncodeNaN(t *testing.T) {
 }
 
 func TestReadFloat(t *testing.T) {
-	inputs := []string{
-		`1.1`,
-		`1000`,
-		`9223372036854775807`,
-		`12.3`,
-		`-12.3`,
-		`720368.54775807`,
-		`720368.547758075`,
-		`1e1`,
-		`1e+1`,
-		`1e-1`,
-		`1E1`,
-		`1E+1`,
-		`1E-1`,
-		`-1e1`,
-		`-1e+1`,
-		`-1e-1`,
-	}
-	for i, input := range inputs {
+	for i, input := range testNumbers {
 		t.Run(fmt.Sprintf("Test%d", i+1), func(t *testing.T) {
+			// Trim space to avoid ParseFloat errors.
+			input = strings.TrimSpace(input)
+
+			valid := json.Valid([]byte(input))
 			// non-streaming
 			t.Run("Float32", func(t *testing.T) {
 				should := require.New(t)
 				r := DecodeStr(input + ",")
-				expected, err := strconv.ParseFloat(input, 32)
-				should.NoError(err)
-				got, err := r.Float32()
-				should.NoError(err)
-				should.Equal(float32(expected), got)
+
+				if valid {
+					expected, err := strconv.ParseFloat(input, 32)
+					should.NoError(err)
+
+					got, err := r.Float32()
+					should.NoError(err)
+					should.Equal(float32(expected), got)
+				} else {
+					_, err := r.Float32()
+					should.Error(err)
+				}
 			})
 			t.Run("Float64", func(t *testing.T) {
 				should := require.New(t)
 				r := DecodeStr(input + ",")
-				expected, err := strconv.ParseFloat(input, 64)
-				should.NoError(err)
-				got, err := r.Float64()
-				should.NoError(err)
-				should.Equal(expected, got)
+
+				if valid {
+					expected, err := strconv.ParseFloat(input, 64)
+					should.NoError(err)
+
+					got, err := r.Float64()
+					should.NoError(err)
+					should.Equal(expected, got)
+				} else {
+					_, err := r.Float64()
+					should.Error(err)
+				}
 			})
 			t.Run("Reader", func(t *testing.T) {
 				should := require.New(t)
 				iter := Decode(bytes.NewBufferString(input+","), 2)
-				expected, err := strconv.ParseFloat(input, 32)
-				should.NoError(err)
-				got, err := iter.Float32()
-				should.NoError(err)
-				should.Equal(float32(expected), got)
+
+				if valid {
+					expected, err := strconv.ParseFloat(input, 32)
+					should.NoError(err)
+
+					got, err := iter.Float32()
+					should.NoError(err)
+					should.Equal(float32(expected), got)
+				} else {
+					_, err := iter.Float32()
+					should.Error(err)
+				}
 			})
 			t.Run("StdJSONCompliance", func(t *testing.T) {
 				should := require.New(t)
 				iter := Decode(bytes.NewBufferString(input+","), 2)
-				val := float64(0)
-				err := json.Unmarshal([]byte(input), &val)
-				should.NoError(err)
-				got, err := iter.Float64()
-				should.NoError(err)
-				should.Equal(val, got)
+				if valid {
+					val := float64(0)
+					err := json.Unmarshal([]byte(input), &val)
+					should.NoError(err)
+
+					got, err := iter.Float64()
+					should.NoError(err)
+					should.Equal(val, got)
+				} else {
+					_, err := iter.Float64()
+					should.Error(err)
+				}
 			})
 		})
 	}

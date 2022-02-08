@@ -31,97 +31,105 @@ var testBools = []string{
 }
 
 var testNumbers = append([]string{
-	"",                            // invalid
-	"0",                           // valid
-	"-",                           // invalid
-	"--",                          // invalid
-	"+",                           // invalid
-	".",                           // invalid
-	"e",                           // invalid
-	"E",                           // invalid
-	"-.",                          // invalid
-	"-1",                          // valid
-	"--1",                         // invalid
-	"+1",                          // invalid
-	"++1",                         // invalid
-	"-a",                          // invalid
-	"-0",                          // valid
-	"00",                          // invalid
-	"01",                          // invalid
-	".00",                         // invalid
-	"00.1",                        // invalid
-	"-00",                         // invalid
-	"-01",                         // invalid
-	"-\x00",                       // invalid, zero byte
-	"0.1",                         // valid
-	"0e0",                         // valid
-	"-0e0",                        // valid
-	"+0e0",                        // valid
-	"0e-0",                        // valid
-	"-0e-0",                       // valid
-	"+0e-0",                       // valid
-	"0e+0",                        // valid
-	"-0e+0",                       // valid
-	"+0e+0",                       // valid
-	"0e+01234567890123456789",     // valid
-	"0.00e-01234567890123456789",  // valid
-	"-0e+01234567890123456789",    // valid
-	"-0.00e-01234567890123456789", // valid
-	"0e1",                         // valid
-	"0e+1",                        // valid
-	"0e-1",                        // valid
-	"0e-11",                       // valid
-	"0e-1a",                       // invalid
-	"1.e1",                        // invalid
-	"0e-1+",                       // invalid
-	"0e",                          // invalid
-	"0.e",                         // invalid
-	"0-e",                         // invalid
-	"0e-",                         // invalid
-	"0e+",                         // invalid
-	"0.0e",                        // invalid
-	"0.0e1",                       // valid
-	"0.0e+",                       // invalid
-	"0.0e-",                       // invalid
-	"0e0+0",                       // invalid
-	"0.e0+0",                      // invalid
-	"0.0e+0",                      // valid
-	"0.0e+1",                      // valid
-	"0.0e0+0",                     // invalid
-	"e",                           // invalid
-	"-e",                          // invalid
-	"+e",                          // invalid
-	".e",                          // invalid
-	"e.",                          // invalid
-	"0.",                          // invalid
-	"0-",                          // invalid
-	"1.",                          // invalid
-	"1-",                          // invalid
-	"0..1",                        // invalid, more dot
-	"0.1.",                        // invalid, more dot
-	"1..",                         // invalid, more dot
-	"1e+1",                        // valid
-	"1+1",                         // invalid
-	"1E1",                         // valid, e or E
-	"1ee1",                        // invalid
-	"100a",                        // invalid
-	"10.",                         // invalid
-	"-0.12",                       // valid
-	"0]",                          // invalid
-	"0e]",                         // invalid
-	"0e+]",                        // invalid
-	"1.2.3",                       // invalid
-	"0.0.0",                       // invalid
-	"9223372036854775807",         // valid
-	"9223372036854775808",         // valid
-	"9223372036854775807.1",       // valid
-	" 9223372036854775807",        // valid
-	" 9223372036854775808",        // valid
-	" 9223372036854775807.1",      // valid
-	"\n9223372036854775807",       // valid
-	"\n9223372036854775808",       // valid
-	"\n9223372036854775807.1",     // valid
-	"-12.000000",                  // valid
+	"",                        // invalid
+	"0",                       // valid
+	"-",                       // invalid
+	"--",                      // invalid
+	"+",                       // invalid
+	".",                       // invalid
+	"-.",                      // invalid
+	"-1",                      // valid
+	"--1",                     // invalid
+	"+1",                      // invalid
+	"++1",                     // invalid
+	"-a",                      // invalid
+	"-0",                      // valid
+	"00",                      // invalid
+	"01",                      // invalid
+	".00",                     // invalid
+	"00.1",                    // invalid
+	"-00",                     // invalid
+	"-01",                     // invalid
+	"-\x00",                   // invalid, zero byte
+	"0.1",                     // valid
+	"0e0",                     // valid
+	"-0e0",                    // valid
+	"+0e0",                    // valid
+	"0e-0",                    // valid
+	"-0e-0",                   // valid
+	"+0e-0",                   // valid
+	"0e+0",                    // valid
+	"-0e+0",                   // valid
+	"+0e+0",                   // valid
+	"0e1",                     // valid
+	"0e+1",                    // valid
+	"0e-1",                    // valid
+	"0e-11",                   // valid
+	"0e-1a",                   // invalid
+	"1.e1",                    // invalid
+	"0e-1+",                   // invalid
+	"0e",                      // invalid
+	"0.e",                     // invalid
+	"0-e",                     // invalid
+	"0e-",                     // invalid
+	"0e+",                     // invalid
+	"0.0e",                    // invalid
+	"0.0e1",                   // valid
+	"0.0e+",                   // invalid
+	"0.0e-",                   // invalid
+	"0e0+0",                   // invalid
+	"0.e0+0",                  // invalid
+	"0.0e+0",                  // valid
+	"0.0e+1",                  // valid
+	"0.0e0+0",                 // invalid
+	"e",                       // invalid
+	"-e",                      // invalid
+	"+e",                      // invalid
+	".e",                      // invalid
+	"e.",                      // invalid
+	"E",                       // invalid
+	"-E",                      // invalid
+	"+E",                      // invalid
+	".E",                      // invalid
+	"E.",                      // invalid
+	"0.",                      // invalid
+	"0-",                      // invalid
+	"1.",                      // invalid
+	"1-",                      // invalid
+	"0..1",                    // invalid, more dot
+	"0.1.",                    // invalid, more dot
+	"1..",                     // invalid, more dot
+	"1+1",                     // invalid
+	`1e1`,                     // valid
+	`1e+1`,                    // valid
+	`1e-1`,                    // valid
+	`1E1`,                     // valid
+	`1E+1`,                    // valid
+	`1E-1`,                    // valid
+	`-1e1`,                    // valid
+	`-1e+1`,                   // valid
+	`-1e-1`,                   // valid, e or E
+	"1ee1",                    // invalid
+	"100a",                    // invalid
+	"10.",                     // invalid
+	"-0.12",                   // valid
+	"0]",                      // invalid
+	"0e]",                     // invalid
+	"0e+]",                    // invalid
+	"1.2.3",                   // invalid
+	"0.0.0",                   // invalid
+	"9223372036854775807",     // valid
+	"9223372036854775808",     // valid
+	"9223372036854775807.1",   // valid
+	" 9223372036854775807",    // valid
+	" 9223372036854775808",    // valid
+	" 9223372036854775807.1",  // valid
+	"\n9223372036854775807",   // valid
+	"\n9223372036854775808",   // valid
+	"\n9223372036854775807.1", // valid
+	`720368.54775807`,         // valid
+	`720368.547758075`,        // valid
+	"-12.000000",              // valid
 }, []string{
 	// Test cases from strconv.
 
@@ -142,16 +150,6 @@ var testNumbers = append([]string{
 	"625e-3",
 
 	// zeros
-	"0",
-	"0e0",
-	"-0e0",
-	"+0e0",
-	"0e-0",
-	"-0e-0",
-	"+0e-0",
-	"0e+0",
-	"-0e+0",
-	"+0e+0",
 	"0e+01234567890123456789",
 	"0.00e-01234567890123456789",
 	"-0e+01234567890123456789",
@@ -285,7 +283,6 @@ var testStrings = append([]string{
 	`"\u\n"`,               // invalid
 	`"\u1\n"`,              // invalid
 	`"\u12\n"`,             // invalid
-	`"\u12\n"`,             // invalid
 	`"\u123\n"`,            // invalid
 	`"\u1d`,                // invalid
 	`"\u$`,                 // invalid
@@ -296,9 +293,7 @@ var testStrings = append([]string{
 	`"\uD834`,              // invalid
 	`"\u07F9`,              // invalid
 	`"\u1234\n"`,           // valid
-	`"\x00"`,               // invalid
-	"\"\x00\"",             // invalid
-	"\"\t\"",               // invalid
+	`"\x00"`,               // valid
 	"\"\\b\x06\"",          // invalid
 	`"\t"`,                 // valid
 	`"\n"`,                 // valid
