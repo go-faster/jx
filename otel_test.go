@@ -57,15 +57,14 @@ func (m *Map) Append(k, v []byte) {
 
 func (m Map) Write(w *Writer) {
 	w.ObjStart()
-	defer w.ObjEnd()
-	_ = m.Keys.ForEachBytes(func(i int, b []byte) error {
-		if i > 0 {
+	for i, p := range m.Keys.Pos {
+		if i != 0 {
 			w.Comma()
 		}
-		w.FieldStart(string(b))
+		w.FieldStart(string(m.Keys.Buf[p.Start:p.End]))
 		w.Raw(m.Values.Elem(i))
-		return nil
-	})
+	}
+	w.ObjEnd()
 }
 
 func (m Map) Encode(e *Encoder) {
@@ -109,7 +108,6 @@ type OTEL struct {
 
 func (o *OTEL) Write(w *Writer) {
 	w.ObjStart()
-	defer w.ObjEnd()
 
 	w.RawStr(`"Timestamp":`)
 	w.Num(o.Timestamp)
@@ -156,6 +154,7 @@ func (o *OTEL) Write(w *Writer) {
 
 	w.RawStr(`,"Body":`)
 	w.Raw(o.Body)
+	w.ObjEnd()
 }
 
 func (o *OTEL) Encode(e *Encoder) {
