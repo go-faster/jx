@@ -107,7 +107,7 @@ func run() error {
 
 	var w io.Writer = os.Stdout
 	if path := *o; path != "" {
-		f, err := os.Create(path)
+		f, err := os.Create(path) // #nosec G304
 		if err != nil {
 			return err
 		}
