@@ -3,9 +3,14 @@ package jx
 import "github.com/go-faster/errors"
 
 // Raw is like Skip(), but saves and returns skipped value as raw json.
+func (d *Decoder) Raw() (Raw, error) {
+	return d.RawAppend(nil)
+}
+
+// RawBorrow is like Skip(), but returns skipped value as raw json.
 //
 // Do not retain returned value, it references underlying buffer.
-func (d *Decoder) Raw() (Raw, error) {
+func (d *Decoder) RawBorrow() (Raw, error) {
 	if d.reader != nil {
 		return nil, errors.New("not implemented for io.Reader")
 	}
@@ -20,7 +25,7 @@ func (d *Decoder) Raw() (Raw, error) {
 
 // RawAppend is Raw that appends saved raw json value to buf.
 func (d *Decoder) RawAppend(buf Raw) (Raw, error) {
-	raw, err := d.Raw()
+	raw, err := d.RawBorrow()
 	if err != nil {
 		return nil, err
 	}
