@@ -1,6 +1,7 @@
 package jx
 
 import (
+	"io"
 	"strings"
 	"testing"
 
@@ -18,4 +19,14 @@ func TestDecoder_consume(t *testing.T) {
 	r := errReader{}
 	d := Decode(r, 1)
 	require.ErrorIs(t, d.consume('"'), r.Err())
+}
+
+func TestDecoder_Next(t *testing.T) {
+	d := DecodeBytes(nil)
+	d.Next()
+	d.Next()
+	d.Next()
+
+	_, err := d.Str()
+	require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 }

@@ -7,8 +7,10 @@ import (
 
 // Next gets Type of relatively next json element
 func (d *Decoder) Next() Type {
-	v, _ := d.next()
-	d.unread()
+	v, err := d.next()
+	if err == nil {
+		d.unread()
+	}
 	return types[v]
 }
 
