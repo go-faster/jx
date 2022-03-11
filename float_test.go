@@ -15,7 +15,7 @@ import (
 // epsilon to compare floats.
 const epsilon = 1e-6
 
-func Test_read_big_float(t *testing.T) {
+func TestReadBigFloat(t *testing.T) {
 	should := require.New(t)
 	r := DecodeStr(`12.3`)
 	val, err := r.BigFloat()
@@ -24,7 +24,7 @@ func Test_read_big_float(t *testing.T) {
 	should.Equal(12.3, val64)
 }
 
-func Test_read_big_int(t *testing.T) {
+func TestReadBigInt(t *testing.T) {
 	should := require.New(t)
 	iter := DecodeStr(`92233720368547758079223372036854775807`)
 	val, err := iter.BigInt()
@@ -33,7 +33,7 @@ func Test_read_big_int(t *testing.T) {
 	should.Equal(`92233720368547758079223372036854775807`, val.String())
 }
 
-func Test_encode_inf(t *testing.T) {
+func TestEncodeInf(t *testing.T) {
 	should := require.New(t)
 	_, err := json.Marshal(math.Inf(1))
 	should.Error(err)
@@ -43,7 +43,7 @@ func Test_encode_inf(t *testing.T) {
 	should.Error(err)
 }
 
-func Test_encode_nan(t *testing.T) {
+func TestEncodeNaN(t *testing.T) {
 	should := require.New(t)
 	_, err := json.Marshal(math.NaN())
 	should.Error(err)
@@ -53,54 +53,70 @@ func Test_encode_nan(t *testing.T) {
 	should.Error(err)
 }
 
-func Test_read_float(t *testing.T) {
+func TestReadFloat(t *testing.T) {
 	inputs := []string{
-		`1.1`, `1000`, `9223372036854775807`, `12.3`, `-12.3`, `720368.54775807`, `720368.547758075`,
-		`1e1`, `1e+1`, `1e-1`, `1E1`, `1E+1`, `1E-1`, `-1e1`, `-1e+1`, `-1e-1`,
+		`1.1`,
+		`1000`,
+		`9223372036854775807`,
+		`12.3`,
+		`-12.3`,
+		`720368.54775807`,
+		`720368.547758075`,
+		`1e1`,
+		`1e+1`,
+		`1e-1`,
+		`1E1`,
+		`1E+1`,
+		`1E-1`,
+		`-1e1`,
+		`-1e+1`,
+		`-1e-1`,
 	}
-	for _, input := range inputs {
-		// non-streaming
-		t.Run(input, func(t *testing.T) {
-			should := require.New(t)
-			r := DecodeStr(input + ",")
-			expected, err := strconv.ParseFloat(input, 32)
-			should.NoError(err)
-			got, err := r.Float32()
-			should.NoError(err)
-			should.Equal(float32(expected), got)
-		})
-		t.Run(input, func(t *testing.T) {
-			should := require.New(t)
-			r := DecodeStr(input + ",")
-			expected, err := strconv.ParseFloat(input, 64)
-			should.NoError(err)
-			got, err := r.Float64()
-			should.NoError(err)
-			should.Equal(expected, got)
-		})
-		t.Run(input, func(t *testing.T) {
-			should := require.New(t)
-			iter := Decode(bytes.NewBufferString(input+","), 2)
-			expected, err := strconv.ParseFloat(input, 32)
-			should.NoError(err)
-			got, err := iter.Float32()
-			should.NoError(err)
-			should.Equal(float32(expected), got)
-		})
-		t.Run(input, func(t *testing.T) {
-			should := require.New(t)
-			iter := Decode(bytes.NewBufferString(input+","), 2)
-			val := float64(0)
-			err := json.Unmarshal([]byte(input), &val)
-			should.NoError(err)
-			got, err := iter.Float64()
-			should.NoError(err)
-			should.Equal(val, got)
+	for i, input := range inputs {
+		t.Run(fmt.Sprintf("Test%d", i+1), func(t *testing.T) {
+			// non-streaming
+			t.Run("Float32", func(t *testing.T) {
+				should := require.New(t)
+				r := DecodeStr(input + ",")
+				expected, err := strconv.ParseFloat(input, 32)
+				should.NoError(err)
+				got, err := r.Float32()
+				should.NoError(err)
+				should.Equal(float32(expected), got)
+			})
+			t.Run("Float64", func(t *testing.T) {
+				should := require.New(t)
+				r := DecodeStr(input + ",")
+				expected, err := strconv.ParseFloat(input, 64)
+				should.NoError(err)
+				got, err := r.Float64()
+				should.NoError(err)
+				should.Equal(expected, got)
+			})
+			t.Run("Reader", func(t *testing.T) {
+				should := require.New(t)
+				iter := Decode(bytes.NewBufferString(input+","), 2)
+				expected, err := strconv.ParseFloat(input, 32)
+				should.NoError(err)
+				got, err := iter.Float32()
+				should.NoError(err)
+				should.Equal(float32(expected), got)
+			})
+			t.Run("StdJSONCompliance", func(t *testing.T) {
+				should := require.New(t)
+				iter := Decode(bytes.NewBufferString(input+","), 2)
+				val := float64(0)
+				err := json.Unmarshal([]byte(input), &val)
+				should.NoError(err)
+				got, err := iter.Float64()
+				should.NoError(err)
+				should.Equal(val, got)
+			})
 		})
 	}
 }
 
-func Test_write_float32(t *testing.T) {
+func TestWriteFloat32(t *testing.T) {
 	vals := []float32{0, 1, -1, 99, 0xff, 0xfff, 0xffff, 0xfffff, 0xffffff, 0x4ffffff, 0xfffffff,
 		-0x4ffffff, -0xfffffff, 1.2345, 1.23456, 1.234567, 1.001}
 	for _, val := range vals {
@@ -119,7 +135,7 @@ func Test_write_float32(t *testing.T) {
 	should.Equal("1e-7", string(e.Bytes()))
 }
 
-func Test_write_float64(t *testing.T) {
+func TestWriteFloat64(t *testing.T) {
 	vals := []float64{0, 1, -1, 99, 0xff, 0xfff, 0xffff, 0xfffff, 0xffffff, 0x4ffffff, 0xfffffff,
 		-0x4ffffff, -0xfffffff, 1.2345, 1.23456, 1.234567, 1.001}
 	for _, val := range vals {
