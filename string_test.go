@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_read_string(t *testing.T) {
+func TestReadString(t *testing.T) {
 	badInputs := []string{
 		``,
 		`null`,

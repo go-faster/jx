@@ -6,14 +6,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_write_null(t *testing.T) {
+func TestWriteNull(t *testing.T) {
 	should := require.New(t)
 	e := GetEncoder()
 	e.Null()
 	should.Equal("null", e.String())
 }
 
-func Test_decode_null_array_element(t *testing.T) {
+func TestDecodeNullArrayElement(t *testing.T) {
 	should := require.New(t)
 	iter := DecodeStr(`[null,"a"]`)
 	should.True(iter.Elem())
@@ -24,7 +24,7 @@ func Test_decode_null_array_element(t *testing.T) {
 	should.Equal("a", s)
 }
 
-func Test_decode_null_string(t *testing.T) {
+func TestDecodeNullString(t *testing.T) {
 	should := require.New(t)
 	iter := DecodeStr(`[null,"a"]`)
 	should.True(iter.Elem())
@@ -35,7 +35,7 @@ func Test_decode_null_string(t *testing.T) {
 	should.Equal("a", s)
 }
 
-func Test_decode_null_skip(t *testing.T) {
+func TestDecodeNullSkip(t *testing.T) {
 	iter := DecodeStr(`[null,"a"]`)
 	iter.Elem()
 	iter.Skip()

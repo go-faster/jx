@@ -12,14 +12,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_read_uint64_invalid(t *testing.T) {
+func TestReadUint64Invalid(t *testing.T) {
 	should := require.New(t)
 	iter := DecodeStr(",")
 	_, err := iter.UInt64()
 	should.Error(err)
 }
 
-func TestDecoder_int_numbers(t *testing.T) {
+func TestDecoderIntNumbers(t *testing.T) {
 	for i := 1; i < 10; i++ { // 10 digits
 		var data []byte
 		v := 0
@@ -72,7 +72,7 @@ func TestDecoder_int_numbers(t *testing.T) {
 	}
 }
 
-func Test_read_int32(t *testing.T) {
+func TestReadInt32(t *testing.T) {
 	inputs := []string{`1`, `12`, `123`, `1234`, `12345`, `123456`, `2147483647`, `-2147483648`}
 	for _, input := range inputs {
 		t.Run(input, func(t *testing.T) {
@@ -96,7 +96,7 @@ func Test_read_int32(t *testing.T) {
 	}
 }
 
-func TestDecoder_int_overflow(t *testing.T) {
+func TestDecoderIntOverflow(t *testing.T) {
 	t.Run("32", func(t *testing.T) {
 		for _, s := range []string{
 			"18446744073709551617",
@@ -167,14 +167,14 @@ func TestDecoder_int_overflow(t *testing.T) {
 	})
 }
 
-func Test_read_int64_overflow(t *testing.T) {
+func TestReadInt64Overflow(t *testing.T) {
 	s := `123456789232323232321545111111111111111111111111111111145454545445`
 	iter := DecodeStr(s)
 	_, err := iter.Int64()
 	require.Error(t, err)
 }
 
-func Test_read_int64(t *testing.T) {
+func TestReadInt64(t *testing.T) {
 	inputs := []string{`1`, `12`, `123`, `1234`, `12345`, `123456`, `9223372036854775807`, `-9223372036854775808`}
 	for _, input := range inputs {
 		t.Run(input, func(t *testing.T) {
@@ -198,7 +198,7 @@ func Test_read_int64(t *testing.T) {
 	}
 }
 
-func Test_write_uint32(t *testing.T) {
+func TestWriteUint32(t *testing.T) {
 	vals := []uint32{0, 1, 11, 111, 255, 999999, 0xfff, 0xffff, 0xfffff, 0xffffff, 0xfffffff, 0xffffffff}
 	for _, val := range vals {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
@@ -215,7 +215,7 @@ func Test_write_uint32(t *testing.T) {
 	should.Equal("a4294967295", e.String())
 }
 
-func Test_write_int32(t *testing.T) {
+func TestWriteInt32(t *testing.T) {
 	vals := []int32{0, 1, 11, 111, 255, 999999, 0xfff, 0xffff, 0xfffff, 0xffffff, 0xfffffff, 0x7fffffff, -0x80000000}
 	for _, val := range vals {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
@@ -232,7 +232,7 @@ func Test_write_int32(t *testing.T) {
 	should.Equal("a-2147483647", e.String())
 }
 
-func Test_write_uint64(t *testing.T) {
+func TestWriteUint64(t *testing.T) {
 	vals := []uint64{0, 1, 11, 111, 255, 999999, 0xfff, 0xffff, 0xfffff, 0xffffff, 0xfffffff, 0xffffffff,
 		0xfffffffff, 0xffffffffff, 0xfffffffffff, 0xffffffffffff, 0xfffffffffffff, 0xffffffffffffff,
 		0xfffffffffffffff, 0xffffffffffffffff}
@@ -251,7 +251,7 @@ func Test_write_uint64(t *testing.T) {
 	should.Equal("a4294967295", e.String())
 }
 
-func Test_write_int64(t *testing.T) {
+func TestWriteInt64(t *testing.T) {
 	vals := []int64{0, 1, 11, 111, 255, 999999, 0xfff, 0xffff, 0xfffff, 0xffffff, 0xfffffff, 0xffffffff,
 		0xfffffffff, 0xffffffffff, 0xfffffffffff, 0xffffffffffff, 0xfffffffffffff, 0xffffffffffffff,
 		0xfffffffffffffff, 0x7fffffffffffffff, -0x8000000000000000}
