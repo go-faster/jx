@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io"
 	"math/big"
-	"strconv"
 
 	"github.com/go-faster/errors"
 )
@@ -307,25 +306,6 @@ NonDecimal:
 		}
 	}
 	return d.float64Slow()
-}
-
-func (d *Decoder) floatSlow(size int) (float64, error) {
-	var buf [32]byte
-
-	str, err := d.numberAppend(buf[:0])
-	if err != nil {
-		return 0, errors.Wrap(err, "number")
-	}
-	if err := validateFloat(str); err != nil {
-		return 0, errors.Wrap(err, "invalid")
-	}
-
-	val, err := strconv.ParseFloat(string(str), size)
-	if err != nil {
-		return 0, err
-	}
-
-	return val, nil
 }
 
 func (d *Decoder) float64Slow() (float64, error) { return d.floatSlow(size64) }
