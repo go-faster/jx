@@ -84,6 +84,7 @@ var testNumbers = append([]string{
 	"0.0e+",                       // invalid
 	"0.0e-",                       // invalid
 	"0e0+0",                       // invalid
+	"0E0+0",                       // invalid
 	"0.e0+0",                      // invalid
 	"0.0e+0",                      // valid
 	"0.0e+1",                      // valid
@@ -120,6 +121,9 @@ var testNumbers = append([]string{
 	"\n9223372036854775808",       // valid
 	"\n9223372036854775807.1",     // valid
 	"-12.000000",                  // valid
+	"\"\x1f\"",                    // invalid
+	"\"\\b\x06\"",                 // invalid
+	"\"\\u000X\"",                 // invalid
 }, []string{
 	// Test cases from strconv.
 
@@ -395,6 +399,7 @@ var testArrs = []string{
 	`[ "abc",` + "\n" + `"text"]`, // valid
 	`[  1, "hello"]`,              // valid
 	`[abc]`,                       // invalid
+	`[fals e]`,                    // invalid
 	`[`,                           // invalid
 	`[,`,                          // invalid
 	`[[]`,                         // invalid

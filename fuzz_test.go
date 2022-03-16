@@ -32,15 +32,16 @@ func addCorpus(f *testing.F) {
 }
 
 func FuzzValid(f *testing.F) {
-	for _, s := range []string{
-		"{}",
-		`{"foo": "bar"}`,
-		``,
-		`"foo"`,
-		`"{"`,
-		`"{}"`,
+	for _, set := range [][]string{
+		testBools,
+		testNumbers,
+		testStrings,
+		testObjs,
+		testArrs,
 	} {
-		f.Add([]byte(s))
+		for _, s := range set {
+			f.Add([]byte(s))
+		}
 	}
 	addCorpus(f)
 	f.Fuzz(func(t *testing.T, data []byte) {
