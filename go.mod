@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/go-faster/errors v0.5.0
 	github.com/segmentio/asm v1.1.3
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.1
 )
 
 require (
