@@ -2,6 +2,7 @@ package jx
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"testing"
 
@@ -90,7 +91,7 @@ func TestDecoder_Float32(t *testing.T) {
 }
 
 func TestDecoder_Float64(t *testing.T) {
-	for _, tc := range []struct {
+	for i, tc := range []struct {
 		String string
 		Value  float64
 	}{
@@ -103,29 +104,29 @@ func TestDecoder_Float64(t *testing.T) {
 			Value:  18446744073709551.7000,
 		},
 	} {
-		t.Run(tc.String, func(t *testing.T) {
+		t.Run(fmt.Sprintf("Test%d", i+1), func(t *testing.T) {
 			t.Run("32Str", func(t *testing.T) {
 				v, err := DecodeStr(tc.String).Float32()
-				require.InEpsilon(t, tc.Value, v, epsilon)
+				require.InEpsilonf(t, tc.Value, v, epsilon, "%v != %v", tc.Value, v)
 				require.NoError(t, err)
 			})
 			t.Run("64Str", func(t *testing.T) {
 				v, err := DecodeStr(tc.String).Float64()
-				require.InEpsilon(t, tc.Value, v, epsilon)
+				require.InEpsilonf(t, tc.Value, v, epsilon, "%v != %v", tc.Value, v)
 				require.NoError(t, err)
 			})
 			t.Run("32", func(t *testing.T) {
 				decodeStr(t, tc.String, func(d *Decoder) {
 					v, err := d.Float32()
 					require.NoError(t, err)
-					require.InEpsilon(t, tc.Value, v, epsilon)
+					require.InEpsilonf(t, tc.Value, v, epsilon, "%v != %v", tc.Value, v)
 				})
 			})
 			t.Run("64", func(t *testing.T) {
 				decodeStr(t, tc.String, func(d *Decoder) {
 					v, err := d.Float64()
 					require.NoError(t, err)
-					require.InEpsilon(t, tc.Value, v, epsilon)
+					require.InEpsilonf(t, tc.Value, v, epsilon, "%v != %v", tc.Value, v)
 				})
 			})
 		})
