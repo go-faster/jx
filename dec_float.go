@@ -161,14 +161,29 @@ NonDecimalLoop:
 	return d.f32Slow()
 }
 
+var numberSet = [256]byte{
+	'+': 1,
+	'-': 1,
+	'.': 1,
+	'e': 1,
+	'E': 1,
+	'0': 1,
+	'1': 1,
+	'2': 1,
+	'3': 1,
+	'4': 1,
+	'5': 1,
+	'6': 1,
+	'7': 1,
+	'8': 1,
+	'9': 1,
+}
+
 func (d *Decoder) number() []byte {
 	start := d.head
 	buf := d.buf[d.head:d.tail]
 	for i, c := range buf {
-		switch c {
-		case '+', '-', '.', 'e', 'E', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-			continue
-		default:
+		if numberSet[c] == 0 {
 			// End of number.
 			d.head += i
 			return d.buf[start:d.head]
