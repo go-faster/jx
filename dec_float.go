@@ -8,17 +8,19 @@ import (
 	"github.com/go-faster/errors"
 )
 
-var pow10 = []uint64{1, 10, 100, 1000, 10000, 100000, 1000000}
+var (
+	pow10       = [...]uint64{1, 10, 100, 1000, 10000, 100000, 1000000}
+	floatDigits = [256]int8{}
+)
 
-var floatDigits []int8
-
-const invalidCharForNumber = int8(-1)
-const endOfNumber = int8(-2)
-const dotInNumber = int8(-3)
-const maxFloat64 = 1<<63 - 1
+const (
+	invalidCharForNumber = int8(-1)
+	endOfNumber          = int8(-2)
+	dotInNumber          = int8(-3)
+	maxFloat64           = 1<<63 - 1
+)
 
 func init() {
-	floatDigits = make([]int8, 256)
 	for i := 0; i < len(floatDigits); i++ {
 		floatDigits[i] = invalidCharForNumber
 	}
@@ -88,25 +90,24 @@ func (d *Decoder) positiveFloat32() (float32, error) {
 	i := d.head
 	// First char.
 	if i == d.tail {
-		return d.f32Slow()
+		return d.float32Slow()
 	}
 	c := d.buf[i]
 	i++
 	ind := floatDigits[c]
 	switch ind {
 	case invalidCharForNumber:
-		return d.f32Slow()
+		return d.float32Slow()
 	case endOfNumber:
 		return 0, errors.New("empty")
 	case dotInNumber:
 		return 0, errors.New("leading dot")
 	case 0:
 		if i == d.tail {
-			return d.f32Slow()
+			return d.float32Slow()
 		}
 		c = d.buf[i]
-		switch c {
-		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+		if floatDigits[c] >= 0 {
 			return 0, errors.New("leading zero")
 		}
 	}
@@ -118,7 +119,7 @@ NonDecimalLoop:
 		ind := floatDigits[c]
 		switch ind {
 		case invalidCharForNumber:
-			return d.f32Slow()
+			return d.float32Slow()
 		case endOfNumber:
 			d.head = i
 			return float32(value), nil
@@ -126,7 +127,7 @@ NonDecimalLoop:
 			break NonDecimalLoop
 		}
 		if value > uint64SafeToMultiple10 {
-			return d.f32Slow()
+			return d.float32Slow()
 		}
 		value = (value << 3) + (value << 1) + uint64(ind) // value = value * 10 + ind;
 	}
@@ -135,7 +136,7 @@ NonDecimalLoop:
 		i++
 		decimalPlaces := 0
 		if i == d.tail {
-			return d.f32Slow()
+			return d.float32Slow()
 		}
 		for ; i < d.tail; i++ {
 			c = d.buf[i]
@@ -147,18 +148,18 @@ NonDecimalLoop:
 					return float32(float64(value) / float64(pow10[decimalPlaces])), nil
 				}
 				// too many decimal places
-				return d.f32Slow()
+				return d.float32Slow()
 			case invalidCharForNumber, dotInNumber:
-				return d.f32Slow()
+				return d.float32Slow()
 			}
 			decimalPlaces++
 			if value > uint64SafeToMultiple10 {
-				return d.f32Slow()
+				return d.float32Slow()
 			}
 			value = (value << 3) + (value << 1) + uint64(ind)
 		}
 	}
-	return d.f32Slow()
+	return d.float32Slow()
 }
 
 var numberSet = [256]byte{
@@ -214,7 +215,7 @@ const (
 	size64 = 64
 )
 
-func (d *Decoder) f32Slow() (float32, error) {
+func (d *Decoder) float32Slow() (float32, error) {
 	v, err := d.floatSlow(size32)
 	if err != nil {
 		return 0, err
@@ -228,6 +229,10 @@ func (d *Decoder) Float64() (float64, error) {
 	if err != nil {
 		return 0, errors.Wrap(err, "byte")
 	}
+	if floatDigits[c] >= 0 {
+		d.unread()
+		return d.positiveFloat64()
+	}
 	switch c {
 	case '-':
 		v, err := d.positiveFloat64()
@@ -235,9 +240,6 @@ func (d *Decoder) Float64() (float64, error) {
 			return 0, err
 		}
 		return -v, err
-	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-		d.unread()
-		return d.positiveFloat64()
 	default:
 		return 0, badToken(c)
 	}
