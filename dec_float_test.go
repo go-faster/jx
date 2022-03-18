@@ -134,23 +134,29 @@ func TestDecoder_Float64(t *testing.T) {
 }
 
 func BenchmarkDecoder_Float64(b *testing.B) {
-	runTestdataFile("floats.json", b.Fatal, func(name string, data []byte) {
-		b.Run(name, func(b *testing.B) {
-			d := GetDecoder()
-			cb := func(d *Decoder) error {
-				_, err := d.Float64()
-				return err
-			}
-			b.ReportAllocs()
-			b.ResetTimer()
-
-			for i := 0; i < b.N; i++ {
-				d.ResetBytes(data)
-
-				if err := d.Arr(cb); err != nil {
-					b.Fatal(err)
+	for _, file := range []string{
+		"floats.json",
+		"slow_floats.json",
+		"integers.json",
+	} {
+		runTestdataFile(file, b.Fatal, func(name string, data []byte) {
+			b.Run(name, func(b *testing.B) {
+				d := GetDecoder()
+				cb := func(d *Decoder) error {
+					_, err := d.Float64()
+					return err
 				}
-			}
+				b.ReportAllocs()
+				b.ResetTimer()
+
+				for i := 0; i < b.N; i++ {
+					d.ResetBytes(data)
+
+					if err := d.Arr(cb); err != nil {
+						b.Fatal(err)
+					}
+				}
+			})
 		})
-	})
+	}
 }
