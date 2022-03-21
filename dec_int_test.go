@@ -7,28 +7,50 @@ import (
 )
 
 func BenchmarkDecoder_Int(b *testing.B) {
-	data := []byte(`69315063`)
-	d := GetDecoder()
-	for i := 0; i < b.N; i++ {
-		d.ResetBytes(data)
-		if _, err := d.Int(); err != nil {
-			b.Fatal(err)
-		}
-	}
+	runTestdataFile("integers.json", b.Fatal, func(name string, data []byte) {
+		b.Run(name, func(b *testing.B) {
+			d := GetDecoder()
+			cb := func(d *Decoder) error {
+				_, err := d.Int()
+				return err
+			}
+			b.ReportAllocs()
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				d.ResetBytes(data)
+
+				if err := d.Arr(cb); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+	})
 }
 
 func BenchmarkDecoder_Uint(b *testing.B) {
-	data := []byte(`69315063`)
-	d := GetDecoder()
-	for i := 0; i < b.N; i++ {
-		d.ResetBytes(data)
-		if _, err := d.UInt(); err != nil {
-			b.Fatal(err)
-		}
-	}
+	runTestdataFile("integers.json", b.Fatal, func(name string, data []byte) {
+		b.Run(name, func(b *testing.B) {
+			d := GetDecoder()
+			cb := func(d *Decoder) error {
+				_, err := d.UInt()
+				return err
+			}
+			b.ReportAllocs()
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				d.ResetBytes(data)
+
+				if err := d.Arr(cb); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+	})
 }
 
-func TestDecoder_int_sizes(t *testing.T) {
+func TestDecoderIntSizes(t *testing.T) {
 	data := []byte(`69315063`)
 	d := GetDecoder()
 	for _, size := range []int{32, 64} {
@@ -39,7 +61,7 @@ func TestDecoder_int_sizes(t *testing.T) {
 	}
 }
 
-func TestDecoder_uint_sizes(t *testing.T) {
+func TestDecoderUintSizes(t *testing.T) {
 	data := []byte(`69315063`)
 	d := GetDecoder()
 	for _, size := range []int{32, 64} {
@@ -56,7 +78,7 @@ func TestDecoder_Int(t *testing.T) {
 		return &Decoder{
 			buf:    []byte{'1', '2'},
 			tail:   2,
-			reader: errReader{},
+			reader: r,
 		}
 	}
 	t.Run("32", func(t *testing.T) {

@@ -1,11 +1,11 @@
 package jx
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"math"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -73,26 +73,56 @@ func TestDecoderIntNumbers(t *testing.T) {
 }
 
 func TestReadInt32(t *testing.T) {
-	inputs := []string{`1`, `12`, `123`, `1234`, `12345`, `123456`, `2147483647`, `-2147483648`}
-	for _, input := range inputs {
-		t.Run(input, func(t *testing.T) {
+	inputs := []string{
+		`-12`,
+		`-1`,
+		`0`,
+		`1`,
+		`12`,
+		`123`,
+		`1234`,
+		`12345`,
+		`123456`,
+		`1234567`,
+		`12345678`,
+		`123456789`,
+		`1234567890`,
+		`2147483647`,
+		`-2147483648`,
+	}
+	for i, input := range inputs {
+		input := input
+		t.Run(fmt.Sprintf("Test%d", i+1), createTestCase(input, func(t *testing.T, d *Decoder) error {
 			should := require.New(t)
-			iter := DecodeStr(input)
 			expected, err := strconv.ParseInt(input, 10, 32)
 			should.NoError(err)
-			v, err := iter.Int32()
+			v, err := d.Int32()
 			should.NoError(err)
 			should.Equal(int32(expected), v)
-		})
-		t.Run(input, func(t *testing.T) {
+			return nil
+		}))
+	}
+
+	{
+		input := "[" + strings.Join(inputs, ",") + "]"
+		t.Run("Array", createTestCase(input, func(t *testing.T, d *Decoder) error {
 			should := require.New(t)
-			iter := Decode(bytes.NewBufferString(input), 2)
-			expected, err := strconv.ParseInt(input, 10, 32)
-			should.NoError(err)
-			v, err := iter.Int32()
-			should.NoError(err)
-			should.Equal(int32(expected), v)
-		})
+			i := 0
+
+			return d.Arr(func(d *Decoder) error {
+				expected, err := strconv.ParseInt(inputs[i], 10, 32)
+				should.NoError(err)
+
+				v, err := d.Int32()
+				if err != nil {
+					return err
+				}
+				should.Equal(int32(expected), v)
+
+				i++
+				return nil
+			})
+		}))
 	}
 }
 
@@ -175,26 +205,57 @@ func TestReadInt64Overflow(t *testing.T) {
 }
 
 func TestReadInt64(t *testing.T) {
-	inputs := []string{`1`, `12`, `123`, `1234`, `12345`, `123456`, `9223372036854775807`, `-9223372036854775808`}
-	for _, input := range inputs {
-		t.Run(input, func(t *testing.T) {
+	inputs := []string{
+		`-12`,
+		`-1`,
+		`0`,
+		`1`,
+		`12`,
+		`123`,
+		`1234`,
+		`12345`,
+		`123456`,
+		`1234567`,
+		`12345678`,
+		`123456789`,
+		`1234567890`,
+		`12345678901`,
+		`9223372036854775807`,
+		`-9223372036854775808`,
+	}
+	for i, input := range inputs {
+		input := input
+		t.Run(fmt.Sprintf("Test%d", i+1), createTestCase(input, func(t *testing.T, d *Decoder) error {
 			should := require.New(t)
-			iter := DecodeStr(input)
 			expected, err := strconv.ParseInt(input, 10, 64)
 			should.NoError(err)
-			v, err := iter.Int64()
+			v, err := d.Int64()
 			should.NoError(err)
 			should.Equal(expected, v)
-		})
-		t.Run(input, func(t *testing.T) {
+			return nil
+		}))
+	}
+
+	{
+		input := "[" + strings.Join(inputs, ",") + "]"
+		t.Run("Array", createTestCase(input, func(t *testing.T, d *Decoder) error {
 			should := require.New(t)
-			iter := Decode(bytes.NewBufferString(input), 2)
-			expected, err := strconv.ParseInt(input, 10, 64)
-			should.NoError(err)
-			v, err := iter.Int64()
-			should.NoError(err)
-			should.Equal(expected, v)
-		})
+			i := 0
+
+			return d.Arr(func(d *Decoder) error {
+				expected, err := strconv.ParseInt(inputs[i], 10, 64)
+				should.NoError(err)
+
+				v, err := d.Int64()
+				if err != nil {
+					return err
+				}
+				should.Equal(expected, v)
+
+				i++
+				return nil
+			})
+		}))
 	}
 }
 

@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestEncoder_byte_should_grow_buffer(t *testing.T) {
+func TestEncoderByteShouldGrowBuffer(t *testing.T) {
 	should := require.New(t)
 	e := GetEncoder()
 	e.byte('1')
@@ -41,14 +41,14 @@ func TestEncoder(t *testing.T) {
 	})
 }
 
-func TestEncoder_Raw_should_grow_buffer(t *testing.T) {
+func TestEncoderRawShouldGrowBuffer(t *testing.T) {
 	should := require.New(t)
 	e := GetEncoder()
 	e.RawStr("123")
 	should.Equal("123", string(e.Bytes()))
 }
 
-func TestEncoder_Str_should_grow_buffer(t *testing.T) {
+func TestEncoderStrShouldGrowBuffer(t *testing.T) {
 	should := require.New(t)
 	e := GetEncoder()
 	e.Str("123")
