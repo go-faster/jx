@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func runTestCases(t *testing.T, cases []string, cb func(t *testing.T, d *Decoder) error) {
-	testCase := func(d *Decoder, input string, valid bool) func(t *testing.T) {
+func createTestCase(input string, cb func(t *testing.T, d *Decoder) error) func(t *testing.T) {
+	run := func(d *Decoder, input string, valid bool) func(t *testing.T) {
 		return func(t *testing.T) {
 			t.Cleanup(func() {
 				if t.Failed() {
@@ -29,21 +29,26 @@ func runTestCases(t *testing.T, cases []string, cb func(t *testing.T, d *Decoder
 			}
 		}
 	}
-	for i, input := range cases {
+
+	return func(t *testing.T) {
 		valid := json.Valid([]byte(input))
 
-		t.Run(fmt.Sprintf("Test%d", i), func(t *testing.T) {
-			t.Run("Buffer", testCase(DecodeStr(input), input, valid))
+		t.Run("Buffer", run(DecodeStr(input), input, valid))
 
-			r := strings.NewReader(input)
-			d := Decode(r, 512)
-			t.Run("Reader", testCase(d, input, valid))
+		r := strings.NewReader(input)
+		d := Decode(r, 512)
+		t.Run("Reader", run(d, input, valid))
 
-			r.Reset(input)
-			obr := iotest.OneByteReader(r)
-			d.Reset(obr)
-			t.Run("OneByteReader", testCase(d, input, valid))
-		})
+		r.Reset(input)
+		obr := iotest.OneByteReader(r)
+		d.Reset(obr)
+		t.Run("OneByteReader", run(d, input, valid))
+	}
+}
+
+func runTestCases(t *testing.T, cases []string, cb func(t *testing.T, d *Decoder) error) {
+	for i, input := range cases {
+		t.Run(fmt.Sprintf("Test%d", i), createTestCase(input, cb))
 	}
 }
 

@@ -78,7 +78,7 @@ func TestDecoder_Int(t *testing.T) {
 		return &Decoder{
 			buf:    []byte{'1', '2'},
 			tail:   2,
-			reader: errReader{},
+			reader: r,
 		}
 	}
 	t.Run("32", func(t *testing.T) {
