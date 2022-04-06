@@ -280,6 +280,8 @@ var testStrings = append([]string{
 	`"foo`,                 // invalid
 	`"\`,                   // invalid
 	`"\"`,                  // invalid
+	`"\\\"`,                // invalid
+	"\"\n\"",               // invalid
 	`"\u`,                  // invalid
 	`"\u1`,                 // invalid
 	`"\u12`,                // invalid
@@ -319,7 +321,30 @@ var testStrings = append([]string{
 	"\"\\ueeee\"",          // valid
 	"\"\\uFFFF\"",          // valid
 	`"ab\n` + "\x00" + `"`, // invalid
-	`"\n0123456"`,
+	`"\n0123456"`,          // valid
+	`""`,                   // valid
+	`"a"`,                  // valid
+	`"Iñtërnâtiônàlizætiøn,���⛔"`, // valid
+	`"\uD83D"`,       // valid
+	`"\uD83D\\"`,     // valid
+	`"\uD83D\ub000"`, // valid
+	`"\uD83D\ude04"`, // valid
+	`"\uDEADBEEF"`,   // valid
+	`"\U0001f64f"`,   // invalid
+	`"\uD83D\u00"`,   // invalid
+	`"hel\"lo"`,      // valid
+	`"hel\\\/lo"`,    // valid
+	`"hel\\blo"`,     // valid
+	`"hel\\\blo"`,    // valid
+	`"hel\\nlo"`,     // valid
+	`"hel\\\nlo"`,    // valid
+	`"hel\\tlo"`,     // valid
+	`"hel\\flo"`,     // valid
+	`"hel\\\flo"`,    // valid
+	`"hel\\\rlo"`,    // valid
+	`"hel\\\tlo"`,    // valid
+	`"\u4e2d\u6587"`, // valid
+	`"\ud83d\udc4a"`, // valid
 }, func() (r []string) {
 	// Generate tests for invalid space sequences.
 	for i := byte(0); i <= ' '; i++ {
