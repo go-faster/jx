@@ -8,6 +8,6 @@ type byteseq interface {
 
 func decodeRuneInByteseq[T byteseq](val T) (r rune, size int) {
 	var tmp [4]byte
-	copy(tmp[:], val)
-	return utf8.DecodeRune(tmp[:])
+	n := copy(tmp[:], val)
+	return utf8.DecodeRune(tmp[:n])
 }
