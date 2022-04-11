@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/go-faster/errors v0.5.0
-	github.com/segmentio/asm v1.1.3
+	github.com/segmentio/asm v1.1.4
 	github.com/stretchr/testify v1.7.1
 )
 
