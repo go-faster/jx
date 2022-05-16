@@ -6,8 +6,9 @@ import (
 	"io"
 	"testing"
 
-	"github.com/go-faster/errors"
 	"github.com/stretchr/testify/require"
+
+	"github.com/go-faster/errors"
 )
 
 func TestDecoder_ObjIter(t *testing.T) {

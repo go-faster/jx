@@ -11,8 +11,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/go-faster/errors"
 	"github.com/stretchr/testify/require"
+
+	"github.com/go-faster/errors"
 )
 
 func addCorpus(f *testing.F) {
