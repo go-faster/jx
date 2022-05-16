@@ -29,7 +29,7 @@ func (d *Decoder) ArrIter() (ArrIter, error) {
 
 // Next consumes element and returns false, if there is no elements anymore.
 func (i *ArrIter) Next() bool {
-	if i.closed {
+	if i.closed || i.err != nil {
 		return false
 	}
 

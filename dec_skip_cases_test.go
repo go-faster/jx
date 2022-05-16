@@ -370,51 +370,55 @@ var testStrings = append([]string{
 }()...)
 
 var testObjs = []string{
-	"",                              // invalid
-	"nope",                          // invalid
-	"nul",                           // invalid
-	"fals e",                        // invalid
-	"nil",                           // invalid
-	`{`,                             // invalid
-	`{}`,                            // valid
-	`{"1}`,                          // invalid
-	`{"1:}`,                         // invalid
-	`{"1,}`,                         // invalid
-	`{"1":}`,                        // invalid
-	`{"\1":}`,                       // invalid
-	`{"1",}`,                        // invalid
-	`{"1":,}`,                       // invalid
-	`{"hello":"world"}`,             // valid
-	`{hello:"world"}`,               // invalid
-	`{"hello:"world"}`,              // invalid
-	`{"hello","world"}`,             // invalid
-	`{"hello":{}`,                   // invalid
-	`{"hello":{}}`,                  // valid
-	`{"hello":{}}}`,                 // invalid
-	`{"hello":  {  "hello": 1}}`,    // valid
-	`{abc}`,                         // invalid
-	`invalid`,                       // invalid
-	`{"foo"`,                        // invalid
-	`{"foo"bar`,                     // invalid
-	`{"foo": "bar",`,                // invalid
-	`{"foo": "bar", true`,           // invalid
-	`{"foo": "bar", "bar":`,         // invalid
-	`{"foo": "bar", "bar":t`,        // invalid
-	`{"foo": "bar", "bar":true`,     // invalid
-	`{"foo": "bar", "bar"false`,     // invalid
-	`{"foo": "bar", "bar": "bar"""`, // invalid
-	`{"foo":`,                       // invalid
-	`{"foo": "bar"`,                 // invalid
-	`{"foo": "bar`,                  // invalid
-	`{"foo": "bar",}`,               // invalid
-	`{"foo": "bar", true}`,          // invalid
+	"",                                       // invalid
+	"nope",                                   // invalid
+	"nul",                                    // invalid
+	"fals e",                                 // invalid
+	"nil",                                    // invalid
+	`{`,                                      // invalid
+	`{}`,                                     // valid
+	`{{}`,                                    // invalid
+	`{"1}`,                                   // invalid
+	`{"1:}`,                                  // invalid
+	`{"1,}`,                                  // invalid
+	`{"1":}`,                                 // invalid
+	`{"\1":}`,                                // invalid
+	`{"1",}`,                                 // invalid
+	`{"1":,}`,                                // invalid
+	`{"hello":"world"}`,                      // valid
+	`{hello:"world"}`,                        // invalid
+	`{"hello:"world"}`,                       // invalid
+	`{"hello","world"}`,                      // invalid
+	`{"hello":{}`,                            // invalid
+	`{"hello":{}}`,                           // valid
+	`{"hello":{}}}`,                          // invalid
+	`{"hello":  {  "hello": 1}}`,             // valid
+	`{abc}`,                                  // invalid
+	`invalid`,                                // invalid
+	`{"foo"`,                                 // invalid
+	`{"foo"bar`,                              // invalid
+	`{"foo": "bar",`,                         // invalid
+	`{"foo": "bar", true`,                    // invalid
+	`{"foo": "bar", "bar":`,                  // invalid
+	`{"foo": "bar", "bar":t`,                 // invalid
+	`{"foo": "bar", "bar":true`,              // invalid
+	`{"foo": "bar", "bar"false`,              // invalid
+	`{"foo": "bar", "bar": "bar"""`,          // invalid
+	`{"foo":`,                                // invalid
+	`{"foo": "bar"`,                          // invalid
+	`{"foo": "bar`,                           // invalid
+	`{"foo": "bar",}`,                        // invalid
+	`{"foo": "bar", true}`,                   // invalid
+	`{"foo": "bar", "bar":"baz""baz":"foo"}`, // invalid
 	"{\n\"foo\"\n: \n10e1   \n, \n\"bar\"\n: \ntrue\n}", // valid
+	`{"foo": "bar", "bar":"baz", "baz":"foo"}`,          // valid
 }
 
 var testArrs = []string{
 	`[]`,                          // valid
 	`[ ]`,                         // valid
 	"[1]",                         // valid
+	"[{}]",                        // valid
 	"[true]",                      // valid
 	"[null]",                      // valid
 	`[ 1]`,                        // valid
@@ -436,6 +440,8 @@ var testArrs = []string{
 	"[true,false,",                // invalid
 	"[true,false,]",               // invalid
 	"[true,false}",                // invalid
+	"[true,false]",                // valid
+	"[true,false,true]",           // valid
 }
 
 func TestDecoder_Skip(t *testing.T) {

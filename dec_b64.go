@@ -1,8 +1,9 @@
 package jx
 
 import (
-	"github.com/go-faster/errors"
 	"github.com/segmentio/asm/base64"
+
+	"github.com/go-faster/errors"
 )
 
 // Base64 decodes base64 encoded data from string.
