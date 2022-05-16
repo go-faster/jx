@@ -15,7 +15,7 @@ linters-settings:
   lll:
     line-length: 140
   goimports:
-    local-prefixes: github.com/ogen/
+    local-prefixes: github.com/go-faster/
   gocritic:
     enabled-tags:
       - diagnostic
@@ -47,29 +47,32 @@ linters:
     - goimports
     - revive
     - gosec
-    - gosimple
     - govet
     - ineffassign
     - misspell
     - nakedret
-    - staticcheck
     - structcheck
-    - stylecheck
     - typecheck
     - unconvert
     - unparam
-    - unused
     - varcheck
     - whitespace
+    # Disable until https://github.com/dominikh/go-tools/issues/1270 fix be released.
+    # - staticcheck
+    # - gosimple
+    # - unused
+    # - stylecheck
 
-  # Do not enable:
-  # - wsl       (too opinionated about newlines)
-  # - godox     (todos are OK)
-  # - bodyclose (false positives on helper functions)
-  # - prealloc  (not worth it in scope of this project)
-  # - maligned  (same as prealloc)
-  # - funlen    (gocyclo is enough)
-  # - gochecknoglobals (we know when it is ok to use globals)
+    # Do not enable:
+    # - wsl       (too opinionated about newlines)
+    # - godox     (todos are OK)
+    # - bodyclose (false positives on helper functions)
+    # - prealloc  (not worth it in scope of this project)
+    # - maligned  (same as prealloc)
+    # - funlen    (gocyclo is enough)
+    # - gochecknoglobals (we know when it is ok to use globals)
+    # - gochecknoinits (we know when it is ok to use inits)
+    # - dupl (too opinionated)
 
 issues:
   exclude-use-default: false
