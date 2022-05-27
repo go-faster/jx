@@ -144,18 +144,24 @@ func (n Num) Format(f fmt.State, verb rune) {
 //
 // 0 is zero, 1 is positive, -1 is negative.
 func (n Num) Sign() int {
-	if len(n) == 0 {
+	buf := n
+	if len(buf) == 0 {
 		return 0
 	}
-	c := n[0]
-	if c == '"' {
-		if len(n) < 2 {
+	if buf[0] == '"' {
+		if len(buf) < 2 {
 			return 0
 		}
-		c = n[1]
+		// Cut quote.
+		buf = buf[1:]
 	}
+	c := buf[0]
 	switch c {
 	case '-':
+		// Cases like `-0`.
+		if len(buf) > 1 && buf[1] == '0' {
+			return 0
+		}
 		return -1
 	case '0':
 		return 0

@@ -244,3 +244,40 @@ func BenchmarkNum(b *testing.B) {
 		})
 	})
 }
+
+func TestNum_Sign(t *testing.T) {
+	tests := []struct {
+		num  string
+		want int
+	}{
+		// Number
+		{"-1", -1},
+		{"-10", -1},
+		{"0", 0},
+		{"0.0", 0},
+		{"-0", 0},
+		{"-0.0", 0},
+		{"1", 1},
+		{"10", 1},
+
+		// String
+		{`"-1"`, -1},
+		{`"-10"`, -1},
+		{`"0"`, 0},
+		{`"0.0"`, 0},
+		{`"-0"`, 0},
+		{`"-0.0"`, 0},
+		{`"1"`, 1},
+		{`"10"`, 1},
+
+		// Error
+		{``, 0},
+		{`"`, 0},
+	}
+	for i, tt := range tests {
+		tt := tt
+		t.Run(fmt.Sprintf("Test%d", i+1), func(t *testing.T) {
+			require.Equal(t, tt.want, Num(tt.num).Sign())
+		})
+	}
+}
