@@ -3,7 +3,7 @@ module github.com/go-faster/jx
 go 1.18
 
 require (
-	github.com/go-faster/errors v0.5.0
+	github.com/go-faster/errors v0.6.0
 	github.com/segmentio/asm v1.2.0
 	github.com/stretchr/testify v1.7.1
 )
