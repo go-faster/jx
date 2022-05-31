@@ -1,18 +1,14 @@
-//go:build go1.18
+//go:build !go1.18
 
 package jx
 
 import (
 	"testing"
-	"unicode/utf8"
 )
 
 func Benchmark_decodeRuneInByteseq(b *testing.B) {
-	var (
-		buf    [4]byte
-		result rune
-	)
-	utf8.EncodeRune(buf[:], 'ж')
+	var result rune
+	const buf = `ж`
 
 	b.ReportAllocs()
 	b.ResetTimer()
