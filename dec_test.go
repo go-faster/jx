@@ -32,37 +32,21 @@ func testBufferReader(input string, cb func(t *testing.T, d *Decoder)) func(t *t
 }
 
 func createTestCase(input string, cb func(t *testing.T, d *Decoder) error) func(t *testing.T) {
-	run := func(d *Decoder, input string, valid bool) func(t *testing.T) {
-		return func(t *testing.T) {
-			t.Cleanup(func() {
-				if t.Failed() {
-					t.Logf("Input: %q", input)
-				}
-			})
-
-			err := cb(t, d)
-			if valid {
-				require.NoError(t, err)
-			} else {
-				require.Error(t, err)
+	valid := json.Valid([]byte(input))
+	return testBufferReader(input, func(t *testing.T, d *Decoder) {
+		t.Cleanup(func() {
+			if t.Failed() {
+				t.Logf("Input: %q", input)
 			}
+		})
+
+		err := cb(t, d)
+		if valid {
+			require.NoError(t, err)
+		} else {
+			require.Error(t, err)
 		}
-	}
-
-	return func(t *testing.T) {
-		valid := json.Valid([]byte(input))
-
-		t.Run("Buffer", run(DecodeStr(input), input, valid))
-
-		r := strings.NewReader(input)
-		d := Decode(r, 512)
-		t.Run("Reader", run(d, input, valid))
-
-		r.Reset(input)
-		obr := iotest.OneByteReader(r)
-		d.Reset(obr)
-		t.Run("OneByteReader", run(d, input, valid))
-	}
+	})
 }
 
 func runTestCases(t *testing.T, cases []string, cb func(t *testing.T, d *Decoder) error) {

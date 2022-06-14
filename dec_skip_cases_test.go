@@ -7,7 +7,6 @@ import (
 	"reflect"
 	"strings"
 	"testing"
-	"testing/iotest"
 
 	"github.com/stretchr/testify/require"
 )
@@ -477,49 +476,36 @@ func TestDecoder_Skip(t *testing.T) {
 		inputs: testObjs,
 	})
 
-	testDecode := func(iter *Decoder, input string, stdErr error) func(t *testing.T) {
-		return func(t *testing.T) {
-			t.Cleanup(func() {
-				if t.Failed() {
-					t.Logf("Input: %q", input)
-				}
-			})
-
-			should := require.New(t)
-			if stdErr == nil {
-				should.NoError(iter.Skip())
-				should.ErrorIs(iter.Null(), io.ErrUnexpectedEOF)
-			} else {
-				should.Error(func() error {
-					if err := iter.Skip(); err != nil {
-						return err
-					}
-					if err := iter.Skip(); err != io.EOF {
-						return err
-					}
-					return nil
-				}())
-			}
-		}
-	}
 	for _, testCase := range testCases {
 		valType := reflect.TypeOf(testCase.ptr).Elem()
 		t.Run(valType.Kind().String(), func(t *testing.T) {
 			for inputIdx, input := range testCase.inputs {
-				t.Run(fmt.Sprintf("Test%d", inputIdx), func(t *testing.T) {
-					ptrVal := reflect.New(valType)
-					stdErr := json.Unmarshal([]byte(input), ptrVal.Interface())
+				input := input
+				stdErr := json.Unmarshal([]byte(input), reflect.New(valType).Interface())
+				cb := func(t *testing.T, iter *Decoder) {
+					t.Cleanup(func() {
+						if t.Failed() {
+							t.Logf("Input: %q", input)
+						}
+					})
 
-					t.Run("Buffer", testDecode(DecodeStr(input), input, stdErr))
-
-					r := strings.NewReader(input)
-					d := Decode(r, 512)
-					t.Run("Reader", testDecode(d, input, stdErr))
-
-					r.Reset(input)
-					obr := iotest.OneByteReader(r)
-					t.Run("OneByteReader", testDecode(Decode(obr, 512), input, stdErr))
-				})
+					should := require.New(t)
+					if stdErr == nil {
+						should.NoError(iter.Skip())
+						should.ErrorIs(iter.Null(), io.ErrUnexpectedEOF)
+					} else {
+						should.Error(func() error {
+							if err := iter.Skip(); err != nil {
+								return err
+							}
+							if err := iter.Skip(); err != io.EOF {
+								return err
+							}
+							return nil
+						}())
+					}
+				}
+				t.Run(fmt.Sprintf("Test%d", inputIdx), testBufferReader(input, cb))
 			}
 		})
 	}
