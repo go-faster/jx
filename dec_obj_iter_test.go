@@ -59,4 +59,20 @@ func TestDecoder_ObjIter(t *testing.T) {
 		d := DecodeStr(``)
 		require.ErrorIs(t, testIter(d), io.ErrUnexpectedEOF)
 	})
+	t.Run("Key", testBufferReader(`{"foo":1,"bar":1,"baz":1}`, func(t *testing.T, d *Decoder) {
+		a := require.New(t)
+
+		iter, err := d.ObjIter()
+		a.NoError(err)
+
+		var r []string
+		for iter.Next() {
+			r = append(r, string(iter.Key()))
+			a.NoError(d.Skip())
+		}
+		a.False(iter.Next())
+		a.NoError(iter.Err())
+
+		a.Equal([]string{"foo", "bar", "baz"}, r)
+	}))
 }
