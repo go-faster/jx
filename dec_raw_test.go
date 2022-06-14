@@ -1,99 +1,133 @@
 package jx
 
 import (
+	"bytes"
+	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestDecoder_Raw(t *testing.T) {
-	t.Run("Positive", func(t *testing.T) {
-		v := `{"foo":   [1, 2, 3, 4, 5]  }}`
-		t.Run("RawStr", func(t *testing.T) {
-			d := DecodeStr(v)
-			require.NoError(t, d.Obj(func(d *Decoder, key string) error {
-				raw, err := d.Raw()
-				assert.NoError(t, err)
-				assert.Equal(t, Array, raw.Type())
-				assert.Equal(t, `[1, 2, 3, 4, 5]`, raw.String())
-				var rd Decoder
-				rd.ResetBytes(raw)
-				assert.NoError(t, rd.Arr(func(d *Decoder) error {
-					raw, err := d.Raw()
-					assert.NoError(t, err)
-					assert.Equal(t, Number, raw.Type())
-					n, err := DecodeBytes(raw).Num()
-					assert.NoError(t, err)
-					assert.False(t, n.Str())
+func testDecoderRaw(t *testing.T, raw func(d *Decoder) (Raw, error)) {
+	tests := []struct {
+		input     string
+		typ       Type
+		expectErr bool
+	}{
+		{`"foo"`, String, false},
+		{`"foo\`, Invalid, true},
+
+		{`10`, Number, false},
+		{`1asf0`, Invalid, true},
+
+		{`null`, Null, false},
+		{`nul`, Invalid, true},
+
+		{`true`, Bool, false},
+		{`tru`, Invalid, true},
+
+		{`[1, 2, 3, 4, 5]`, Array, false},
+		{`[1, 2, 3, 4, 5}`, Invalid, true},
+
+		{`{"foo":"bar"}`, Object, false},
+		{`{"foo":"bar", "baz":"foobar"}`, Object, false},
+		{`{"foo":"bar}`, Invalid, true},
+	}
+	for i, tt := range tests {
+		tt := tt
+		t.Run(fmt.Sprintf("Test%d", i+1), testBufferReader(tt.input, func(t *testing.T, d *Decoder) {
+			a := require.New(t)
+			raw, err := raw(d)
+			if tt.expectErr {
+				a.Error(err)
+				return
+			}
+			a.NoError(err)
+			a.Equal(tt.input, raw.String())
+			a.Equal(tt.typ, raw.Type())
+		}))
+	}
+
+	t.Run("InsideObject", func(t *testing.T) {
+		for i, tt := range tests {
+			tt := tt
+			e := GetEncoder()
+			e.Obj(func(e *Encoder) {
+				const length = 8
+				for i := range [length]struct{}{} {
+					e.FieldStart(fmt.Sprintf("skip%d", i))
+					e.Str("it")
+				}
+
+				e.FieldStart("test")
+				e.RawStr(tt.input)
+
+				for i := range [length]struct{}{} {
+					e.FieldStart(fmt.Sprintf("skip%d", i+length))
+					e.Str("it")
+				}
+			})
+			input := e.String()
+			t.Run(fmt.Sprintf("Test%d", i+1), testBufferReader(input, func(t *testing.T, d *Decoder) {
+				a := require.New(t)
+
+				err := d.ObjBytes(func(d *Decoder, key []byte) error {
+					if string(key) != "test" {
+						return d.Skip()
+					}
+					raw, err := raw(d)
+					if err != nil {
+						return err
+					}
+					a.Equal(tt.input, raw.String())
+					a.Equal(tt.typ, raw.Type())
 					return nil
-				}))
-				return err
+				})
+
+				if tt.expectErr {
+					a.Error(err)
+				} else {
+					a.NoError(err)
+				}
 			}))
-		})
-		t.Run("RawAppend", func(t *testing.T) {
-			d := DecodeStr(v)
-			require.NoError(t, d.Obj(func(d *Decoder, key string) error {
-				raw, err := d.RawAppend(nil)
-				require.NoError(t, err)
-				t.Logf("%q", raw)
-				return err
-			}))
-		})
-	})
-	t.Run("Negative", func(t *testing.T) {
-		v := `{"foo":   [1, 2, 3, 4, 5`
-		t.Run("RawStr", func(t *testing.T) {
-			d := DecodeStr(v)
-			var called bool
-			require.Error(t, d.Obj(func(d *Decoder, key string) error {
-				called = true
-				raw, err := d.Raw()
-				require.Error(t, err)
-				require.Nil(t, raw)
-				return err
-			}))
-			require.True(t, called, "should be called")
-		})
-		t.Run("RawAppend", func(t *testing.T) {
-			d := DecodeStr(v)
-			var called bool
-			require.Error(t, d.Obj(func(d *Decoder, key string) error {
-				called = true
-				raw, err := d.RawAppend(make([]byte, 10))
-				require.Error(t, err)
-				require.Nil(t, raw)
-				return err
-			}))
-			require.True(t, called, "should be called")
-		})
-	})
-	t.Run("Reader", func(t *testing.T) {
-		d := Decode(errReader{}, 0)
-		if _, err := d.Raw(); err == nil {
-			t.Error("should fail")
 		}
-		if _, err := d.RawAppend(nil); err == nil {
-			t.Error("should fail")
+	})
+
+	t.Run("InsideArray", func(t *testing.T) {
+		for i, tt := range tests {
+			tt := tt
+			input := fmt.Sprintf(`[%s]`, tt.input)
+			t.Run(fmt.Sprintf("Test%d", i+1), testBufferReader(input, func(t *testing.T, d *Decoder) {
+				a := require.New(t)
+
+				err := d.Arr(func(d *Decoder) error {
+					raw, err := raw(d)
+					if err != nil {
+						return err
+					}
+					a.Equal(tt.input, raw.String())
+					a.Equal(tt.typ, raw.Type())
+					return nil
+				})
+
+				if tt.expectErr {
+					a.Error(err)
+				} else {
+					a.NoError(err)
+				}
+			}))
 		}
 	})
 }
 
-func BenchmarkDecoder_Raw(b *testing.B) {
-	data := []byte(`{"foo": [1,2,3,4,5,6,7,8,9,10,11,12,13,14]}`)
-	b.ReportAllocs()
+func TestDecoder_Raw(t *testing.T) {
+	testDecoderRaw(t, (*Decoder).Raw)
+}
 
-	var d Decoder
-	for i := 0; i < b.N; i++ {
-		d.ResetBytes(data)
-		raw, err := d.Raw()
-		if err != nil {
-			b.Fatal(err)
-		}
-		if len(raw) == 0 {
-			b.Fatal("blank")
-		}
-	}
+func TestDecoder_RawAppend(t *testing.T) {
+	testDecoderRaw(t, func(d *Decoder) (Raw, error) {
+		return d.RawAppend(nil)
+	})
 }
 
 func BenchmarkRaw_Type(b *testing.B) {
@@ -105,4 +139,41 @@ func BenchmarkRaw_Type(b *testing.B) {
 			b.Fatal("invalid")
 		}
 	}
+}
+
+func BenchmarkDecoder_Raw(b *testing.B) {
+	data := []byte(`{"foo": [1,2,3,4,5,6,7,8,9,10,11,12,13,14]}`)
+	b.ReportAllocs()
+
+	b.Run("Bytes", func(b *testing.B) {
+		var d Decoder
+		for i := 0; i < b.N; i++ {
+			d.ResetBytes(data)
+			raw, err := d.Raw()
+			if err != nil {
+				b.Fatal(err)
+			}
+			if len(raw) == 0 {
+				b.Fatal("blank")
+			}
+		}
+	})
+	b.Run("Reader", func(b *testing.B) {
+		var (
+			d Decoder
+			r = new(bytes.Reader)
+		)
+		for i := 0; i < b.N; i++ {
+			r.Reset(data)
+			d.Reset(r)
+
+			raw, err := d.Raw()
+			if err != nil {
+				b.Fatal(err)
+			}
+			if len(raw) == 0 {
+				b.Fatal("blank")
+			}
+		}
+	})
 }

@@ -12,6 +12,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func testBufferReader(input string, cb func(t *testing.T, d *Decoder)) func(t *testing.T) {
+	return func(t *testing.T) {
+		t.Run("Buffer", func(t *testing.T) {
+			cb(t, DecodeStr(input))
+		})
+
+		t.Run("Reader", func(t *testing.T) {
+			r := strings.NewReader(input)
+			cb(t, Decode(r, 512))
+		})
+
+		t.Run("OneByteReader", func(t *testing.T) {
+			r := strings.NewReader(input)
+			obr := iotest.OneByteReader(r)
+			cb(t, Decode(obr, 512))
+		})
+	}
+}
+
 func createTestCase(input string, cb func(t *testing.T, d *Decoder) error) func(t *testing.T) {
 	run := func(d *Decoder, input string, valid bool) func(t *testing.T) {
 		return func(t *testing.T) {
