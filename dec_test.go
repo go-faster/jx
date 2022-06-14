@@ -12,38 +12,41 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createTestCase(input string, cb func(t *testing.T, d *Decoder) error) func(t *testing.T) {
-	run := func(d *Decoder, input string, valid bool) func(t *testing.T) {
-		return func(t *testing.T) {
-			t.Cleanup(func() {
-				if t.Failed() {
-					t.Logf("Input: %q", input)
-				}
-			})
-
-			err := cb(t, d)
-			if valid {
-				require.NoError(t, err)
-			} else {
-				require.Error(t, err)
-			}
-		}
-	}
-
+func testBufferReader(input string, cb func(t *testing.T, d *Decoder)) func(t *testing.T) {
 	return func(t *testing.T) {
-		valid := json.Valid([]byte(input))
+		t.Run("Buffer", func(t *testing.T) {
+			cb(t, DecodeStr(input))
+		})
 
-		t.Run("Buffer", run(DecodeStr(input), input, valid))
+		t.Run("Reader", func(t *testing.T) {
+			r := strings.NewReader(input)
+			cb(t, Decode(r, 512))
+		})
 
-		r := strings.NewReader(input)
-		d := Decode(r, 512)
-		t.Run("Reader", run(d, input, valid))
-
-		r.Reset(input)
-		obr := iotest.OneByteReader(r)
-		d.Reset(obr)
-		t.Run("OneByteReader", run(d, input, valid))
+		t.Run("OneByteReader", func(t *testing.T) {
+			r := strings.NewReader(input)
+			obr := iotest.OneByteReader(r)
+			cb(t, Decode(obr, 512))
+		})
 	}
+}
+
+func createTestCase(input string, cb func(t *testing.T, d *Decoder) error) func(t *testing.T) {
+	valid := json.Valid([]byte(input))
+	return testBufferReader(input, func(t *testing.T, d *Decoder) {
+		t.Cleanup(func() {
+			if t.Failed() {
+				t.Logf("Input: %q", input)
+			}
+		})
+
+		err := cb(t, d)
+		if valid {
+			require.NoError(t, err)
+		} else {
+			require.Error(t, err)
+		}
+	})
 }
 
 func runTestCases(t *testing.T, cases []string, cb func(t *testing.T, d *Decoder) error) {
