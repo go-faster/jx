@@ -1,16 +1,35 @@
 package jx
 
-import "github.com/go-faster/errors"
+import (
+	"bytes"
+	"io"
+
+	"github.com/go-faster/errors"
+)
 
 // Raw is like Skip(), but saves and returns skipped value as raw json.
 //
 // Do not retain returned value, it references underlying buffer.
 func (d *Decoder) Raw() (Raw, error) {
-	if d.reader != nil {
-		return nil, errors.New("not implemented for io.Reader")
+	start := d.head
+	if orig := d.reader; orig != nil {
+		buf := bytes.Buffer{}
+		buf.Write(d.buf[d.head:d.tail])
+		d.reader = io.TeeReader(orig, &buf)
+		defer func() {
+			d.reader = orig
+		}()
+
+		if err := d.Skip(); err != nil {
+			return nil, errors.Wrap(err, "skip")
+		}
+
+		unread := d.tail - d.head
+		raw := buf.Bytes()
+		raw = raw[:len(raw)-unread]
+		return raw, nil
 	}
 
-	start := d.head
 	if err := d.Skip(); err != nil {
 		return nil, errors.Wrap(err, "skip")
 	}
