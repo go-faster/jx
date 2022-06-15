@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDecoder_SkipArrayNested(t *testing.T) {
+func TestDecoderSkipArrayNested(t *testing.T) {
 	runTestCases(t, []string{
 		`[-0.12, "stream"]`,
 		`["hello", "stream"]`,
@@ -35,7 +35,7 @@ func TestDecoder_SkipArrayNested(t *testing.T) {
 	})
 }
 
-func TestDecoderSkip_Nested(t *testing.T) {
+func TestDecoderSkipNested(t *testing.T) {
 	d := DecodeStr(`[ {"a" : [{"stream": "c"}], "d": 102 }, "stream"]`)
 	if _, err := d.Elem(); err != nil {
 		t.Fatal(err)
@@ -49,7 +49,7 @@ func TestDecoderSkip_Nested(t *testing.T) {
 	require.Equal(t, "stream", s)
 }
 
-func TestDecoderSkip_SimpleNested(t *testing.T) {
+func TestDecoderSkipSimpleNested(t *testing.T) {
 	d := DecodeStr(`["foo", "bar", "baz"]`)
 	require.NoError(t, d.Skip())
 }

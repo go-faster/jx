@@ -48,26 +48,32 @@ func testDecoderRaw(t *testing.T, raw func(d *Decoder) (Raw, error)) {
 		}))
 	}
 
+	objectInput := func(input string) string {
+		e := GetEncoder()
+		defer PutEncoder(e)
+
+		e.Obj(func(e *Encoder) {
+			const length = 8
+			for i := range [length]struct{}{} {
+				e.FieldStart(fmt.Sprintf("skip%d", i))
+				e.Str("it")
+			}
+
+			e.FieldStart("test")
+			e.RawStr(input)
+
+			for i := range [length]struct{}{} {
+				e.FieldStart(fmt.Sprintf("skip%d", i+length))
+				e.Str("it")
+			}
+		})
+
+		return e.String()
+	}
 	t.Run("InsideObject", func(t *testing.T) {
 		for i, tt := range tests {
 			tt := tt
-			e := GetEncoder()
-			e.Obj(func(e *Encoder) {
-				const length = 8
-				for i := range [length]struct{}{} {
-					e.FieldStart(fmt.Sprintf("skip%d", i))
-					e.Str("it")
-				}
-
-				e.FieldStart("test")
-				e.RawStr(tt.input)
-
-				for i := range [length]struct{}{} {
-					e.FieldStart(fmt.Sprintf("skip%d", i+length))
-					e.Str("it")
-				}
-			})
-			input := e.String()
+			input := objectInput(tt.input)
 			t.Run(fmt.Sprintf("Test%d", i+1), testBufferReader(input, func(t *testing.T, d *Decoder) {
 				a := require.New(t)
 
@@ -82,6 +88,37 @@ func testDecoderRaw(t *testing.T, raw func(d *Decoder) (Raw, error)) {
 					a.Equal(tt.input, raw.String())
 					a.Equal(tt.typ, raw.Type())
 					return nil
+				})
+
+				if tt.expectErr {
+					a.Error(err)
+				} else {
+					a.NoError(err)
+				}
+			}))
+		}
+	})
+
+	t.Run("InsideCapture", func(t *testing.T) {
+		for i, tt := range tests {
+			tt := tt
+			input := objectInput(tt.input)
+			t.Run(fmt.Sprintf("Test%d", i+1), testBufferReader(input, func(t *testing.T, d *Decoder) {
+				a := require.New(t)
+
+				err := d.Capture(func(d *Decoder) error {
+					return d.ObjBytes(func(d *Decoder, key []byte) error {
+						if string(key) != "test" {
+							return d.Skip()
+						}
+						raw, err := raw(d)
+						if err != nil {
+							return err
+						}
+						a.Equal(tt.input, raw.String())
+						a.Equal(tt.typ, raw.Type())
+						return nil
+					})
 				})
 
 				if tt.expectErr {

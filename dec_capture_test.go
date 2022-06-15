@@ -137,3 +137,27 @@ func TestDecoder_Capture(t *testing.T) {
 	}
 	t.Run("Reader", test(&decoder))
 }
+
+func TestDoubleCapture(t *testing.T) {
+	input := `{"foo":"bar"}`
+	testBufferReader(input, func(t *testing.T, d *Decoder) {
+		a := require.New(t)
+		check := func(d *Decoder) error {
+			val, err := d.Raw()
+			if err != nil {
+				return err
+			}
+			a.Equal(input, val.String())
+			a.Equal(Object, val.Type())
+			return nil
+		}
+
+		a.NoError(d.Capture(func(d *Decoder) error {
+			if err := d.Capture(check); err != nil {
+				return err
+			}
+			return check(d)
+		}))
+		a.NoError(check(d))
+	})(t)
+}
