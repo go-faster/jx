@@ -180,12 +180,17 @@ func BenchmarkRaw_Type(b *testing.B) {
 
 func BenchmarkDecoder_Raw(b *testing.B) {
 	data := []byte(`{"foo": [1,2,3,4,5,6,7,8,9,10,11,12,13,14]}`)
-	b.ReportAllocs()
 
 	b.Run("Bytes", func(b *testing.B) {
 		var d Decoder
+
+		b.SetBytes(int64(len(data)))
+		b.ReportAllocs()
+		b.ResetTimer()
+
 		for i := 0; i < b.N; i++ {
 			d.ResetBytes(data)
+
 			raw, err := d.Raw()
 			if err != nil {
 				b.Fatal(err)
@@ -200,6 +205,11 @@ func BenchmarkDecoder_Raw(b *testing.B) {
 			d Decoder
 			r = new(bytes.Reader)
 		)
+
+		b.SetBytes(int64(len(data)))
+		b.ReportAllocs()
+		b.ResetTimer()
+
 		for i := 0; i < b.N; i++ {
 			r.Reset(data)
 			d.Reset(r)

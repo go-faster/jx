@@ -1,11 +1,31 @@
 package jx
 
 import (
-	"bytes"
 	"io"
 
 	"github.com/go-faster/errors"
 )
+
+type rawReader struct {
+	// internal buffer, may be reference to *Decoder.buf.
+	buf []byte
+	// if true, buf is reference to  *Decoder.buf.
+	captured bool
+	orig     io.Reader
+}
+
+func (r *rawReader) Read(p []byte) (n int, err error) {
+	if r.captured {
+		// Make a copy.
+		r.buf = append([]byte(nil), r.buf...)
+		r.captured = false
+	}
+	n, err = r.orig.Read(p)
+	if n > 0 {
+		r.buf = append(r.buf, p[:n]...)
+	}
+	return n, err
+}
 
 // Raw is like Skip(), but saves and returns skipped value as raw json.
 //
@@ -13,9 +33,12 @@ import (
 func (d *Decoder) Raw() (Raw, error) {
 	start := d.head
 	if orig := d.reader; orig != nil {
-		buf := bytes.Buffer{}
-		buf.Write(d.buf[d.head:d.tail])
-		d.reader = io.TeeReader(orig, &buf)
+		rr := &rawReader{
+			buf:      d.buf[start:d.tail],
+			captured: true,
+			orig:     orig,
+		}
+		d.reader = rr
 		defer func() {
 			d.reader = orig
 		}()
@@ -25,7 +48,7 @@ func (d *Decoder) Raw() (Raw, error) {
 		}
 
 		unread := d.tail - d.head
-		raw := buf.Bytes()
+		raw := rr.buf
 		raw = raw[:len(raw)-unread]
 		return raw, nil
 	}
