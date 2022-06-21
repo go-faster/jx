@@ -28,6 +28,12 @@ func testBufferReader(input string, cb func(t *testing.T, d *Decoder)) func(t *t
 			obr := iotest.OneByteReader(r)
 			cb(t, Decode(obr, 512))
 		})
+
+		t.Run("DataErrReader", func(t *testing.T) {
+			r := strings.NewReader(input)
+			obr := iotest.DataErrReader(r)
+			cb(t, Decode(obr, 512))
+		})
 	}
 }
 
