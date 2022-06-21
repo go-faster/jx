@@ -92,7 +92,14 @@ func (d *Decoder) read() error {
 	}
 
 	n, err := d.reader.Read(d.buf)
-	if err != nil {
+	switch err {
+	case nil:
+	case io.EOF:
+		if n > 0 {
+			break
+		}
+		fallthrough
+	default:
 		return err
 	}
 
