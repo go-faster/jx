@@ -56,13 +56,13 @@ func (d *Decoder) num(v Num, forceAppend bool) (Num, error) {
 				return nil, err
 			}
 			return Num(raw), nil
-		} else {
-			raw, err := d.Raw()
-			if err != nil {
-				return nil, err
-			}
-			return Num(raw), nil
 		}
+
+		raw, err := d.Raw()
+		if err != nil {
+			return nil, err
+		}
+		return Num(raw), nil
 	default:
 		return v, errors.Errorf("unexpected %s", d.Next())
 	}
