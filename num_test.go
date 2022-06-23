@@ -2,6 +2,7 @@ package jx
 
 import (
 	"fmt"
+	"io"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -22,6 +23,19 @@ func TestEncoder_Num(t *testing.T) {
 }
 
 func TestNum(t *testing.T) {
+	t.Run("Cases", func(t *testing.T) {
+		runTestCases(t, testNumbers, func(t *testing.T, d *Decoder) error {
+			if _, err := d.Num(); err != nil {
+				return err
+			}
+			if err := d.Skip(); err != nil {
+				if err != io.EOF && err != io.ErrUnexpectedEOF {
+					return err
+				}
+			}
+			return nil
+		})
+	})
 	t.Run("Format", func(t *testing.T) {
 		assert.Equal(t, `-12`, fmt.Sprintf("%d", Num(`"-12.0"`)))
 		assert.Equal(t, `-12.000000`, fmt.Sprintf("%f", Num(`"-12.0"`)))
