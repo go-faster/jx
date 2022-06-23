@@ -85,6 +85,8 @@ type Decoder struct {
 	head int // offset in buf to start of current json stream
 	tail int // offset in buf to end of current json stream
 
+	// if reader is not nil, stores total number of previously read lines.
+	line  int
 	depth int
 }
 
@@ -114,12 +116,17 @@ func DecodeStr(input string) *Decoder {
 	return DecodeBytes([]byte(input))
 }
 
-// Reset resets reader and underlying state, next reads will use provided io.Reader.
-func (d *Decoder) Reset(reader io.Reader) {
+func (d *Decoder) reset(reader io.Reader, tail int) {
 	d.reader = reader
 	d.head = 0
-	d.tail = 0
+	d.tail = tail
+	d.line = 0
 	d.depth = 0
+}
+
+// Reset resets reader and underlying state, next reads will use provided io.Reader.
+func (d *Decoder) Reset(reader io.Reader) {
+	d.reset(reader, 0)
 
 	// Reads from reader need buffer.
 	if cap(d.buf) == 0 {
@@ -134,10 +141,6 @@ func (d *Decoder) Reset(reader io.Reader) {
 
 // ResetBytes resets underlying state, next reads will use provided buffer.
 func (d *Decoder) ResetBytes(input []byte) {
-	d.reader = nil
-	d.head = 0
-	d.tail = len(input)
-	d.depth = 0
-
+	d.reset(nil, len(input))
 	d.buf = input
 }
