@@ -20,35 +20,42 @@ func (d *Decoder) NumAppend(v Num) (Num, error) {
 func (d *Decoder) num(v Num, forceAppend bool) (Num, error) {
 	switch d.Next() {
 	case String:
-		str, err := d.StrBytes()
+		start := d.head
+
+		str, err := d.str(value{raw: true})
 		if err != nil {
 			return Num{}, errors.Wrap(err, "str")
 		}
 
-		d := Decoder{}
-		d.ResetBytes(str)
-
 		// Validate number.
-		c, err := d.next()
-		if err != nil {
-			return Num{}, err
-		}
-		switch c {
-		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-':
-			d.unread()
+		{
+			d := Decoder{}
+			d.ResetBytes(str.buf)
 
-			if err := d.skipNumber(); err != nil {
-				return Num{}, errors.Wrap(err, "skip number")
+			c, err := d.next()
+			if err != nil {
+				return Num{}, err
 			}
-		default:
-			return nil, badToken(c)
+			switch c {
+			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-':
+				d.unread()
+
+				if err := d.skipNumber(); err != nil {
+					return Num{}, errors.Wrap(err, "skip number")
+				}
+			default:
+				return nil, badToken(c)
+			}
 		}
 
-		v = append(v, '"')
-		v = append(v, str...)
-		v = append(v, '"')
-
-		return v, nil
+		// If string is escaped or decoder is streaming, copy it.
+		if !str.raw || forceAppend {
+			v = append(v, '"')
+			v = append(v, str.buf...)
+			v = append(v, '"')
+			return v, nil
+		}
+		return d.buf[start:d.head], nil
 	case Number: // float or integer
 		if forceAppend {
 			raw, err := d.RawAppend(Raw(v))
