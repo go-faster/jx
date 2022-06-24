@@ -1,6 +1,7 @@
 package jx
 
 import (
+	"fmt"
 	"io"
 	"testing"
 
@@ -22,45 +23,47 @@ func testDecoderNum(t *testing.T, num func(*Decoder) (Num, error)) {
 		})
 	})
 
-	t.Run("StrEscape", func(t *testing.T) {
-		a := require.New(t)
-		for _, s := range []string{
-			`"\u0030"`,                   // hex 30 = dec 48 = '0'
-			`"\u002d\u0031\u0030\u0030"`, // "-100", but escaped
-		} {
-			_, err := num(DecodeStr(s))
-			a.NoErrorf(err, "input: %q", s)
+	testNum := func(inputs []string, cb func(input string, t *testing.T, d *Decoder)) func(t *testing.T) {
+		return func(t *testing.T) {
+			for i, input := range inputs {
+				input := input
+				t.Run(fmt.Sprintf("Test%d", i+1), testBufferReader(input, func(t *testing.T, d *Decoder) {
+					cb(input, t, d)
+				}))
+			}
 		}
-	})
-	t.Run("Positive", func(t *testing.T) {
-		a := require.New(t)
-		for _, s := range []string{
-			`100`,
-			`100.0`,
-			`-100.0`,
-			`-100`,
-			`"-100"`,
-			`"-100.0"`,
-		} {
-			v, err := num(DecodeStr(s))
-			a.NoErrorf(err, "input: %q", s)
-			a.Equalf(s, v.String(), "input: %q", s)
-		}
-	})
-	t.Run("Negative", func(t *testing.T) {
-		a := require.New(t)
-		for _, s := range []string{
-			`1.00.0`,
-			`"-100`,
-			`""`,
-			`"-100.0.0"`,
-			"false",
-			`"false"`,
-		} {
-			_, err := num(DecodeStr(s))
-			a.Errorf(err, "input: %q", s)
-		}
-	})
+	}
+
+	t.Run("StrEscape", testNum([]string{
+		`"\u0030"`,                   // hex 30 = dec 48 = '0'
+		`"\u002d\u0031\u0030\u0030"`, // "-100", but escaped
+	}, func(input string, t *testing.T, d *Decoder) {
+		_, err := num(d)
+		require.NoErrorf(t, err, "input: %q", input)
+	}))
+	t.Run("Positive", testNum([]string{
+		`100`,
+		`100.0`,
+		`-100.0`,
+		`-100`,
+		`"-100"`,
+		`"-100.0"`,
+	}, func(input string, t *testing.T, d *Decoder) {
+		v, err := num(d)
+		require.NoErrorf(t, err, "input: %q", input)
+		require.Equalf(t, input, v.String(), "input: %q", input)
+	}))
+	t.Run("Negative", testNum([]string{
+		`1.00.0`,
+		`"-100`,
+		`""`,
+		`"-100.0.0"`,
+		"false",
+		`"false"`,
+	}, func(input string, t *testing.T, d *Decoder) {
+		_, err := num(d)
+		require.Errorf(t, err, "input: %q", input)
+	}))
 }
 
 func TestDecoder_Num(t *testing.T) {
