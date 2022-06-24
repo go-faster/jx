@@ -2,7 +2,6 @@ package jx
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -179,59 +178,6 @@ func TestNum(t *testing.T) {
 			assert.Equal(t, s, v.String())
 		})
 	})
-}
-
-func BenchmarkDecoder_Num(b *testing.B) {
-	for _, bt := range []struct {
-		name  string
-		input string
-	}{
-		{`Number`, `1234567890421`},
-		{`String`, `"1234567890421"`},
-	} {
-		bt := bt
-		b.Run(bt.name, func(b *testing.B) {
-			b.Run("Buffer", func(b *testing.B) {
-				var (
-					input = []byte(bt.input)
-					d     = DecodeBytes(input)
-					err   error
-				)
-
-				b.ReportAllocs()
-				b.ResetTimer()
-
-				for i := 0; i < b.N; i++ {
-					d.ResetBytes(input)
-					_, err = d.Num()
-				}
-
-				if err != nil {
-					b.Fatal(err)
-				}
-			})
-			b.Run("Reader", func(b *testing.B) {
-				var (
-					r   = strings.NewReader(bt.input)
-					d   = Decode(r, 512)
-					err error
-				)
-
-				b.ReportAllocs()
-				b.ResetTimer()
-
-				for i := 0; i < b.N; i++ {
-					r.Reset(bt.input)
-					d.Reset(r)
-					_, err = d.Num()
-				}
-
-				if err != nil {
-					b.Fatal(err)
-				}
-			})
-		})
-	}
 }
 
 func BenchmarkNum(b *testing.B) {

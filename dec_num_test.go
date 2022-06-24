@@ -3,6 +3,8 @@ package jx
 import (
 	"fmt"
 	"io"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -74,4 +76,71 @@ func TestDecoder_NumAppend(t *testing.T) {
 	testDecoderNum(t, func(d *Decoder) (Num, error) {
 		return d.NumAppend(nil)
 	})
+}
+
+func BenchmarkDecoder_Num(b *testing.B) {
+	number := strconv.FormatInt(1234567890421, 10)
+	// escapeHex escapes the number as a string in \uXXXX format.
+	escapeHex := func(number string) string {
+		var b strings.Builder
+		b.WriteByte('"')
+		for _, c := range []byte(number) {
+			b.WriteString("\\u00")
+			b.WriteString(strconv.FormatInt(int64(c), 16))
+		}
+		b.WriteByte('"')
+		return b.String()
+	}
+
+	for _, bt := range []struct {
+		name  string
+		input string
+	}{
+		{`Number`, number},
+		{`String`, strconv.Quote(number)},
+		{`EscapedString`, escapeHex(number)},
+	} {
+		bt := bt
+		b.Run(bt.name, func(b *testing.B) {
+			b.Run("Buffer", func(b *testing.B) {
+				var (
+					input = []byte(bt.input)
+					d     = DecodeBytes(input)
+					err   error
+				)
+
+				b.ReportAllocs()
+				b.ResetTimer()
+
+				for i := 0; i < b.N; i++ {
+					d.ResetBytes(input)
+					_, err = d.Num()
+				}
+
+				if err != nil {
+					b.Fatal(err, bt.input)
+				}
+			})
+			b.Run("Reader", func(b *testing.B) {
+				var (
+					r   = strings.NewReader(bt.input)
+					d   = Decode(r, 512)
+					err error
+				)
+
+				b.ReportAllocs()
+				b.ResetTimer()
+
+				for i := 0; i < b.N; i++ {
+					r.Reset(bt.input)
+					d.Reset(r)
+					_, err = d.Num()
+				}
+
+				if err != nil {
+					b.Fatal(err, bt.input)
+				}
+			})
+		})
+	}
 }
