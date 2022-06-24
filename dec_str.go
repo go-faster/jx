@@ -126,7 +126,7 @@ readTok:
 		// Skip string + last quote.
 		d.head += i + 1
 		if v.raw {
-			return value{buf: str}, nil
+			return value{buf: str, raw: true}, nil
 		}
 		return value{buf: append(v.buf, str...)}, nil
 	case c == '\\':

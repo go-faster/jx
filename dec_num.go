@@ -18,58 +18,59 @@ func (d *Decoder) NumAppend(v Num) (Num, error) {
 
 // num decodes number.
 func (d *Decoder) num(v Num, forceAppend bool) (Num, error) {
-	var str bool
 	switch d.Next() {
 	case String:
-		str = true
+		start := d.head
+
+		str, err := d.str(value{raw: true})
+		if err != nil {
+			return Num{}, errors.Wrap(err, "str")
+		}
+
+		// Validate number.
+		{
+			d := Decoder{}
+			d.ResetBytes(str.buf)
+
+			c, err := d.next()
+			if err != nil {
+				return Num{}, err
+			}
+			switch c {
+			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-':
+				d.unread()
+
+				if err := d.skipNumber(); err != nil {
+					return Num{}, errors.Wrap(err, "skip number")
+				}
+			default:
+				return nil, badToken(c)
+			}
+		}
+
+		// If string is escaped or decoder is streaming, copy it.
+		if !str.raw || forceAppend {
+			v = append(v, '"')
+			v = append(v, str.buf...)
+			v = append(v, '"')
+			return v, nil
+		}
+		return d.buf[start:d.head], nil
 	case Number: // float or integer
+		if forceAppend {
+			raw, err := d.RawAppend(Raw(v))
+			if err != nil {
+				return nil, err
+			}
+			return Num(raw), nil
+		}
+
+		raw, err := d.Raw()
+		if err != nil {
+			return nil, err
+		}
+		return Num(raw), nil
 	default:
 		return v, errors.Errorf("unexpected %s", d.Next())
 	}
-	if d.reader == nil && !forceAppend {
-		// Can use underlying buffer directly.
-		start := d.head
-		d.head++
-		d.number()
-		if str {
-			if err := d.consume('"'); err != nil {
-				return nil, errors.Wrap(err, "end of string")
-			}
-		}
-		v = d.buf[start:d.head]
-	} else {
-		if str {
-			d.head++ // '"'
-			v = append(v, '"')
-		}
-		buf, err := d.numberAppend(v)
-		if err != nil {
-			return v, errors.Wrap(err, "decode")
-		}
-		if str {
-			if err := d.consume('"'); err != nil {
-				return nil, errors.Wrap(err, "end of string")
-			}
-			buf = append(buf, '"')
-		}
-		v = buf
-	}
-
-	var dot bool
-	for _, c := range v {
-		if c != '.' {
-			continue
-		}
-		if dot {
-			return v, errors.New("multiple dots in number")
-		}
-		dot = true
-	}
-
-	// TODO(ernado): Additional validity checks
-	// Current invariants:
-	// 1) Zero or one dot
-	// 2) Only: +, -, ., e, E, 0-9
-
-	return v, nil
 }

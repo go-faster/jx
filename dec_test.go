@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// testBufferReader runs the given test function with various decoding modes (buffered, streaming, etc.).
 func testBufferReader(input string, cb func(t *testing.T, d *Decoder)) func(t *testing.T) {
 	return func(t *testing.T) {
 		t.Run("Buffer", func(t *testing.T) {
