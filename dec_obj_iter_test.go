@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -75,4 +76,27 @@ func TestDecoder_ObjIter(t *testing.T) {
 
 		a.Equal([]string{"foo", "bar", "baz"}, r)
 	}))
+}
+
+func TestDecoderObjIterIssue62(t *testing.T) {
+	a := require.New(t)
+
+	const input = `{"1":1,"2":2}`
+
+	// Force decoder to read only first 4 bytes of input.
+	d := Decode(strings.NewReader(input), 4)
+
+	iter, err := d.ObjIter()
+	a.NoError(err)
+
+	actual := map[string]int{}
+	for iter.Next() {
+		val, err := d.Int()
+		a.NoError(err)
+		actual[string(iter.Key())] = val
+	}
+	a.Equal(map[string]int{
+		"1": 1,
+		"2": 2,
+	}, actual)
 }
