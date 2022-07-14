@@ -102,6 +102,49 @@ func FuzzDecEnc(f *testing.F) {
 	})
 }
 
+func FuzzDecEncReader(f *testing.F) {
+	f.Add(100, []byte("{}"))
+	f.Add(200, []byte(`"foo"`))
+	f.Add(300, []byte(`123"`))
+	f.Add(512, []byte(`null`))
+	f.Add(1024, []byte(`{"foo": {"bar": 1, "baz": [1, 2, 3]}}`))
+	f.Add(100, []byte(`"\u003cf\ufffd\ufffd\ufffd"`))
+	f.Add(128, []byte(`"a\ufffdz"`))
+	f.Add(16, []byte(`"\\nH\\tel\\tl\\ro\\\\World\\r\n\rHello\r\tHi"`))
+	f.Add(2048, []byte(`"key:\"/registry/runtimeclasses/\" range_end:\"/registry/runtimeclasses0\" count_only:true "`))
+	f.Fuzz(func(t *testing.T, n int, data []byte) {
+		r := Decode(bytes.NewReader(data), n)
+
+		v, err := r.Any()
+		if err != nil {
+			t.Skip()
+		}
+		if v.Type == AnyInvalid {
+			t.Skip()
+		}
+		w := GetEncoder()
+		w.Any(v)
+
+		// Parsing from buf to new value.
+		r.Reset(bytes.NewReader(w.Bytes()))
+		parsed, err := r.Any()
+		if err != nil {
+			t.Fatalf("%v:\nBuf:   %s\nValue: %s\nData:  %s",
+				err, w.Bytes(), v, data)
+		}
+		if !parsed.Equal(v) {
+			t.Fatalf("%v:\nBuf:   %s\nValue: %s != %s \nData:  %s",
+				nil, w.Bytes(), parsed, v, data)
+		}
+		b := w.Bytes()
+		w.SetBytes(nil)
+		parsed.Write(w)
+		if !bytes.Equal(w.Bytes(), b) {
+			t.Fatalf("%s != %s", w, b)
+		}
+	})
+}
+
 func FuzzValues(f *testing.F) {
 	f.Add(int64(1), "hello")
 	f.Add(int64(1534564316421), " привет ")
