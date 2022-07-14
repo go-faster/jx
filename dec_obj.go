@@ -25,8 +25,14 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 		return d.decDepth()
 	}
 	d.unread()
+	// Do not reference internal buffer for key if decoder is not buffered.
+	//
+	// Otherwise, subsequent reads may overwrite the key.
+	//
+	// See https://github.com/go-faster/jx/pull/62.
+	isBuffer := d.reader == nil
 
-	k, err := d.str(value{raw: true})
+	k, err := d.str(value{raw: isBuffer})
 	if err != nil {
 		return errors.Wrap(err, "str")
 	}
@@ -47,7 +53,7 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 		return errors.Wrap(err, "next")
 	}
 	for c == ',' {
-		k, err := d.str(value{raw: true})
+		k, err := d.str(value{raw: isBuffer})
 		if err != nil {
 			return errors.Wrap(err, "str")
 		}

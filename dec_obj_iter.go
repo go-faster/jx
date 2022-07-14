@@ -4,11 +4,12 @@ import "github.com/go-faster/errors"
 
 // ObjIter is decoding object iterator.
 type ObjIter struct {
-	d      *Decoder
-	key    []byte
-	err    error
-	closed bool
-	comma  bool
+	d        *Decoder
+	key      []byte
+	err      error
+	isBuffer bool
+	closed   bool
+	comma    bool
 }
 
 // ObjIter creates new object iterator.
@@ -23,7 +24,7 @@ func (d *Decoder) ObjIter() (ObjIter, error) {
 		return ObjIter{}, err
 	}
 	d.unread()
-	return ObjIter{d: d}, nil
+	return ObjIter{d: d, isBuffer: d.reader == nil}, nil
 }
 
 // Key returns current key.
@@ -59,7 +60,7 @@ func (i *ObjIter) Next() bool {
 		dec.unread()
 	}
 
-	k, err := dec.str(value{raw: true})
+	k, err := dec.str(value{raw: i.isBuffer})
 	if err != nil {
 		i.err = errors.Wrap(err, "str")
 		return false
