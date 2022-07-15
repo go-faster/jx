@@ -1,6 +1,7 @@
 package jx
 
 import (
+	"bytes"
 	"io"
 	"math/bits"
 )
@@ -90,6 +91,7 @@ func (d *Decoder) read() error {
 		d.head = d.tail
 		return io.EOF
 	}
+	lines := bytes.Count(d.buf[:d.tail], newLine)
 
 	n, err := d.reader.Read(d.buf)
 	switch err {
@@ -105,6 +107,7 @@ func (d *Decoder) read() error {
 
 	d.head = 0
 	d.tail = n
+	d.line += lines
 	return nil
 }
 
@@ -113,6 +116,7 @@ func (d *Decoder) readAtLeast(min int) error {
 		d.head = d.tail
 		return io.ErrUnexpectedEOF
 	}
+	lines := bytes.Count(d.buf[:d.tail], newLine)
 
 	if need := min - len(d.buf); need > 0 {
 		d.buf = append(d.buf, make([]byte, need)...)
@@ -127,6 +131,7 @@ func (d *Decoder) readAtLeast(min int) error {
 
 	d.head = 0
 	d.tail = n
+	d.line += lines
 	return nil
 }
 
