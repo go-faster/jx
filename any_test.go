@@ -96,7 +96,7 @@ func (v *Any) Read(d *Decoder) error {
 	case Invalid:
 		return errors.New("invalid")
 	case Number:
-		n, err := d.Num()
+		n, err := d.NumAppend(nil)
 		if err != nil {
 			return errors.Wrap(err, "number")
 		}
