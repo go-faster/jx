@@ -103,6 +103,9 @@ func FuzzDecEnc(f *testing.F) {
 }
 
 func FuzzDecEncReader(f *testing.F) {
+	f.Add(3, []byte(`{"1":1,"2":2}`))
+	f.Add(4, []byte(`{"1":1,"2":2}`))
+	f.Add(5, []byte(`{"1":1,"2":2}`))
 	f.Add(100, []byte("{}"))
 	f.Add(200, []byte(`"foo"`))
 	f.Add(300, []byte(`123"`))
@@ -117,10 +120,10 @@ func FuzzDecEncReader(f *testing.F) {
 
 		v, err := r.Any()
 		if err != nil {
-			t.Skip()
+			t.Skipf("Error: %+v\nData: %q\n", err, data)
 		}
 		if v.Type == AnyInvalid {
-			t.Skip()
+			t.Skipf("Invalid: %q", data)
 		}
 		w := GetEncoder()
 		w.Any(v)
