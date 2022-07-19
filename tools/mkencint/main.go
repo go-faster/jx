@@ -44,10 +44,8 @@ func sub(a, b int) int {
 	return a - b
 }
 
-var (
-	//go:embed gen.tmpl
-	rawTemplate string
-)
+//go:embed gen.tmpl
+var rawTemplate string
 
 func computeIterations(max uint64) int {
 	// Compute maximum pow of 1000 plus remainder.

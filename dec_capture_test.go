@@ -69,7 +69,7 @@ func TestIterator_Capture(t *testing.T) {
 }
 
 func BenchmarkIterator_Skip(b *testing.B) {
-	var input = []byte(`{"type": "foo", "foo": "string"}`)
+	input := []byte(`{"type": "foo", "foo": "string"}`)
 	it := GetDecoder()
 	b.ReportAllocs()
 

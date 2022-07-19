@@ -294,9 +294,11 @@ func TestWriteInt32(t *testing.T) {
 }
 
 func TestWriteUint64(t *testing.T) {
-	vals := []uint64{0, 1, 11, 111, 255, 999999, 0xfff, 0xffff, 0xfffff, 0xffffff, 0xfffffff, 0xffffffff,
+	vals := []uint64{
+		0, 1, 11, 111, 255, 999999, 0xfff, 0xffff, 0xfffff, 0xffffff, 0xfffffff, 0xffffffff,
 		0xfffffffff, 0xffffffffff, 0xfffffffffff, 0xffffffffffff, 0xfffffffffffff, 0xffffffffffffff,
-		0xfffffffffffffff, 0xffffffffffffffff}
+		0xfffffffffffffff, 0xffffffffffffffff,
+	}
 	for _, val := range vals {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)
@@ -313,9 +315,11 @@ func TestWriteUint64(t *testing.T) {
 }
 
 func TestWriteInt64(t *testing.T) {
-	vals := []int64{0, 1, 11, 111, 255, 999999, 0xfff, 0xffff, 0xfffff, 0xffffff, 0xfffffff, 0xffffffff,
+	vals := []int64{
+		0, 1, 11, 111, 255, 999999, 0xfff, 0xffff, 0xfffff, 0xffffff, 0xfffffff, 0xffffffff,
 		0xfffffffff, 0xffffffffff, 0xfffffffffff, 0xffffffffffff, 0xfffffffffffff, 0xffffffffffffff,
-		0xfffffffffffffff, 0x7fffffffffffffff, -0x8000000000000000}
+		0xfffffffffffffff, 0x7fffffffffffffff, -0x8000000000000000,
+	}
 	for _, val := range vals {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
 			should := require.New(t)

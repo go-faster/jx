@@ -86,8 +86,10 @@ func TestEncoder_StrEscape(t *testing.T) {
 		{"\uFFFD", `"�"`},
 		{"a\xc5z", `"a\ufffdz"`},
 		{"<f\xed\xa0\x80", `"\u003cf\ufffd\ufffd\ufffd"`},
-		{`<html>Hello\\\n\r\\` + "\n\rW\torld\u2028</html>",
-			`"\u003chtml\u003eHello\\\\\\n\\r\\\\\n\rW\torld\u2028\u003c/html\u003e"`},
+		{
+			`<html>Hello\\\n\r\\` + "\n\rW\torld\u2028</html>",
+			`"\u003chtml\u003eHello\\\\\\n\\r\\\\\n\rW\torld\u2028\u003c/html\u003e"`,
+		},
 	}
 	for i, tt := range testCases {
 		tt := tt
