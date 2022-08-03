@@ -2,8 +2,7 @@ package jx
 
 import (
 	"encoding/json"
-	"os"
-	"path/filepath"
+	"path"
 	"strings"
 	"testing"
 
@@ -14,8 +13,8 @@ import (
 func TestSuite(t *testing.T) {
 	// https://github.com/nst/JSONTestSuite
 	// By Nicolas Seriot (https://github.com/nst)
-	dir := filepath.Join("testdata", "test_parsing")
-	files, err := os.ReadDir(dir)
+	dir := path.Join("testdata", "test_parsing")
+	files, err := testdata.ReadDir(dir)
 	require.NoError(t, err)
 
 	const (
@@ -28,11 +27,11 @@ func TestSuite(t *testing.T) {
 			continue
 		}
 
-		name := filepath.Join(dir, f.Name())
+		name := path.Join(dir, f.Name())
 		action := f.Name()[:2]
 
 		t.Run(f.Name(), func(t *testing.T) {
-			data, err := os.ReadFile(name)
+			data, err := testdata.ReadFile(name)
 			require.NoError(t, err)
 
 			r := GetDecoder()
