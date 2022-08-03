@@ -27,13 +27,14 @@ func TestSuite(t *testing.T) {
 			continue
 		}
 
-		name := path.Join(dir, f.Name())
+		name := strings.TrimSuffix(f.Name(), ".json")
 		action := f.Name()[:2]
 
-		t.Run(f.Name(), func(t *testing.T) {
-			data, err := testdata.ReadFile(name)
-			require.NoError(t, err)
+		file := path.Join(dir, f.Name())
+		data, err := testdata.ReadFile(file)
+		require.NoError(t, err)
 
+		t.Run(name, func(t *testing.T) {
 			r := GetDecoder()
 			r.ResetBytes(data)
 			defer PutDecoder(r)
