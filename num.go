@@ -13,6 +13,7 @@ import (
 // Same as Raw, but with number invariants.
 //
 // Examples:
+//
 //	123.45   // Str: false, IsInt: false
 //	"123.45" // Str: true,  IsInt: false
 //	"12345"  // Str: true,  IsInt: true

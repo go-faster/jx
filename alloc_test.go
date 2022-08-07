@@ -1,5 +1,4 @@
-//go:build !race && !gofuzz && go1.17
-// +build !race,!gofuzz,go1.17
+//go:build !race
 
 package jx
 
