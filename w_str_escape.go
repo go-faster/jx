@@ -1,11 +1,6 @@
-//go:build !go1.18
-
 package jx
 
-import (
-	"unicode/utf8"
-	"unsafe"
-)
+import "unicode/utf8"
 
 // Str encodes string without html escaping.
 //
@@ -15,19 +10,15 @@ func (w *Writer) Str(v string) {
 	writeStr(w, v)
 }
 
-func bts(buf []byte) string {
-	return *(*string)(unsafe.Pointer(&buf)) // #nosec G103: internal usage
-}
-
 // ByteStr encodes string without html escaping.
 //
 // Use ByteStrEscape to escape html, this is default for encoding/json and
 // should be used by default for untrusted strings.
 func (w *Writer) ByteStr(v []byte) {
-	writeStr(w, bts(v))
+	writeStr(w, v)
 }
 
-func writeStr(w *Writer, v string) {
+func writeStr[T byteseq](w *Writer, v T) {
 	w.Buf = append(w.Buf, '"')
 
 	// Fast path, without utf8 and escape support.
@@ -48,10 +39,10 @@ func writeStr(w *Writer, v string) {
 	}
 slow:
 	w.Buf = append(w.Buf, v[:i]...)
-	strSlow(w, v[i:])
+	strSlow[T](w, v[i:])
 }
 
-func strSlow(w *Writer, v string) {
+func strSlow[T byteseq](w *Writer, v T) {
 	var i, start int
 	// for the remaining parts, we process them char by char
 	for i < len(v) {
@@ -98,10 +89,10 @@ func (w *Writer) StrEscape(v string) {
 
 // ByteStrEscape encodes string with html special characters escaping.
 func (w *Writer) ByteStrEscape(v []byte) {
-	strEscape(w, bts(v))
+	strEscape(w, v)
 }
 
-func strEscape(w *Writer, v string) {
+func strEscape[T byteseq](w *Writer, v T) {
 	length := len(v)
 	w.Buf = append(w.Buf, '"')
 	// Fast path, probably does not require escaping.
@@ -117,10 +108,10 @@ func strEscape(w *Writer, v string) {
 		w.Buf = append(w.Buf, '"')
 		return
 	}
-	strEscapeSlow(w, i, v, length)
+	strEscapeSlow[T](w, i, v, length)
 }
 
-func strEscapeSlow(w *Writer, i int, v string, valLen int) {
+func strEscapeSlow[T byteseq](w *Writer, i int, v T, valLen int) {
 	start := i
 	// for the remaining parts, we process them char by char
 	for i < valLen {
