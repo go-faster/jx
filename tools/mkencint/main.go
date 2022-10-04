@@ -1,3 +1,4 @@
+// Command mkencint generates integer encoding functions.
 package main
 
 import (
