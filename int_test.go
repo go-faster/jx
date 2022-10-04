@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/exp/constraints"
 )
 
 func TestReadUint64Invalid(t *testing.T) {
@@ -72,6 +73,295 @@ func TestDecoderIntNumbers(t *testing.T) {
 	}
 }
 
+func TestDecoderIntOverflow(t *testing.T) {
+	t.Run("8", func(t *testing.T) {
+		for _, s := range []string{
+			"18446744073709551617",
+			"18446744073709551616",
+			"4294967296",
+			"-9223372036854775809",
+			"-18446744073709551617",
+			"-32768",
+			"65537",
+			"-129",
+			"256",
+		} {
+			t.Run(s, func(t *testing.T) {
+				should := require.New(t)
+				d := DecodeStr(s)
+				v, err := d.Int8()
+				should.Error(err, "%v", v)
+
+				d = DecodeStr(s)
+				_, err = d.int(8)
+				should.Error(err)
+
+				d = DecodeStr(s)
+				vu, err := d.UInt8()
+				should.Error(err, "%v", vu)
+
+				d = DecodeStr(s)
+				_, err = d.uint(8)
+				should.Error(err)
+			})
+		}
+		for _, s := range []string{
+			"-9223372036854775809",
+			"9223372036854775808",
+			"2147483648",
+			"-2147483649",
+			"-4294967295",
+			"32768",
+			"-32769",
+			"65535",
+			"65536",
+			"-129",
+			"128",
+			"255",
+			"256",
+		} {
+			t.Run(s, func(t *testing.T) {
+				should := require.New(t)
+				d := DecodeStr(s)
+				v, err := d.Int8()
+				should.Error(err, "%v", v)
+			})
+		}
+	})
+	t.Run("16", func(t *testing.T) {
+		for _, s := range []string{
+			"18446744073709551617",
+			"18446744073709551616",
+			"4294967296",
+			"-9223372036854775809",
+			"-18446744073709551617",
+			"-32769",
+			"65537",
+		} {
+			t.Run(s, func(t *testing.T) {
+				should := require.New(t)
+				d := DecodeStr(s)
+				v, err := d.Int16()
+				should.Error(err, "%v", v)
+
+				d = DecodeStr(s)
+				_, err = d.int(16)
+				should.Error(err)
+
+				d = DecodeStr(s)
+				vu, err := d.UInt16()
+				should.Error(err, "%v", vu)
+
+				d = DecodeStr(s)
+				_, err = d.uint(16)
+				should.Error(err)
+			})
+		}
+		for _, s := range []string{
+			"-9223372036854775809",
+			"9223372036854775808",
+			"2147483648",
+			"-2147483649",
+			"-4294967295",
+			"32768",
+			"-32769",
+			"65535",
+			"65536",
+		} {
+			t.Run(s, func(t *testing.T) {
+				should := require.New(t)
+				d := DecodeStr(s)
+				v, err := d.Int16()
+				should.Error(err, "%v", v)
+			})
+		}
+	})
+	t.Run("32", func(t *testing.T) {
+		for _, s := range []string{
+			"18446744073709551617",
+			"18446744073709551616",
+			"4294967296",
+			"-9223372036854775809",
+			"-18446744073709551617",
+		} {
+			t.Run(s, func(t *testing.T) {
+				should := require.New(t)
+				d := DecodeStr(s)
+				v, err := d.Int32()
+				should.Error(err, "%v", v)
+
+				d = DecodeStr(s)
+				_, err = d.int(32)
+				should.Error(err)
+
+				d = DecodeStr(s)
+				vu, err := d.UInt32()
+				should.Error(err, "%v", vu)
+
+				d = DecodeStr(s)
+				_, err = d.uint(32)
+				should.Error(err)
+			})
+		}
+		for _, s := range []string{
+			"-9223372036854775809",
+			"9223372036854775808",
+			"2147483648",
+			"-2147483649",
+			"-4294967295",
+		} {
+			t.Run(s, func(t *testing.T) {
+				should := require.New(t)
+				d := DecodeStr(s)
+				v, err := d.Int32()
+				should.Error(err, "%v", v)
+			})
+		}
+	})
+	t.Run("64", func(t *testing.T) {
+		for _, s := range []string{
+			"18446744073709551617",
+			"18446744073709551616",
+			"-9223372036854775809",
+			"-18446744073709551617",
+		} {
+			t.Run(s, func(t *testing.T) {
+				should := require.New(t)
+				d := DecodeStr(s)
+				v, err := d.Int64()
+				should.Error(err, "%v", v)
+
+				d = DecodeStr(s)
+				_, err = d.int(64)
+				should.Error(err)
+
+				d = DecodeStr(s)
+				vu, err := d.UInt64()
+				should.Error(err, "%v", vu)
+
+				d = DecodeStr(s)
+				_, err = d.uint(64)
+				should.Error(err)
+			})
+		}
+		for _, s := range []string{
+			"-9223372036854775809",
+			"9223372036854775808",
+		} {
+			t.Run(s, func(t *testing.T) {
+				should := require.New(t)
+				d := DecodeStr(s)
+				v, err := d.Int64()
+				should.Error(err, "%v", v)
+			})
+		}
+	})
+}
+
+func TestReadInt64Overflow(t *testing.T) {
+	s := `123456789232323232321545111111111111111111111111111111145454545445`
+	iter := DecodeStr(s)
+	_, err := iter.Int64()
+	require.Error(t, err)
+}
+
+func TestReadInt8(t *testing.T) {
+	inputs := []string{
+		`-127`,
+		`-12`,
+		`-1`,
+		`0`,
+		`1`,
+		`12`,
+		`123`,
+		`127`,
+	}
+	for i, input := range inputs {
+		input := input
+		t.Run(fmt.Sprintf("Test%d", i+1), createTestCase(input, func(t *testing.T, d *Decoder) error {
+			should := require.New(t)
+			expected, err := strconv.ParseInt(input, 10, 8)
+			should.NoError(err)
+			v, err := d.Int8()
+			should.NoError(err)
+			should.Equal(int8(expected), v)
+			return nil
+		}))
+	}
+
+	{
+		input := "[" + strings.Join(inputs, ",") + "]"
+		t.Run("Array", createTestCase(input, func(t *testing.T, d *Decoder) error {
+			should := require.New(t)
+			i := 0
+
+			return d.Arr(func(d *Decoder) error {
+				expected, err := strconv.ParseInt(inputs[i], 10, 8)
+				should.NoError(err)
+
+				v, err := d.Int8()
+				if err != nil {
+					return err
+				}
+				should.Equal(int8(expected), v)
+
+				i++
+				return nil
+			})
+		}))
+	}
+}
+
+func TestReadInt16(t *testing.T) {
+	inputs := []string{
+		`-32767`,
+		`-32766`,
+		`-12`,
+		`-1`,
+		`0`,
+		`1`,
+		`12`,
+		`123`,
+		`1234`,
+		`12345`,
+		`32767`,
+	}
+	for i, input := range inputs {
+		input := input
+		t.Run(fmt.Sprintf("Test%d", i+1), createTestCase(input, func(t *testing.T, d *Decoder) error {
+			should := require.New(t)
+			expected, err := strconv.ParseInt(input, 10, 16)
+			should.NoError(err)
+			v, err := d.Int16()
+			should.NoError(err)
+			should.Equal(int16(expected), v)
+			return nil
+		}))
+	}
+
+	{
+		input := "[" + strings.Join(inputs, ",") + "]"
+		t.Run("Array", createTestCase(input, func(t *testing.T, d *Decoder) error {
+			should := require.New(t)
+			i := 0
+
+			return d.Arr(func(d *Decoder) error {
+				expected, err := strconv.ParseInt(inputs[i], 10, 16)
+				should.NoError(err)
+
+				v, err := d.Int16()
+				if err != nil {
+					return err
+				}
+				should.Equal(int16(expected), v)
+
+				i++
+				return nil
+			})
+		}))
+	}
+}
+
 func TestReadInt32(t *testing.T) {
 	inputs := []string{
 		`-12`,
@@ -124,84 +414,6 @@ func TestReadInt32(t *testing.T) {
 			})
 		}))
 	}
-}
-
-func TestDecoderIntOverflow(t *testing.T) {
-	t.Run("32", func(t *testing.T) {
-		for _, s := range []string{
-			"18446744073709551617",
-			"18446744073709551616",
-			"4294967296",
-			"-9223372036854775809",
-			"-18446744073709551617",
-		} {
-			t.Run(s, func(t *testing.T) {
-				should := require.New(t)
-				d := DecodeStr(s)
-				v, err := d.Int32()
-				should.Error(err, "%v", v)
-
-				d = DecodeStr(s)
-				vu, err := d.UInt32()
-				should.Error(err, "%v", vu)
-
-				d = DecodeStr(s)
-				_, err = d.uint(32)
-				should.Error(err)
-			})
-		}
-		for _, s := range []string{
-			"-9223372036854775809",
-			"9223372036854775808",
-			"2147483648",
-			"-2147483649",
-			"-4294967295",
-		} {
-			t.Run(s, func(t *testing.T) {
-				should := require.New(t)
-				d := DecodeStr(s)
-				v, err := d.Int32()
-				should.Error(err, "%v", v)
-			})
-		}
-	})
-	t.Run("64", func(t *testing.T) {
-		for _, s := range []string{
-			"18446744073709551617",
-			"18446744073709551616",
-			"-9223372036854775809",
-			"-18446744073709551617",
-		} {
-			t.Run(s, func(t *testing.T) {
-				should := require.New(t)
-				d := DecodeStr(s)
-				v, err := d.Int64()
-				should.Error(err, "%v", v)
-
-				d = DecodeStr(s)
-				vu, err := d.UInt64()
-				should.Error(err, "%v", vu)
-			})
-		}
-		for _, s := range []string{
-			"-9223372036854775809",
-			"9223372036854775808",
-		} {
-			t.Run(s, func(t *testing.T) {
-				should := require.New(t)
-				d := DecodeStr(s)
-				v, err := d.Int64()
-				should.Error(err, "%v", v)
-			})
-		}
-	})
-}
-
-func TestReadInt64Overflow(t *testing.T) {
-	s := `123456789232323232321545111111111111111111111111111111145454545445`
-	iter := DecodeStr(s)
-	_, err := iter.Int64()
-	require.Error(t, err)
 }
 
 func TestReadInt64(t *testing.T) {
@@ -335,17 +547,6 @@ func TestWriteInt64(t *testing.T) {
 	should.Equal("a4294967295", e.String())
 }
 
-func intPow(n, m int64) int64 {
-	if m == 0 {
-		return 1
-	}
-	result := n
-	for i := int64(2); i <= m; i++ {
-		result *= n
-	}
-	return result
-}
-
 func requireArrEnd(t testing.TB, d *Decoder) {
 	t.Helper()
 	ok, err := d.Elem()
@@ -399,17 +600,6 @@ func TestDecoder_Int64(t *testing.T) {
 	}
 }
 
-func int32Pow(n, m int32) int32 {
-	if m == 0 {
-		return 1
-	}
-	result := n
-	for i := int32(2); i <= m; i++ {
-		result *= n
-	}
-	return result
-}
-
 func TestDecoder_Int32(t *testing.T) {
 	var values []int32
 	values = append(values, 0, math.MaxInt32, math.MinInt32)
@@ -417,7 +607,7 @@ func TestDecoder_Int32(t *testing.T) {
 		v := int32(3)
 		for k := int32(0); k < i; k++ {
 			v += i + 1
-			v += int32Pow(10, k) * (k%7 + 1)
+			v += intPow(10, k) * (k%7 + 1)
 			values = append(values, v)
 		}
 	}
@@ -443,17 +633,6 @@ func TestDecoder_Int32(t *testing.T) {
 	}
 }
 
-func uintPow(n, m uint64) uint64 {
-	if m == 0 {
-		return 1
-	}
-	result := n
-	for i := uint64(2); i <= m; i++ {
-		result *= n
-	}
-	return result
-}
-
 func TestDecoder_UInt64(t *testing.T) {
 	// Generate some diverse numbers.
 	var values []uint64
@@ -462,7 +641,7 @@ func TestDecoder_UInt64(t *testing.T) {
 		v := uint64(3)
 		for k := uint64(0); k < i; k++ {
 			v += i + 1
-			v += uintPow(10, k) * (k%7 + 1)
+			v += intPow(10, k) * (k%7 + 1)
 			values = append(values, v)
 		}
 	}
@@ -484,17 +663,6 @@ func TestDecoder_UInt64(t *testing.T) {
 	}
 }
 
-func uint32Pow(n, m uint32) uint32 {
-	if m == 0 {
-		return 1
-	}
-	result := n
-	for i := uint32(2); i <= m; i++ {
-		result *= n
-	}
-	return result
-}
-
 func TestDecoder_UInt32(t *testing.T) {
 	var values []uint32
 	values = append(values, 0, math.MaxUint32)
@@ -503,7 +671,7 @@ func TestDecoder_UInt32(t *testing.T) {
 		for k := uint32(0); k < i; k++ {
 			// No special meaning, just trying to make digits more diverse.
 			v += i + 1
-			v += uint32Pow(10, k) * (k%7 + 1)
+			v += intPow(10, k) * (k%7 + 1)
 			values = append(values, v)
 		}
 	}
@@ -540,11 +708,19 @@ func TestIntEOF(t *testing.T) {
 		assert.Error(t, err, io.ErrUnexpectedEOF)
 		_, err = d.Int32()
 		assert.Error(t, err, io.ErrUnexpectedEOF)
+		_, err = d.Int16()
+		assert.Error(t, err, io.ErrUnexpectedEOF)
+		_, err = d.Int8()
+		assert.Error(t, err, io.ErrUnexpectedEOF)
 		_, err = d.UInt()
 		assert.Error(t, err, io.ErrUnexpectedEOF)
 		_, err = d.UInt64()
 		assert.Error(t, err, io.ErrUnexpectedEOF)
 		_, err = d.UInt32()
+		assert.Error(t, err, io.ErrUnexpectedEOF)
+		_, err = d.UInt16()
+		assert.Error(t, err, io.ErrUnexpectedEOF)
+		_, err = d.UInt8()
 		assert.Error(t, err, io.ErrUnexpectedEOF)
 	})
 	t.Run("Minus", func(t *testing.T) {
@@ -560,5 +736,24 @@ func TestIntEOF(t *testing.T) {
 		d = DecodeStr(`-`)
 		_, err = d.Int32()
 		assert.Error(t, err, io.ErrUnexpectedEOF)
+
+		d = DecodeStr(`-`)
+		_, err = d.Int16()
+		assert.Error(t, err, io.ErrUnexpectedEOF)
+
+		d = DecodeStr(`-`)
+		_, err = d.Int8()
+		assert.Error(t, err, io.ErrUnexpectedEOF)
 	})
+}
+
+func intPow[Int constraints.Integer](n, m Int) Int {
+	if m == 0 {
+		return 1
+	}
+	result := n
+	for i := Int(2); i <= m; i++ {
+		result *= n
+	}
+	return result
 }

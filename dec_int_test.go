@@ -72,7 +72,7 @@ func TestDecoderUintSizes(t *testing.T) {
 	}
 }
 
-func TestDecoder_Int(t *testing.T) {
+func TestDecoderIntError(t *testing.T) {
 	r := errReader{}
 	get := func() *Decoder {
 		return &Decoder{
@@ -81,12 +81,22 @@ func TestDecoder_Int(t *testing.T) {
 			reader: r,
 		}
 	}
-	t.Run("32", func(t *testing.T) {
+	t.Run("Int8", func(t *testing.T) {
+		d := get()
+		_, err := d.Int8()
+		require.ErrorIs(t, err, r.Err())
+	})
+	t.Run("Int16", func(t *testing.T) {
+		d := get()
+		_, err := d.Int16()
+		require.ErrorIs(t, err, r.Err())
+	})
+	t.Run("Int32", func(t *testing.T) {
 		d := get()
 		_, err := d.Int32()
 		require.ErrorIs(t, err, r.Err())
 	})
-	t.Run("64", func(t *testing.T) {
+	t.Run("Int64", func(t *testing.T) {
 		d := get()
 		_, err := d.Int64()
 		require.ErrorIs(t, err, r.Err())
