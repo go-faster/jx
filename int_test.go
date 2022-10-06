@@ -44,9 +44,9 @@ func TestDecoderIntNumbers(t *testing.T) {
 		})
 		t.Run("64", func(t *testing.T) {
 			decodeStr(t, s, func(d *Decoder) {
-				got, err := d.Int32()
+				got, err := d.Int64()
 				require.NoError(t, err)
-				require.Equal(t, int32(v), got)
+				require.Equal(t, int64(v), got)
 			})
 		})
 		t.Run("int", func(t *testing.T) {
