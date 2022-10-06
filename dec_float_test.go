@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -25,11 +26,11 @@ func decodeStr(t *testing.T, s string, f func(d *Decoder)) {
 		},
 		{
 			Name: "Decode",
-			Fn:   func() *Decoder { return Decode(bytes.NewBufferString(s), 0) },
+			Fn:   func() *Decoder { return Decode(strings.NewReader(s), 0) },
 		},
 		{
 			Name: "DecodeSingleByteBuf",
-			Fn:   func() *Decoder { return Decode(bytes.NewBufferString(s), 1) },
+			Fn:   func() *Decoder { return Decode(strings.NewReader(s), 1) },
 		},
 	} {
 		t.Run(d.Name, func(t *testing.T) {

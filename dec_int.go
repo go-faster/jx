@@ -8,9 +8,14 @@ import (
 	"github.com/go-faster/errors"
 )
 
-var intDigits [256]int8
+var (
+	intDigits   [256]int8
+	errOverflow = strconv.ErrRange
+)
 
 const (
+	uint8SafeToMultiply10  = uint8(0xff)/10 - 1
+	uint16SafeToMultiply10 = uint16(0xffff)/10 - 1
 	uint32SafeToMultiply10 = uint32(0xffffffff)/10 - 1
 	uint64SafeToMultiple10 = uint64(0xffffffffffffffff)/10 - 1
 )
@@ -24,35 +29,251 @@ func init() {
 	}
 }
 
-func (d *Decoder) uint(size int) (uint, error) {
-	if size == 32 {
-		v, err := d.UInt32()
-		return uint(v), err
-	}
-	v, err := d.UInt64()
-	return uint(v), err
-}
-
-// UInt read uint.
-func (d *Decoder) UInt() (uint, error) {
-	return d.uint(strconv.IntSize)
-}
-
 func (d *Decoder) int(size int) (int, error) {
-	if size == 32 {
+	switch size {
+	case 8:
+		v, err := d.Int8()
+		return int(v), err
+	case 16:
+		v, err := d.Int16()
+		return int(v), err
+	case 32:
 		v, err := d.Int32()
 		return int(v), err
+	default:
+		v, err := d.Int64()
+		return int(v), err
 	}
-	v, err := d.Int64()
-	return int(v), err
 }
 
-// Int reads integer.
+// Int reads int.
 func (d *Decoder) Int() (int, error) {
 	return d.int(strconv.IntSize)
 }
 
-// Int32 reads int32 value.
+func (d *Decoder) uint(size int) (uint, error) {
+	switch size {
+	case 8:
+		v, err := d.UInt8()
+		return uint(v), err
+	case 16:
+		v, err := d.UInt16()
+		return uint(v), err
+	case 32:
+		v, err := d.UInt32()
+		return uint(v), err
+	default:
+		v, err := d.UInt64()
+		return uint(v), err
+	}
+}
+
+// UInt reads uint.
+func (d *Decoder) UInt() (uint, error) {
+	return d.uint(strconv.IntSize)
+}
+
+// Int8 reads int8.
+func (d *Decoder) Int8() (int8, error) {
+	c, err := d.byte()
+	if err != nil {
+		return 0, errors.Wrap(err, "byte")
+	}
+	if c == '-' {
+		val, err := d.readUInt8()
+		if err != nil {
+			return 0, err
+		}
+		if val > math.MaxInt8+1 {
+			return 0, errOverflow
+		}
+		return -int8(val), nil
+	}
+	d.unread()
+	val, err := d.readUInt8()
+	if err != nil {
+		return 0, err
+	}
+	if val > math.MaxInt8 {
+		return 0, errOverflow
+	}
+	return int8(val), nil
+}
+
+// UInt8 reads uint8.
+func (d *Decoder) UInt8() (uint8, error) {
+	return d.readUInt8()
+}
+
+func (d *Decoder) readUInt8() (uint8, error) {
+	c, err := d.byte()
+	if err != nil {
+		return 0, errors.Wrap(err, "byte")
+	}
+	ind := intDigits[c]
+	if ind == 0 {
+		return 0, nil
+	}
+	if ind == invalidCharForNumber {
+		return 0, errors.Wrap(err, "bad token")
+	}
+	value := uint8(ind)
+	if d.tail-d.head > 10 {
+		i := d.head
+		ind2 := intDigits[d.buf[i]]
+		if ind2 == invalidCharForNumber {
+			d.head = i
+			return value, nil
+		}
+		i++
+		ind3 := intDigits[d.buf[i]]
+		if ind3 == invalidCharForNumber {
+			d.head = i
+			return value*10 + uint8(ind2), nil
+		}
+		i++
+		ind4 := intDigits[d.buf[i]]
+		value = value*100 + uint8(ind2)*10 + uint8(ind3)
+		d.head = i
+		if ind4 == invalidCharForNumber {
+			return value, nil
+		}
+	}
+	for {
+		buf := d.buf[d.head:d.tail]
+		for i, c := range buf {
+			ind = intDigits[c]
+			if ind == invalidCharForNumber {
+				d.head += i
+				return value, nil
+			}
+			if value > uint8SafeToMultiply10 {
+				value2 := (value << 3) + (value << 1) + uint8(ind)
+				if value2 < value {
+					return 0, errOverflow
+				}
+				value = value2
+				continue
+			}
+			value = (value << 3) + (value << 1) + uint8(ind)
+		}
+		err := d.read()
+		if err == io.EOF {
+			return value, nil
+		}
+		if err != nil {
+			return 0, err
+		}
+	}
+}
+
+// Int16 reads int16.
+func (d *Decoder) Int16() (int16, error) {
+	c, err := d.byte()
+	if err != nil {
+		return 0, errors.Wrap(err, "byte")
+	}
+	if c == '-' {
+		val, err := d.readUInt16()
+		if err != nil {
+			return 0, err
+		}
+		if val > math.MaxInt16+1 {
+			return 0, errOverflow
+		}
+		return -int16(val), nil
+	}
+	d.unread()
+	val, err := d.readUInt16()
+	if err != nil {
+		return 0, err
+	}
+	if val > math.MaxInt16 {
+		return 0, errOverflow
+	}
+	return int16(val), nil
+}
+
+// UInt16 reads uint16.
+func (d *Decoder) UInt16() (uint16, error) {
+	return d.readUInt16()
+}
+
+func (d *Decoder) readUInt16() (uint16, error) {
+	c, err := d.byte()
+	if err != nil {
+		return 0, errors.Wrap(err, "byte")
+	}
+	ind := intDigits[c]
+	if ind == 0 {
+		return 0, nil
+	}
+	if ind == invalidCharForNumber {
+		return 0, errors.Wrap(err, "bad token")
+	}
+	value := uint16(ind)
+	if d.tail-d.head > 10 {
+		i := d.head
+		ind2 := intDigits[d.buf[i]]
+		if ind2 == invalidCharForNumber {
+			d.head = i
+			return value, nil
+		}
+		i++
+		ind3 := intDigits[d.buf[i]]
+		if ind3 == invalidCharForNumber {
+			d.head = i
+			return value*10 + uint16(ind2), nil
+		}
+		i++
+		ind4 := intDigits[d.buf[i]]
+		if ind4 == invalidCharForNumber {
+			d.head = i
+			return value*100 + uint16(ind2)*10 + uint16(ind3), nil
+		}
+		i++
+		ind5 := intDigits[d.buf[i]]
+		if ind5 == invalidCharForNumber {
+			d.head = i
+			return value*1000 + uint16(ind2)*100 + uint16(ind3)*10 + uint16(ind4), nil
+		}
+		i++
+		ind6 := intDigits[d.buf[i]]
+		value = value*10000 + uint16(ind2)*1000 + uint16(ind3)*100 + uint16(ind4)*10 + uint16(ind5)
+		d.head = i
+		if ind6 == invalidCharForNumber {
+			return value, nil
+		}
+	}
+	for {
+		buf := d.buf[d.head:d.tail]
+		for i, c := range buf {
+			ind = intDigits[c]
+			if ind == invalidCharForNumber {
+				d.head += i
+				return value, nil
+			}
+			if value > uint16SafeToMultiply10 {
+				value2 := (value << 3) + (value << 1) + uint16(ind)
+				if value2 < value {
+					return 0, errOverflow
+				}
+				value = value2
+				continue
+			}
+			value = (value << 3) + (value << 1) + uint16(ind)
+		}
+		err := d.read()
+		if err == io.EOF {
+			return value, nil
+		}
+		if err != nil {
+			return 0, err
+		}
+	}
+}
+
+// Int32 reads int32.
 func (d *Decoder) Int32() (int32, error) {
 	c, err := d.byte()
 	if err != nil {
@@ -64,7 +285,7 @@ func (d *Decoder) Int32() (int32, error) {
 			return 0, err
 		}
 		if val > math.MaxInt32+1 {
-			return 0, errors.New("overflow")
+			return 0, errOverflow
 		}
 		return -int32(val), nil
 	}
@@ -74,12 +295,12 @@ func (d *Decoder) Int32() (int32, error) {
 		return 0, err
 	}
 	if val > math.MaxInt32 {
-		return 0, errors.New("overflow")
+		return 0, errOverflow
 	}
 	return int32(val), nil
 }
 
-// UInt32 read uint32
+// UInt32 reads uint32.
 func (d *Decoder) UInt32() (uint32, error) {
 	return d.readUInt32()
 }
@@ -159,7 +380,7 @@ func (d *Decoder) readUInt32() (uint32, error) {
 			if value > uint32SafeToMultiply10 {
 				value2 := (value << 3) + (value << 1) + uint32(ind)
 				if value2 < value {
-					return 0, errors.New("overflow")
+					return 0, errOverflow
 				}
 				value = value2
 				continue
@@ -176,7 +397,7 @@ func (d *Decoder) readUInt32() (uint32, error) {
 	}
 }
 
-// Int64 read int64
+// Int64 reads int64.
 func (d *Decoder) Int64() (int64, error) {
 	c, err := d.byte()
 	if err != nil {
@@ -206,7 +427,7 @@ func (d *Decoder) Int64() (int64, error) {
 	return int64(val), nil
 }
 
-// UInt64 read uint64
+// UInt64 reads uint64.
 func (d *Decoder) UInt64() (uint64, error) {
 	c, err := d.byte()
 	if err != nil {
@@ -286,7 +507,7 @@ func (d *Decoder) readUInt64(c byte) (uint64, error) {
 			if value > uint64SafeToMultiple10 {
 				value2 := (value << 3) + (value << 1) + uint64(ind)
 				if value2 < value {
-					return 0, errors.New("overflow")
+					return 0, errOverflow
 				}
 				value = value2
 				continue
