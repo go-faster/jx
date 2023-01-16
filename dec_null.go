@@ -7,14 +7,17 @@ func (d *Decoder) Null() error {
 		return err
 	}
 
-	var buf [4]byte
+	var (
+		offset = d.offset()
+		buf    [4]byte
+	)
 	if err := d.readExact4(&buf); err != nil {
 		return err
 	}
 
 	if string(buf[:]) != "null" {
 		const encodedNull = 'n' | 'u'<<8 | 'l'<<16 | 'l'<<24
-		return findInvalidToken4(buf, encodedNull)
+		return findInvalidToken4(buf, encodedNull, offset)
 	}
 	return nil
 }

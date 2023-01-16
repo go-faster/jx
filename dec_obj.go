@@ -9,17 +9,17 @@ import (
 // The key value is valid only until f is not returned.
 func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 	if err := d.consume('{'); err != nil {
-		return errors.Wrap(err, "start")
+		return errors.Wrap(err, `"{" expected`)
 	}
 	if f == nil {
 		return d.skipObj()
 	}
 	if err := d.incDepth(); err != nil {
-		return errors.Wrap(err, "inc")
+		return err
 	}
 	c, err := d.more()
 	if err != nil {
-		return errors.Wrap(err, "next")
+		return errors.Wrap(err, `'"' or "}" expected`)
 	}
 	if c == '}' {
 		return d.decDepth()
@@ -34,14 +34,14 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 
 	k, err := d.str(value{raw: isBuffer})
 	if err != nil {
-		return errors.Wrap(err, "str")
+		return errors.Wrap(err, "field name")
 	}
 	if err := d.consume(':'); err != nil {
-		return errors.Wrap(err, "field")
+		return errors.Wrap(err, `":" expected`)
 	}
 	// Skip whitespace.
 	if _, err = d.more(); err != nil {
-		return errors.Wrap(err, "more")
+		return err
 	}
 	d.unread()
 	if err := f(d, k.buf); err != nil {
@@ -50,30 +50,31 @@ func (d *Decoder) ObjBytes(f func(d *Decoder, key []byte) error) error {
 
 	c, err = d.more()
 	if err != nil {
-		return errors.Wrap(err, "next")
+		return errors.Wrap(err, `"," or "}" expected`)
 	}
 	for c == ',' {
 		k, err := d.str(value{raw: isBuffer})
 		if err != nil {
-			return errors.Wrap(err, "str")
+			return errors.Wrap(err, "field name")
 		}
 		if err := d.consume(':'); err != nil {
-			return errors.Wrap(err, "field")
+			return errors.Wrap(err, `":" expected`)
 		}
 		// Check that value exists.
 		if _, err = d.more(); err != nil {
-			return errors.Wrap(err, "more")
+			return err
 		}
 		d.unread()
 		if err := f(d, k.buf); err != nil {
 			return errors.Wrap(err, "callback")
 		}
 		if c, err = d.more(); err != nil {
-			return errors.Wrap(err, "next")
+			return err
 		}
 	}
 	if c != '}' {
-		return errors.Wrap(badToken(c), "err")
+		err := badToken(c, d.offset()-1)
+		return errors.Wrap(err, `"}" expected`)
 	}
 	return d.decDepth()
 }

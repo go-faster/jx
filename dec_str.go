@@ -1,7 +1,6 @@
 package jx
 
 import (
-	"fmt"
 	"io"
 	"unicode/utf16"
 	"unicode/utf8"
@@ -34,22 +33,9 @@ func (v value) rune(r rune) value {
 	}
 }
 
-// badTokenErr means that Token was unexpected while decoding.
-type badTokenErr struct {
-	Token byte
-}
-
-func (e badTokenErr) Error() string {
-	return fmt.Sprintf("unexpected byte %d '%s'", e.Token, []byte{e.Token})
-}
-
-func badToken(c byte) error {
-	return badTokenErr{Token: c}
-}
-
 func (d *Decoder) str(v value) (value, error) {
 	if err := d.consume('"'); err != nil {
-		return value{}, errors.Wrap(err, "start")
+		return value{}, err
 	}
 	var (
 		c byte
@@ -135,7 +121,7 @@ readTok:
 		// We need a copy anyway, because string is escaped.
 		return d.strSlow(value{buf: append(v.buf, str...)})
 	default:
-		return v, badToken(c)
+		return v, badToken(c, d.offset()+i)
 	}
 }
 
@@ -226,14 +212,14 @@ readTok:
 		v.buf = append(v.buf, str...)
 		c, err := d.byte()
 		if err != nil {
-			return value{}, errors.Wrap(err, "next")
+			return value{}, err
 		}
 		v, err = d.escapedChar(v, c)
 		if err != nil {
 			return v, errors.Wrap(err, "escape")
 		}
 	default:
-		return v, badToken(c)
+		return v, badToken(c, d.offset()-1)
 	}
 	goto readStr
 }
@@ -297,20 +283,24 @@ func (d *Decoder) escapedChar(v value, c byte) (value, error) {
 			v = v.rune(r1)
 		}
 	case 0:
-		return v, errors.Wrap(badToken(c), "bad escape: %w")
+		err := badToken(c, d.offset()-1)
+		return v, errors.Wrap(err, "bad escape")
 	}
 	return v, nil
 }
 
 func (d *Decoder) readU4() (v rune, _ error) {
-	var b [4]byte
+	var (
+		offset = d.offset()
+		b      [4]byte
+	)
 	if err := d.readExact4(&b); err != nil {
 		return 0, err
 	}
-	for _, c := range b {
+	for i, c := range b {
 		val := hexSet[c]
 		if val == 0 {
-			return 0, badToken(c)
+			return 0, badToken(c, offset+i)
 		}
 		v = v*16 + rune(val-1)
 	}

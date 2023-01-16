@@ -20,6 +20,7 @@ func (d *Decoder) NumAppend(v Num) (Num, error) {
 func (d *Decoder) num(v Num, forceAppend bool) (Num, error) {
 	switch d.Next() {
 	case String:
+		offset := d.offset()
 		start := d.head
 
 		str, err := d.str(value{raw: true})
@@ -44,7 +45,7 @@ func (d *Decoder) num(v Num, forceAppend bool) (Num, error) {
 					return Num{}, errors.Wrap(err, "skip number")
 				}
 			default:
-				return nil, badToken(c)
+				return nil,  badToken(c, offset)
 			}
 		}
 

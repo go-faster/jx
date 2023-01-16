@@ -15,10 +15,10 @@ type ArrIter struct {
 // ArrIter creates new array iterator.
 func (d *Decoder) ArrIter() (ArrIter, error) {
 	if err := d.consume('['); err != nil {
-		return ArrIter{}, errors.Wrap(err, "start")
+		return ArrIter{}, errors.Wrap(err, `"[" expected`)
 	}
 	if err := d.incDepth(); err != nil {
-		return ArrIter{}, errors.Wrap(err, "inc")
+		return ArrIter{}, err
 	}
 	if _, err := d.more(); err != nil {
 		return ArrIter{}, err
@@ -46,7 +46,8 @@ func (i *ArrIter) Next() bool {
 	}
 	if i.comma {
 		if c != ',' {
-			i.err = badToken(c)
+			err := badToken(c, dec.offset()-1)
+			i.err = errors.Wrap(err, `"," expected`)
 			return false
 		}
 	} else {

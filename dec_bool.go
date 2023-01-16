@@ -6,7 +6,10 @@ func (d *Decoder) Bool() (bool, error) {
 		return false, err
 	}
 
-	var buf [4]byte
+	var (
+		offset = d.offset()
+		buf    [4]byte
+	)
 	if err := d.readExact4(&buf); err != nil {
 		return false, err
 	}
@@ -20,19 +23,19 @@ func (d *Decoder) Bool() (bool, error) {
 			return false, err
 		}
 		if c != 'e' {
-			return false, badToken(c)
+			return false, badToken(c, offset+4)
 		}
 		return false, nil
 	default:
 		switch c := buf[0]; c {
 		case 't':
 			const encodedTrue = 't' | 'r'<<8 | 'u'<<16 | 'e'<<24
-			return false, findInvalidToken4(buf, encodedTrue)
+			return false, findInvalidToken4(buf, encodedTrue, offset)
 		case 'f':
 			const encodedFals = 'f' | 'a'<<8 | 'l'<<16 | 's'<<24
-			return false, findInvalidToken4(buf, encodedFals)
+			return false, findInvalidToken4(buf, encodedFals, offset)
 		default:
-			return false, badToken(c)
+			return false, badToken(c, offset)
 		}
 	}
 }

@@ -71,7 +71,7 @@ func (d *Decoder) BigInt() (*big.Int, error) {
 func (d *Decoder) Float32() (float32, error) {
 	c, err := d.more()
 	if err != nil {
-		return 0, errors.Wrap(err, "byte")
+		return 0, err
 	}
 	if c != '-' {
 		d.unread()
@@ -227,7 +227,7 @@ func (d *Decoder) float32Slow() (float32, error) {
 func (d *Decoder) Float64() (float64, error) {
 	c, err := d.more()
 	if err != nil {
-		return 0, errors.Wrap(err, "byte")
+		return 0, err
 	}
 	if floatDigits[c] >= 0 {
 		d.unread()
@@ -241,7 +241,7 @@ func (d *Decoder) Float64() (float64, error) {
 		}
 		return -v, err
 	default:
-		return 0, badToken(c)
+		return 0, badToken(c, d.offset())
 	}
 }
 
