@@ -29,8 +29,8 @@ func (d *Decoder) Bool() (bool, error) {
 			const encodedTrue = 't' | 'r'<<8 | 'u'<<16 | 'e'<<24
 			return false, findInvalidToken4(buf, encodedTrue)
 		case 'f':
-			const encodedAlse = 'a' | 'l'<<8 | 's'<<16 | 'e'<<24
-			return false, findInvalidToken4(buf, encodedAlse)
+			const encodedFals = 'f' | 'a'<<8 | 'l'<<16 | 's'<<24
+			return false, findInvalidToken4(buf, encodedFals)
 		default:
 			return false, badToken(c)
 		}
