@@ -64,7 +64,7 @@ func TestNullError(t *testing.T) {
 				continue
 			}
 			b[i] = c
-			var token badTokenErr
+			var token *badTokenErr
 			a.ErrorAs(DecodeBytes(b[:]).Null(), &token)
 			a.Equalf(c, token.Token, "%c != %c (%q)", c, token.Token, b)
 		}
