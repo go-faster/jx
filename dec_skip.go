@@ -354,7 +354,7 @@ readTok:
 		}
 		switch escapedStrSet[v] {
 		case 'u':
-			for i := 0; i < 4; i++ {
+			for range [4]struct{}{} {
 				h, err := d.byte()
 				if err != nil {
 					return err

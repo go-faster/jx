@@ -45,7 +45,7 @@ func (d *Decoder) num(v Num, forceAppend bool) (Num, error) {
 					return Num{}, errors.Wrap(err, "skip number")
 				}
 			default:
-				return nil,  badToken(c, offset)
+				return nil, badToken(c, offset)
 			}
 		}
 
