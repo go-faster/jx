@@ -70,6 +70,17 @@ func (d *Decoder) next() (byte, error) {
 	}
 }
 
+// peek returns next byte without advancing.
+func (d *Decoder) peek() (byte, error) {
+	if d.head == d.tail {
+		if err := d.read(); err != nil {
+			return 0, err
+		}
+	}
+	c := d.buf[d.head]
+	return c, nil
+}
+
 func (d *Decoder) byte() (byte, error) {
 	if d.head == d.tail {
 		err := d.read()

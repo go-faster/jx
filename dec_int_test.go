@@ -111,7 +111,7 @@ func intDecoderOnlyError[T any](fn func(*Decoder) (T, error)) func(*Decoder) err
 	}
 }
 
-func TestDecoderIntUnexpectedSpace(t *testing.T) {
+func TestDecoderIntUnexpectedChar(t *testing.T) {
 	type intFunc struct {
 		name string
 		fn   func(*Decoder) error
@@ -132,15 +132,21 @@ func TestDecoderIntUnexpectedSpace(t *testing.T) {
 	}
 
 	tests := []struct {
-		input    string
-		unsigned bool
-		wantErr  bool
+		input     string
+		unsigned  bool
+		errString string
 	}{
-		{" 10", true, false},
-		{"   10", true, false},
-		{" -10", false, false},
+		// Leading space.
+		{" 10", true, ""},
+		{"   10", true, ""},
+		{" -10", false, ""},
 
-		{"- 10", false, true},
+		// Space in the middle.
+		{"- 10", false, "unexpected byte 32 ' ' at 1"},
+
+		// Digit after leading zero.
+		{"00", true, "digit after leading zero: unexpected byte 48 '0' at 1"},
+		{"01", true, "digit after leading zero: unexpected byte 49 '1' at 1"},
 	}
 
 	for i, tt := range tests {
@@ -152,8 +158,8 @@ func TestDecoderIntUnexpectedSpace(t *testing.T) {
 					t.Run(intFn.name, func(t *testing.T) {
 						decodeStr(t, tt.input, func(t *testing.T, d *Decoder) {
 							err := intFn.fn(d)
-							if tt.wantErr {
-								require.Error(t, err)
+							if e := tt.errString; e != "" {
+								require.EqualError(t, err, e)
 								return
 							}
 							require.NoError(t, err)

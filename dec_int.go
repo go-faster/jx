@@ -114,10 +114,16 @@ func (d *Decoder) UInt8() (uint8, error) {
 
 func (d *Decoder) readUInt8(c byte) (uint8, error) {
 	ind := intDigits[c]
-	if ind == 0 {
+	switch ind {
+	case 0:
+		// Check that next byte is not a digit.
+		c, err := d.peek()
+		if err == nil && intDigits[c] != invalidCharForNumber {
+			err := badToken(c, d.offset())
+			return 0, errors.Wrap(err, "digit after leading zero")
+		}
 		return 0, nil
-	}
-	if ind == invalidCharForNumber {
+	case invalidCharForNumber:
 		return 0, badToken(c, d.offset()-1)
 	}
 	value := uint8(ind)
@@ -211,10 +217,16 @@ func (d *Decoder) UInt16() (uint16, error) {
 
 func (d *Decoder) readUInt16(c byte) (uint16, error) {
 	ind := intDigits[c]
-	if ind == 0 {
+	switch ind {
+	case 0:
+		// Check that next byte is not a digit.
+		c, err := d.peek()
+		if err == nil && intDigits[c] != invalidCharForNumber {
+			err := badToken(c, d.offset())
+			return 0, errors.Wrap(err, "digit after leading zero")
+		}
 		return 0, nil
-	}
-	if ind == invalidCharForNumber {
+	case invalidCharForNumber:
 		return 0, badToken(c, d.offset()-1)
 	}
 	value := uint16(ind)
@@ -320,10 +332,16 @@ func (d *Decoder) UInt32() (uint32, error) {
 
 func (d *Decoder) readUInt32(c byte) (uint32, error) {
 	ind := intDigits[c]
-	if ind == 0 {
+	switch ind {
+	case 0:
+		// Check that next byte is not a digit.
+		c, err := d.peek()
+		if err == nil && intDigits[c] != invalidCharForNumber {
+			err := badToken(c, d.offset())
+			return 0, errors.Wrap(err, "digit after leading zero")
+		}
 		return 0, nil
-	}
-	if ind == invalidCharForNumber {
+	case invalidCharForNumber:
 		return 0, badToken(c, d.offset()-1)
 	}
 	value := uint32(ind)
@@ -447,10 +465,16 @@ func (d *Decoder) UInt64() (uint64, error) {
 
 func (d *Decoder) readUInt64(c byte) (uint64, error) {
 	ind := intDigits[c]
-	if ind == 0 {
+	switch ind {
+	case 0:
+		// Check that next byte is not a digit.
+		c, err := d.peek()
+		if err == nil && intDigits[c] != invalidCharForNumber {
+			err := badToken(c, d.offset())
+			return 0, errors.Wrap(err, "digit after leading zero")
+		}
 		return 0, nil // single zero
-	}
-	if ind == invalidCharForNumber {
+	case invalidCharForNumber:
 		return 0, badToken(c, d.offset()-1)
 	}
 	value := uint64(ind)
