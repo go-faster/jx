@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func decodeStr(t *testing.T, s string, f func(d *Decoder)) {
+func decodeStr(t *testing.T, s string, f func(t *testing.T, d *Decoder)) {
 	t.Helper()
 	for _, d := range []struct {
 		Name string
@@ -36,7 +36,7 @@ func decodeStr(t *testing.T, s string, f func(d *Decoder)) {
 		t.Run(d.Name, func(t *testing.T) {
 			t.Helper()
 			dec := d.Fn()
-			f(dec)
+			f(t, dec)
 		})
 	}
 }
@@ -117,14 +117,14 @@ func TestDecoder_Float64(t *testing.T) {
 				require.NoError(t, err)
 			})
 			t.Run("32", func(t *testing.T) {
-				decodeStr(t, tc.String, func(d *Decoder) {
+				decodeStr(t, tc.String, func(t *testing.T, d *Decoder) {
 					v, err := d.Float32()
 					require.NoError(t, err)
 					require.InEpsilonf(t, tc.Value, v, epsilon, "%v != %v", tc.Value, v)
 				})
 			})
 			t.Run("64", func(t *testing.T) {
-				decodeStr(t, tc.String, func(d *Decoder) {
+				decodeStr(t, tc.String, func(t *testing.T, d *Decoder) {
 					v, err := d.Float64()
 					require.NoError(t, err)
 					require.InEpsilonf(t, tc.Value, v, epsilon, "%v != %v", tc.Value, v)

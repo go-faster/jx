@@ -36,35 +36,35 @@ func TestDecoderIntNumbers(t *testing.T) {
 		}
 		s := string(data)
 		t.Run("32", func(t *testing.T) {
-			decodeStr(t, s, func(d *Decoder) {
+			decodeStr(t, s, func(t *testing.T, d *Decoder) {
 				got, err := d.Int32()
 				require.NoError(t, err)
 				require.Equal(t, int32(v), got)
 			})
 		})
 		t.Run("64", func(t *testing.T) {
-			decodeStr(t, s, func(d *Decoder) {
+			decodeStr(t, s, func(t *testing.T, d *Decoder) {
 				got, err := d.Int64()
 				require.NoError(t, err)
 				require.Equal(t, int64(v), got)
 			})
 		})
 		t.Run("int", func(t *testing.T) {
-			decodeStr(t, s, func(d *Decoder) {
+			decodeStr(t, s, func(t *testing.T, d *Decoder) {
 				got, err := d.Int()
 				require.NoError(t, err)
 				require.Equal(t, v, got)
 			})
 		})
 		t.Run("uint", func(t *testing.T) {
-			decodeStr(t, s, func(d *Decoder) {
+			decodeStr(t, s, func(t *testing.T, d *Decoder) {
 				got, err := d.UInt()
 				require.NoError(t, err)
 				require.Equal(t, uint(v), got)
 			})
 		})
 		t.Run("uint32", func(t *testing.T) {
-			decodeStr(t, s, func(d *Decoder) {
+			decodeStr(t, s, func(t *testing.T, d *Decoder) {
 				got, err := d.UInt32()
 				require.NoError(t, err)
 				require.Equal(t, uint32(v), got)

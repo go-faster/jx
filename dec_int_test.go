@@ -1,6 +1,7 @@
 package jx
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -101,4 +102,70 @@ func TestDecoderIntError(t *testing.T) {
 		_, err := d.Int64()
 		require.ErrorIs(t, err, r.Err())
 	})
+}
+
+func intDecoderOnlyError[T any](fn func(*Decoder) (T, error)) func(*Decoder) error {
+	return func(d *Decoder) error {
+		_, err := fn(d)
+		return err
+	}
+}
+
+func TestDecoderIntUnexpectedSpace(t *testing.T) {
+	type intFunc struct {
+		name string
+		fn   func(*Decoder) error
+	}
+	signed := []intFunc{
+		{"Int", intDecoderOnlyError((*Decoder).Int)},
+		{"Int8", intDecoderOnlyError((*Decoder).Int8)},
+		{"Int16", intDecoderOnlyError((*Decoder).Int16)},
+		{"Int32", intDecoderOnlyError((*Decoder).Int32)},
+		{"Int64", intDecoderOnlyError((*Decoder).Int64)},
+	}
+	unsigned := []intFunc{
+		{"UInt", intDecoderOnlyError((*Decoder).UInt)},
+		{"UInt8", intDecoderOnlyError((*Decoder).UInt8)},
+		{"UInt16", intDecoderOnlyError((*Decoder).UInt16)},
+		{"UInt32", intDecoderOnlyError((*Decoder).UInt32)},
+		{"UInt64", intDecoderOnlyError((*Decoder).UInt64)},
+	}
+
+	tests := []struct {
+		input    string
+		unsigned bool
+		wantErr  bool
+	}{
+		{" 10", true, false},
+		{"   10", true, false},
+		{" -10", false, false},
+
+		{"- 10", false, true},
+	}
+
+	for i, tt := range tests {
+		tt := tt
+		t.Run(fmt.Sprintf("Test%d", i+1), func(t *testing.T) {
+			check := func(fns []intFunc) {
+				for _, intFn := range fns {
+					intFn := intFn
+					t.Run(intFn.name, func(t *testing.T) {
+						decodeStr(t, tt.input, func(t *testing.T, d *Decoder) {
+							err := intFn.fn(d)
+							if tt.wantErr {
+								require.Error(t, err)
+								return
+							}
+							require.NoError(t, err)
+						})
+					})
+				}
+			}
+
+			check(signed)
+			if tt.unsigned {
+				check(unsigned)
+			}
+		})
+	}
 }

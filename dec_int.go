@@ -75,12 +75,16 @@ func (d *Decoder) UInt() (uint, error) {
 
 // Int8 reads int8.
 func (d *Decoder) Int8() (int8, error) {
-	c, err := d.byte()
+	c, err := d.more()
 	if err != nil {
 		return 0, err
 	}
 	if c == '-' {
-		val, err := d.readUInt8()
+		c, err := d.byte()
+		if err != nil {
+			return 0, err
+		}
+		val, err := d.readUInt8(c)
 		if err != nil {
 			return 0, err
 		}
@@ -89,8 +93,7 @@ func (d *Decoder) Int8() (int8, error) {
 		}
 		return -int8(val), nil
 	}
-	d.unread()
-	val, err := d.readUInt8()
+	val, err := d.readUInt8(c)
 	if err != nil {
 		return 0, err
 	}
@@ -102,20 +105,20 @@ func (d *Decoder) Int8() (int8, error) {
 
 // UInt8 reads uint8.
 func (d *Decoder) UInt8() (uint8, error) {
-	return d.readUInt8()
-}
-
-func (d *Decoder) readUInt8() (uint8, error) {
-	c, err := d.byte()
+	c, err := d.more()
 	if err != nil {
 		return 0, err
 	}
+	return d.readUInt8(c)
+}
+
+func (d *Decoder) readUInt8(c byte) (uint8, error) {
 	ind := intDigits[c]
 	if ind == 0 {
 		return 0, nil
 	}
 	if ind == invalidCharForNumber {
-		return 0, errors.Wrap(err, "bad token")
+		return 0, badToken(c, d.offset()-1)
 	}
 	value := uint8(ind)
 	if d.tail-d.head > 10 {
@@ -169,12 +172,16 @@ func (d *Decoder) readUInt8() (uint8, error) {
 
 // Int16 reads int16.
 func (d *Decoder) Int16() (int16, error) {
-	c, err := d.byte()
+	c, err := d.more()
 	if err != nil {
 		return 0, err
 	}
 	if c == '-' {
-		val, err := d.readUInt16()
+		c, err := d.byte()
+		if err != nil {
+			return 0, err
+		}
+		val, err := d.readUInt16(c)
 		if err != nil {
 			return 0, err
 		}
@@ -183,8 +190,7 @@ func (d *Decoder) Int16() (int16, error) {
 		}
 		return -int16(val), nil
 	}
-	d.unread()
-	val, err := d.readUInt16()
+	val, err := d.readUInt16(c)
 	if err != nil {
 		return 0, err
 	}
@@ -196,20 +202,20 @@ func (d *Decoder) Int16() (int16, error) {
 
 // UInt16 reads uint16.
 func (d *Decoder) UInt16() (uint16, error) {
-	return d.readUInt16()
-}
-
-func (d *Decoder) readUInt16() (uint16, error) {
-	c, err := d.byte()
+	c, err := d.more()
 	if err != nil {
 		return 0, err
 	}
+	return d.readUInt16(c)
+}
+
+func (d *Decoder) readUInt16(c byte) (uint16, error) {
 	ind := intDigits[c]
 	if ind == 0 {
 		return 0, nil
 	}
 	if ind == invalidCharForNumber {
-		return 0, errors.Wrap(err, "bad token")
+		return 0, badToken(c, d.offset()-1)
 	}
 	value := uint16(ind)
 	if d.tail-d.head > 10 {
@@ -275,12 +281,16 @@ func (d *Decoder) readUInt16() (uint16, error) {
 
 // Int32 reads int32.
 func (d *Decoder) Int32() (int32, error) {
-	c, err := d.byte()
+	c, err := d.more()
 	if err != nil {
 		return 0, err
 	}
 	if c == '-' {
-		val, err := d.readUInt32()
+		c, err := d.byte()
+		if err != nil {
+			return 0, err
+		}
+		val, err := d.readUInt32(c)
 		if err != nil {
 			return 0, err
 		}
@@ -289,8 +299,7 @@ func (d *Decoder) Int32() (int32, error) {
 		}
 		return -int32(val), nil
 	}
-	d.unread()
-	val, err := d.readUInt32()
+	val, err := d.readUInt32(c)
 	if err != nil {
 		return 0, err
 	}
@@ -302,20 +311,20 @@ func (d *Decoder) Int32() (int32, error) {
 
 // UInt32 reads uint32.
 func (d *Decoder) UInt32() (uint32, error) {
-	return d.readUInt32()
-}
-
-func (d *Decoder) readUInt32() (uint32, error) {
-	c, err := d.byte()
+	c, err := d.more()
 	if err != nil {
 		return 0, err
 	}
+	return d.readUInt32(c)
+}
+
+func (d *Decoder) readUInt32(c byte) (uint32, error) {
 	ind := intDigits[c]
 	if ind == 0 {
 		return 0, nil
 	}
 	if ind == invalidCharForNumber {
-		return 0, errors.Wrap(err, "bad token")
+		return 0, badToken(c, d.offset()-1)
 	}
 	value := uint32(ind)
 	if d.tail-d.head > 10 {
@@ -399,12 +408,12 @@ func (d *Decoder) readUInt32() (uint32, error) {
 
 // Int64 reads int64.
 func (d *Decoder) Int64() (int64, error) {
-	c, err := d.byte()
+	c, err := d.more()
 	if err != nil {
 		return 0, err
 	}
 	if c == '-' {
-		c, err := d.next()
+		c, err := d.byte()
 		if err != nil {
 			return 0, err
 		}
@@ -429,7 +438,7 @@ func (d *Decoder) Int64() (int64, error) {
 
 // UInt64 reads uint64.
 func (d *Decoder) UInt64() (uint64, error) {
-	c, err := d.byte()
+	c, err := d.more()
 	if err != nil {
 		return 0, err
 	}
@@ -442,8 +451,7 @@ func (d *Decoder) readUInt64(c byte) (uint64, error) {
 		return 0, nil // single zero
 	}
 	if ind == invalidCharForNumber {
-		err := badToken(c, d.offset()-1)
-		return 0, errors.Wrap(err, "invalid number")
+		return 0, badToken(c, d.offset()-1)
 	}
 	value := uint64(ind)
 	if d.tail-d.head > 10 {
