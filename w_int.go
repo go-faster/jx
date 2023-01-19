@@ -1,7 +1,5 @@
 package jx
 
-//go:generate go run ./tools/mkencint -output w_int.gen.go
-
 // Int encodes int.
 func (w *Writer) Int(v int) {
 	w.Int64(int64(v))
