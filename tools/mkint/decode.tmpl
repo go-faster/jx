@@ -141,7 +141,7 @@ func (d *Decoder) {{ title $.Name }}() ({{ $.Name }}, error) {
 			return 0, err
 		}
 		if val > math.Max{{ title $.Name }}+1 {
-			return 0, errors.Errorf("%d overflows", val)
+			return 0, errOverflow
 		}
 		return -{{ $.Name }}(val), nil
 	}
@@ -150,7 +150,7 @@ func (d *Decoder) {{ title $.Name }}() ({{ $.Name }}, error) {
 		return 0, err
 	}
 	if val > math.Max{{ title $.Name }} {
-		return 0, errors.Errorf("%d overflows", val)
+		return 0, errOverflow
 	}
 	return {{ $.Name }}(val), nil
 }
