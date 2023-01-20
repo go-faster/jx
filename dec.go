@@ -85,7 +85,8 @@ type Decoder struct {
 	head int // offset in buf to start of current json stream
 	tail int // offset in buf to end of current json stream
 
-	depth int
+	streamOffset int // for reader, offset in stream to start of current buf contents
+	depth        int
 }
 
 const defaultBuf = 512
@@ -112,6 +113,10 @@ func DecodeBytes(input []byte) *Decoder {
 // DecodeStr creates a Decoder that reads string as json.
 func DecodeStr(input string) *Decoder {
 	return DecodeBytes([]byte(input))
+}
+
+func (d *Decoder) offset() int {
+	return d.streamOffset + d.head
 }
 
 // Reset resets reader and underlying state, next reads will use provided io.Reader.

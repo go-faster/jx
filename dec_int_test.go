@@ -1,6 +1,7 @@
 package jx
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -101,4 +102,76 @@ func TestDecoderIntError(t *testing.T) {
 		_, err := d.Int64()
 		require.ErrorIs(t, err, r.Err())
 	})
+}
+
+func intDecoderOnlyError[T any](fn func(*Decoder) (T, error)) func(*Decoder) error {
+	return func(d *Decoder) error {
+		_, err := fn(d)
+		return err
+	}
+}
+
+func TestDecoderIntUnexpectedChar(t *testing.T) {
+	type intFunc struct {
+		name string
+		fn   func(*Decoder) error
+	}
+	signed := []intFunc{
+		{"Int", intDecoderOnlyError((*Decoder).Int)},
+		{"Int8", intDecoderOnlyError((*Decoder).Int8)},
+		{"Int16", intDecoderOnlyError((*Decoder).Int16)},
+		{"Int32", intDecoderOnlyError((*Decoder).Int32)},
+		{"Int64", intDecoderOnlyError((*Decoder).Int64)},
+	}
+	unsigned := []intFunc{
+		{"UInt", intDecoderOnlyError((*Decoder).UInt)},
+		{"UInt8", intDecoderOnlyError((*Decoder).UInt8)},
+		{"UInt16", intDecoderOnlyError((*Decoder).UInt16)},
+		{"UInt32", intDecoderOnlyError((*Decoder).UInt32)},
+		{"UInt64", intDecoderOnlyError((*Decoder).UInt64)},
+	}
+
+	tests := []struct {
+		input     string
+		unsigned  bool
+		errString string
+	}{
+		// Leading space.
+		{" 10", true, ""},
+		{"   10", true, ""},
+		{" -10", false, ""},
+
+		// Space in the middle.
+		{"- 10", false, "unexpected byte 32 ' ' at 1"},
+
+		// Digit after leading zero.
+		{"00", true, "digit after leading zero: unexpected byte 48 '0' at 1"},
+		{"01", true, "digit after leading zero: unexpected byte 49 '1' at 1"},
+	}
+
+	for i, tt := range tests {
+		tt := tt
+		t.Run(fmt.Sprintf("Test%d", i+1), func(t *testing.T) {
+			check := func(fns []intFunc) {
+				for _, intFn := range fns {
+					intFn := intFn
+					t.Run(intFn.name, func(t *testing.T) {
+						decodeStr(t, tt.input, func(t *testing.T, d *Decoder) {
+							err := intFn.fn(d)
+							if e := tt.errString; e != "" {
+								require.EqualError(t, err, e)
+								return
+							}
+							require.NoError(t, err)
+						})
+					})
+				}
+			}
+
+			check(signed)
+			if tt.unsigned {
+				check(unsigned)
+			}
+		})
+	}
 }

@@ -39,7 +39,7 @@ func (d *Decoder) Skip() error {
 		}
 		return nil
 	default:
-		return badToken(c)
+		return badToken(c, d.offset()-1)
 	}
 }
 
@@ -82,7 +82,7 @@ func (d *Decoder) skipNumber() error {
 		}
 		// Character after '-' must be a digit.
 		if skipNumberSet[c] != digitTag {
-			return badToken(c)
+			return badToken(c, d.offset()-1)
 		}
 		if c != '0' {
 			break
@@ -111,7 +111,7 @@ func (d *Decoder) skipNumber() error {
 		case 'e', 'E':
 			goto stateExp
 		default:
-			return badToken(c)
+			return badToken(c, d.offset())
 		}
 	}
 	for {
@@ -132,7 +132,7 @@ func (d *Decoder) skipNumber() error {
 				d.head += i
 				goto stateExp
 			default:
-				return badToken(c)
+				return badToken(c, d.offset()+i)
 			}
 		}
 
@@ -168,12 +168,12 @@ stateDot:
 				switch c {
 				case 'e', 'E':
 					if last == '.' {
-						return badToken(c)
+						return badToken(c, d.offset()+i)
 					}
 					d.head += i
 					goto stateExp
 				default:
-					return badToken(c)
+					return badToken(c, d.offset()+i)
 				}
 			}
 
@@ -207,10 +207,10 @@ stateExp:
 				}
 				// There must be a number after sign.
 				if skipNumberSet[num] != digitTag {
-					return badToken(num)
+					return badToken(num, d.offset()-1)
 				}
 			} else {
-				return badToken(numOrSign)
+				return badToken(numOrSign, d.offset()-1)
 			}
 		}
 	}
@@ -221,7 +221,7 @@ stateExp:
 				return nil
 			}
 			if skipNumberSet[c] == 0 {
-				return badToken(c)
+				return badToken(c, d.offset()+i)
 			}
 		}
 
@@ -354,20 +354,20 @@ readTok:
 		}
 		switch escapedStrSet[v] {
 		case 'u':
-			for i := 0; i < 4; i++ {
+			for range [4]struct{}{} {
 				h, err := d.byte()
 				if err != nil {
 					return err
 				}
 				if hexSet[h] == 0 {
-					return badToken(h)
+					return badToken(h, d.offset()-1)
 				}
 			}
 		case 0:
-			return badToken(v)
+			return badToken(v, d.offset()-1)
 		}
 	case c < ' ':
-		return badToken(c)
+		return badToken(c, d.offset()+i)
 	}
 	goto readStr
 }
@@ -382,7 +382,7 @@ func (d *Decoder) skipObj() error {
 
 	c, err := d.more()
 	if err != nil {
-		return errors.Wrap(err, "next")
+		return errors.Wrap(err, `'"' or "}" expected`)
 	}
 	switch c {
 	case '}':
@@ -390,25 +390,25 @@ func (d *Decoder) skipObj() error {
 	case '"':
 		d.unread()
 	default:
-		return badToken(c)
+		return badToken(c, d.offset()-1)
 	}
 
 	for {
 		if err := d.consume('"'); err != nil {
-			return err
+			return errors.Wrap(err, `'"' expected`)
 		}
 		if err := d.skipStr(); err != nil {
 			return errors.Wrap(err, "read field name")
 		}
 		if err := d.consume(':'); err != nil {
-			return errors.Wrap(err, "field")
+			return errors.Wrap(err, `":" expected`)
 		}
 		if err := d.Skip(); err != nil {
 			return err
 		}
 		c, err := d.more()
 		if err != nil {
-			return errors.Wrap(err, "read comma")
+			return errors.Wrap(err, `"," or "}" expected`)
 		}
 		switch c {
 		case ',':
@@ -416,7 +416,7 @@ func (d *Decoder) skipObj() error {
 		case '}':
 			return d.decDepth()
 		default:
-			return badToken(c)
+			return badToken(c, d.offset()-1)
 		}
 	}
 }
@@ -431,7 +431,7 @@ func (d *Decoder) skipArr() error {
 
 	c, err := d.more()
 	if err != nil {
-		return errors.Wrap(err, "next")
+		return errors.Wrap(err, `value or "]" expected`)
 	}
 	if c == ']' {
 		return d.decDepth()
@@ -444,7 +444,7 @@ func (d *Decoder) skipArr() error {
 		}
 		c, err := d.more()
 		if err != nil {
-			return errors.Wrap(err, "read comma")
+			return errors.Wrap(err, `"," or "]" expected`)
 		}
 		switch c {
 		case ',':
@@ -452,7 +452,7 @@ func (d *Decoder) skipArr() error {
 		case ']':
 			return d.decDepth()
 		default:
-			return badToken(c)
+			return badToken(c, d.offset()-1)
 		}
 	}
 }

@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/go-faster/errors"
 )
 
 var testBools = []string{
@@ -477,6 +479,7 @@ func TestDecoder_Skip(t *testing.T) {
 	})
 
 	for _, testCase := range testCases {
+		testCase := testCase
 		valType := reflect.TypeOf(testCase.ptr).Elem()
 		t.Run(valType.Kind().String(), func(t *testing.T) {
 			for inputIdx, input := range testCase.inputs {
@@ -494,7 +497,7 @@ func TestDecoder_Skip(t *testing.T) {
 						should.NoError(iter.Skip())
 						should.ErrorIs(iter.Null(), io.ErrUnexpectedEOF)
 					} else {
-						should.Error(func() error {
+						err := func() error {
 							if err := iter.Skip(); err != nil {
 								return err
 							}
@@ -502,7 +505,19 @@ func TestDecoder_Skip(t *testing.T) {
 								return err
 							}
 							return nil
-						}())
+						}()
+						should.Error(err)
+						if be, ok := errors.Into[*badTokenErr](err); ok {
+							offset := be.Offset
+							should.True(offset >= 0)
+							should.True(offset < len(input))
+							should.Equal(be.Token, input[offset])
+
+							if se, ok := errors.Into[*json.SyntaxError](stdErr); ok {
+								expected, got := input[se.Offset-1], input[offset]
+								should.Equal(expected, got)
+							}
+						}
 					}
 				}
 				t.Run(fmt.Sprintf("Test%d", inputIdx), testBufferReader(input, cb))

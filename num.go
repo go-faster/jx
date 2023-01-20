@@ -40,7 +40,7 @@ func (n Num) Str() bool {
 func (n Num) floatAsInt() error {
 	// Allow decoding floats with zero fractional, like 1.0 as 1.
 	var dot bool
-	for _, c := range n {
+	for i, c := range n {
 		if c == '.' {
 			dot = true
 			continue
@@ -51,7 +51,7 @@ func (n Num) floatAsInt() error {
 		switch c {
 		case '0', '"': // ok
 		default:
-			return errors.Wrap(badToken(c), "non-zero fractional part")
+			return errors.Errorf("non-zero fractional part %q at %d", c, i)
 		}
 	}
 	return nil

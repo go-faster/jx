@@ -24,10 +24,10 @@ func (d *Decoder) consume(c byte) (err error) {
 		for i, got := range buf {
 			switch spaceSet[got] {
 			default:
-				d.head += i + 1
 				if c != got {
-					return badToken(got)
+					return badToken(got, d.offset()+i)
 				}
+				d.head += i + 1
 				return nil
 			case 1:
 				continue
@@ -70,6 +70,17 @@ func (d *Decoder) next() (byte, error) {
 	}
 }
 
+// peek returns next byte without advancing.
+func (d *Decoder) peek() (byte, error) {
+	if d.head == d.tail {
+		if err := d.read(); err != nil {
+			return 0, err
+		}
+	}
+	c := d.buf[d.head]
+	return c, nil
+}
+
 func (d *Decoder) byte() (byte, error) {
 	if d.head == d.tail {
 		err := d.read()
@@ -103,6 +114,7 @@ func (d *Decoder) read() error {
 		return err
 	}
 
+	d.streamOffset += d.tail
 	d.head = 0
 	d.tail = n
 	return nil
@@ -125,6 +137,7 @@ func (d *Decoder) readAtLeast(min int) error {
 		return err
 	}
 
+	d.streamOffset += d.tail
 	d.head = 0
 	d.tail = n
 	return nil
@@ -146,8 +159,8 @@ func (d *Decoder) readExact4(b *[4]byte) error {
 	return nil
 }
 
-func findInvalidToken4(buf [4]byte, mask uint32) error {
+func findInvalidToken4(buf [4]byte, mask uint32, offset int) error {
 	c := uint32(buf[0]) | uint32(buf[1])<<8 | uint32(buf[2])<<16 | uint32(buf[3])<<24
 	idx := bits.TrailingZeros32(c^mask) / 8
-	return badToken(buf[idx])
+	return badToken(buf[idx], offset+idx)
 }

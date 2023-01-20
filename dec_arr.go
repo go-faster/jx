@@ -17,7 +17,7 @@ func (d *Decoder) Elem() (ok bool, err error) {
 	case '[':
 		c, err := d.more()
 		if err != nil {
-			return false, errors.Wrap(err, "next")
+			return false, err
 		}
 		if c != ']' {
 			d.unread()
@@ -29,24 +29,24 @@ func (d *Decoder) Elem() (ok bool, err error) {
 	case ',':
 		return true, nil
 	default:
-		return false, errors.Wrap(badToken(c), `"[" or "," or "]" expected`)
+		return false, errors.Wrap(badToken(c, d.offset()), `"[", "," or "]" expected`)
 	}
 }
 
 // Arr decodes array and invokes callback on each array element.
 func (d *Decoder) Arr(f func(d *Decoder) error) error {
 	if err := d.consume('['); err != nil {
-		return errors.Wrap(err, "start")
+		return errors.Wrap(err, `"[" expected`)
 	}
 	if f == nil {
 		return d.skipArr()
 	}
 	if err := d.incDepth(); err != nil {
-		return errors.Wrap(err, "inc")
+		return err
 	}
 	c, err := d.more()
 	if err != nil {
-		return err
+		return errors.Wrap(err, `value or "]" expected`)
 	}
 	if c == ']' {
 		return d.decDepth()
@@ -58,23 +58,24 @@ func (d *Decoder) Arr(f func(d *Decoder) error) error {
 
 	c, err = d.more()
 	if err != nil {
-		return errors.Wrap(err, "next")
+		return errors.Wrap(err, `"," or "]" expected`)
 	}
 	for c == ',' {
 		// Skip whitespace before reading element.
 		if _, err := d.next(); err != nil {
-			return errors.Wrap(err, "next")
+			return err
 		}
 		d.unread()
 		if err := f(d); err != nil {
 			return errors.Wrap(err, "callback")
 		}
 		if c, err = d.next(); err != nil {
-			return errors.Wrap(err, "next")
+			return err
 		}
 	}
 	if c != ']' {
-		return errors.Wrap(badToken(c), "end")
+		err := badToken(c, d.offset()-1)
+		return errors.Wrap(err, `"]" expected`)
 	}
 	return d.decDepth()
 }

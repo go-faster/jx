@@ -15,10 +15,10 @@ type ObjIter struct {
 // ObjIter creates new object iterator.
 func (d *Decoder) ObjIter() (ObjIter, error) {
 	if err := d.consume('{'); err != nil {
-		return ObjIter{}, errors.Wrap(err, "start")
+		return ObjIter{}, errors.Wrap(err, `"{" expected`)
 	}
 	if err := d.incDepth(); err != nil {
-		return ObjIter{}, errors.Wrap(err, "inc")
+		return ObjIter{}, err
 	}
 	if _, err := d.more(); err != nil {
 		return ObjIter{}, err
@@ -53,7 +53,8 @@ func (i *ObjIter) Next() bool {
 	}
 	if i.comma {
 		if c != ',' {
-			i.err = badToken(c)
+			err := badToken(c, dec.offset()-1)
+			i.err = errors.Wrap(err, `"," expected`)
 			return false
 		}
 	} else {
@@ -62,16 +63,17 @@ func (i *ObjIter) Next() bool {
 
 	k, err := dec.str(value{raw: i.isBuffer})
 	if err != nil {
-		i.err = errors.Wrap(err, "str")
+		i.err = errors.Wrap(err, "field name")
 		return false
 	}
 	if err := dec.consume(':'); err != nil {
-		i.err = errors.Wrap(err, "field")
+		i.err = errors.Wrap(err, `":" expected`)
 		return false
 	}
 	// Skip whitespace.
 	if _, err = dec.more(); err != nil {
-		i.err = errors.Wrap(err, "more")
+		err := badToken(c, dec.offset()-1)
+		i.err = errors.Wrap(err, `"," or "}" expected`)
 		return false
 	}
 	dec.unread()
