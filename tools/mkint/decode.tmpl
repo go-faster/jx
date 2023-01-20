@@ -13,10 +13,7 @@ import (
 )
 
 
-var (
-	intDigits   [256]int8
-	errOverflow = strconv.ErrRange
-)
+var errOverflow = strconv.ErrRange
 
 const (
 	uint8SafeToMultiple10  = uint8(0xff)/10 - 1
@@ -24,15 +21,6 @@ const (
 	uint32SafeToMultiple10 = uint32(0xffffffff)/10 - 1
 	uint64SafeToMultiple10 = uint64(0xffffffffffffffff)/10 - 1
 )
-
-func init() {
-	for i := 0; i < len(intDigits); i++ {
-		intDigits[i] = invalidCharForNumber
-	}
-	for i := int8('0'); i <= int8('9'); i++ {
-		intDigits[i] = i - int8('0')
-	}
-}
 
 {{ range $typ := $.Types }}
 	{{ template "decode_uint" $typ }}
@@ -53,26 +41,45 @@ func (d *Decoder) U{{ title $.Name }}() (u{{ $.Name }}, error) {
 }
 
 func (d *Decoder) readU{{ title $.Name }}(c byte) (u{{ $.Name }}, error) {
-	ind := intDigits[c]
+	ind := floatDigits[c]
 	switch ind {
 	case 0:
 		// Check that next byte is not a digit.
 		c, err := d.peek()
-		if err == nil && intDigits[c] != invalidCharForNumber {
-			err := badToken(c, d.offset())
-			return 0, errors.Wrap(err, "digit after leading zero")
+		if err == nil {
+			switch floatDigits[c] {
+			case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9:
+				err := badToken(c, d.offset())
+				return 0, errors.Wrap(err, "digit after leading zero")
+			case dotInNumber, expInNumber, plusInNumber, minusInNumber:
+				err := badToken(c, d.offset())
+				return 0, errors.Wrap(err, "unexpected floating point character")
+			case invalidCharForNumber:
+				return 0, badToken(c, d.offset())
+			}
 		}
 		return 0, nil // single zero
-	case invalidCharForNumber:
-		return 0, badToken(c, d.offset()-1)
+	default:
+		if ind < 0 {
+			return 0, badToken(c, d.offset()-1)
+		}
 	}
 	value := u{{ $.Name }}(ind)
 	if d.tail-d.head > {{ $.DecoderIterations }} {
 		i := d.head
 	{{- range $i, $_ := times $.DecoderIterations }}
 		// Iteration {{ $i }}.
-		ind{{ add $i 2 }} := intDigits[d.buf[i]]
-		if ind{{ add $i 2 }} == invalidCharForNumber {
+		ind{{ add $i 2 }} := floatDigits[d.buf[i]]
+		switch ind{{ add $i 2 }} {
+		case invalidCharForNumber:
+			return 0, badToken(d.buf[i], d.offset()+{{ $i }})
+		case dotInNumber,
+			expInNumber,
+			plusInNumber,
+			minusInNumber:
+			err := badToken(d.buf[i], d.offset()+{{ $i }})
+			return 0, errors.Wrap(err, "unexpected floating point character")
+		case endOfNumber:
 			d.head = i
 			value *= {{ pow10 $i }}
 			{{- range $r, $_ := times $i }}
@@ -96,8 +103,17 @@ func (d *Decoder) readU{{ title $.Name }}(c byte) (u{{ $.Name }}, error) {
 	for {
 		buf := d.buf[d.head:d.tail]
 		for i, c := range buf {
-			ind = intDigits[c]
-			if ind == invalidCharForNumber {
+			ind = floatDigits[c]
+			switch ind {
+			case invalidCharForNumber:
+				return 0, badToken(c, d.offset()+i)
+			case dotInNumber,
+				expInNumber,
+				plusInNumber,
+				minusInNumber:
+				err := badToken(c, d.offset()+i)
+				return 0, errors.Wrap(err, "unexpected floating point character")
+			case endOfNumber:
 				d.head += i
 				return value, nil
 			}
