@@ -34,9 +34,17 @@ func (d *Decoder) readUInt8(c byte) (uint8, error) {
 	case 0:
 		// Check that next byte is not a digit.
 		c, err := d.peek()
-		if err == nil && floatDigits[c] > endOfNumber {
-			err := badToken(c, d.offset())
-			return 0, errors.Wrap(err, "digit after leading zero")
+		if err == nil {
+			switch floatDigits[c] {
+			case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9:
+				err := badToken(c, d.offset())
+				return 0, errors.Wrap(err, "digit after leading zero")
+			case dotInNumber, expInNumber, plusInNumber, minusInNumber:
+				err := badToken(c, d.offset())
+				return 0, errors.Wrap(err, "unexpected floating point character")
+			case invalidCharForNumber:
+				return 0, badToken(c, d.offset())
+			}
 		}
 		return 0, nil // single zero
 	default:
@@ -51,12 +59,12 @@ func (d *Decoder) readUInt8(c byte) (uint8, error) {
 		ind2 := floatDigits[d.buf[i]]
 		switch ind2 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+0)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+0)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -68,12 +76,12 @@ func (d *Decoder) readUInt8(c byte) (uint8, error) {
 		ind3 := floatDigits[d.buf[i]]
 		switch ind3 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+1)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+1)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -86,12 +94,12 @@ func (d *Decoder) readUInt8(c byte) (uint8, error) {
 		ind4 := floatDigits[d.buf[i]]
 		switch ind4 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+2)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+2)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -188,9 +196,17 @@ func (d *Decoder) readUInt16(c byte) (uint16, error) {
 	case 0:
 		// Check that next byte is not a digit.
 		c, err := d.peek()
-		if err == nil && floatDigits[c] > endOfNumber {
-			err := badToken(c, d.offset())
-			return 0, errors.Wrap(err, "digit after leading zero")
+		if err == nil {
+			switch floatDigits[c] {
+			case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9:
+				err := badToken(c, d.offset())
+				return 0, errors.Wrap(err, "digit after leading zero")
+			case dotInNumber, expInNumber, plusInNumber, minusInNumber:
+				err := badToken(c, d.offset())
+				return 0, errors.Wrap(err, "unexpected floating point character")
+			case invalidCharForNumber:
+				return 0, badToken(c, d.offset())
+			}
 		}
 		return 0, nil // single zero
 	default:
@@ -205,12 +221,12 @@ func (d *Decoder) readUInt16(c byte) (uint16, error) {
 		ind2 := floatDigits[d.buf[i]]
 		switch ind2 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+0)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+0)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -222,12 +238,12 @@ func (d *Decoder) readUInt16(c byte) (uint16, error) {
 		ind3 := floatDigits[d.buf[i]]
 		switch ind3 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+1)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+1)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -240,12 +256,12 @@ func (d *Decoder) readUInt16(c byte) (uint16, error) {
 		ind4 := floatDigits[d.buf[i]]
 		switch ind4 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+2)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+2)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -259,12 +275,12 @@ func (d *Decoder) readUInt16(c byte) (uint16, error) {
 		ind5 := floatDigits[d.buf[i]]
 		switch ind5 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+3)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+3)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -279,12 +295,12 @@ func (d *Decoder) readUInt16(c byte) (uint16, error) {
 		ind6 := floatDigits[d.buf[i]]
 		switch ind6 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+4)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+4)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -385,9 +401,17 @@ func (d *Decoder) readUInt32(c byte) (uint32, error) {
 	case 0:
 		// Check that next byte is not a digit.
 		c, err := d.peek()
-		if err == nil && floatDigits[c] > endOfNumber {
-			err := badToken(c, d.offset())
-			return 0, errors.Wrap(err, "digit after leading zero")
+		if err == nil {
+			switch floatDigits[c] {
+			case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9:
+				err := badToken(c, d.offset())
+				return 0, errors.Wrap(err, "digit after leading zero")
+			case dotInNumber, expInNumber, plusInNumber, minusInNumber:
+				err := badToken(c, d.offset())
+				return 0, errors.Wrap(err, "unexpected floating point character")
+			case invalidCharForNumber:
+				return 0, badToken(c, d.offset())
+			}
 		}
 		return 0, nil // single zero
 	default:
@@ -402,12 +426,12 @@ func (d *Decoder) readUInt32(c byte) (uint32, error) {
 		ind2 := floatDigits[d.buf[i]]
 		switch ind2 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+0)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+0)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -419,12 +443,12 @@ func (d *Decoder) readUInt32(c byte) (uint32, error) {
 		ind3 := floatDigits[d.buf[i]]
 		switch ind3 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+1)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+1)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -437,12 +461,12 @@ func (d *Decoder) readUInt32(c byte) (uint32, error) {
 		ind4 := floatDigits[d.buf[i]]
 		switch ind4 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+2)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+2)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -456,12 +480,12 @@ func (d *Decoder) readUInt32(c byte) (uint32, error) {
 		ind5 := floatDigits[d.buf[i]]
 		switch ind5 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+3)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+3)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -476,12 +500,12 @@ func (d *Decoder) readUInt32(c byte) (uint32, error) {
 		ind6 := floatDigits[d.buf[i]]
 		switch ind6 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+4)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+4)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -497,12 +521,12 @@ func (d *Decoder) readUInt32(c byte) (uint32, error) {
 		ind7 := floatDigits[d.buf[i]]
 		switch ind7 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+5)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+5)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -519,12 +543,12 @@ func (d *Decoder) readUInt32(c byte) (uint32, error) {
 		ind8 := floatDigits[d.buf[i]]
 		switch ind8 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+6)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+6)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -542,12 +566,12 @@ func (d *Decoder) readUInt32(c byte) (uint32, error) {
 		ind9 := floatDigits[d.buf[i]]
 		switch ind9 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+7)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+7)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -566,12 +590,12 @@ func (d *Decoder) readUInt32(c byte) (uint32, error) {
 		ind10 := floatDigits[d.buf[i]]
 		switch ind10 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+8)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+8)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -680,9 +704,17 @@ func (d *Decoder) readUInt64(c byte) (uint64, error) {
 	case 0:
 		// Check that next byte is not a digit.
 		c, err := d.peek()
-		if err == nil && floatDigits[c] > endOfNumber {
-			err := badToken(c, d.offset())
-			return 0, errors.Wrap(err, "digit after leading zero")
+		if err == nil {
+			switch floatDigits[c] {
+			case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9:
+				err := badToken(c, d.offset())
+				return 0, errors.Wrap(err, "digit after leading zero")
+			case dotInNumber, expInNumber, plusInNumber, minusInNumber:
+				err := badToken(c, d.offset())
+				return 0, errors.Wrap(err, "unexpected floating point character")
+			case invalidCharForNumber:
+				return 0, badToken(c, d.offset())
+			}
 		}
 		return 0, nil // single zero
 	default:
@@ -697,12 +729,12 @@ func (d *Decoder) readUInt64(c byte) (uint64, error) {
 		ind2 := floatDigits[d.buf[i]]
 		switch ind2 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+0)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+0)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -714,12 +746,12 @@ func (d *Decoder) readUInt64(c byte) (uint64, error) {
 		ind3 := floatDigits[d.buf[i]]
 		switch ind3 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+1)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+1)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -732,12 +764,12 @@ func (d *Decoder) readUInt64(c byte) (uint64, error) {
 		ind4 := floatDigits[d.buf[i]]
 		switch ind4 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+2)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+2)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -751,12 +783,12 @@ func (d *Decoder) readUInt64(c byte) (uint64, error) {
 		ind5 := floatDigits[d.buf[i]]
 		switch ind5 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+3)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+3)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -771,12 +803,12 @@ func (d *Decoder) readUInt64(c byte) (uint64, error) {
 		ind6 := floatDigits[d.buf[i]]
 		switch ind6 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+4)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+4)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -792,12 +824,12 @@ func (d *Decoder) readUInt64(c byte) (uint64, error) {
 		ind7 := floatDigits[d.buf[i]]
 		switch ind7 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+5)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+5)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -814,12 +846,12 @@ func (d *Decoder) readUInt64(c byte) (uint64, error) {
 		ind8 := floatDigits[d.buf[i]]
 		switch ind8 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+6)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+6)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -837,12 +869,12 @@ func (d *Decoder) readUInt64(c byte) (uint64, error) {
 		ind9 := floatDigits[d.buf[i]]
 		switch ind9 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+7)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+7)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
@@ -861,12 +893,12 @@ func (d *Decoder) readUInt64(c byte) (uint64, error) {
 		ind10 := floatDigits[d.buf[i]]
 		switch ind10 {
 		case invalidCharForNumber:
-			return 0, badToken(c, d.offset()+i)
+			return 0, badToken(d.buf[i], d.offset()+8)
 		case dotInNumber,
 			expInNumber,
 			plusInNumber,
 			minusInNumber:
-			err := badToken(c, d.offset()+i)
+			err := badToken(d.buf[i], d.offset()+8)
 			return 0, errors.Wrap(err, "unexpected floating point character")
 		case endOfNumber:
 			d.head = i
