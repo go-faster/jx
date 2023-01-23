@@ -108,13 +108,6 @@ func TestDecoderIntError(t *testing.T) {
 	})
 }
 
-func intDecoderOnlyError[T any](fn func(*Decoder) (T, error)) func(*Decoder) error {
-	return func(d *Decoder) error {
-		_, err := fn(d)
-		return err
-	}
-}
-
 func TestDecoderIntUnexpectedChar(t *testing.T) {
 	type intFunc struct {
 		name    string
@@ -122,18 +115,18 @@ func TestDecoderIntUnexpectedChar(t *testing.T) {
 		fn      func(*Decoder) error
 	}
 	signed := []intFunc{
-		{"Int", strconv.IntSize, intDecoderOnlyError((*Decoder).Int)},
-		{"Int8", 8, intDecoderOnlyError((*Decoder).Int8)},
-		{"Int16", 16, intDecoderOnlyError((*Decoder).Int16)},
-		{"Int32", 32, intDecoderOnlyError((*Decoder).Int32)},
-		{"Int64", 64, intDecoderOnlyError((*Decoder).Int64)},
+		{"Int", strconv.IntSize, decoderOnlyError((*Decoder).Int)},
+		{"Int8", 8, decoderOnlyError((*Decoder).Int8)},
+		{"Int16", 16, decoderOnlyError((*Decoder).Int16)},
+		{"Int32", 32, decoderOnlyError((*Decoder).Int32)},
+		{"Int64", 64, decoderOnlyError((*Decoder).Int64)},
 	}
 	unsigned := []intFunc{
-		{"UInt", strconv.IntSize, intDecoderOnlyError((*Decoder).UInt)},
-		{"UInt8", 8, intDecoderOnlyError((*Decoder).UInt8)},
-		{"UInt16", 16, intDecoderOnlyError((*Decoder).UInt16)},
-		{"UInt32", 32, intDecoderOnlyError((*Decoder).UInt32)},
-		{"UInt64", 64, intDecoderOnlyError((*Decoder).UInt64)},
+		{"UInt", strconv.IntSize, decoderOnlyError((*Decoder).UInt)},
+		{"UInt8", 8, decoderOnlyError((*Decoder).UInt8)},
+		{"UInt16", 16, decoderOnlyError((*Decoder).UInt16)},
+		{"UInt32", 32, decoderOnlyError((*Decoder).UInt32)},
+		{"UInt64", 64, decoderOnlyError((*Decoder).UInt64)},
 	}
 
 	tests := []struct {

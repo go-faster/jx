@@ -12,6 +12,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func decoderOnlyError[T any](fn func(*Decoder) (T, error)) func(*Decoder) error {
+	return func(d *Decoder) error {
+		_, err := fn(d)
+		return err
+	}
+}
+
 // testBufferReader runs the given test function with various decoding modes (buffered, streaming, etc.).
 func testBufferReader(input string, cb func(t *testing.T, d *Decoder)) func(t *testing.T) {
 	return func(t *testing.T) {
