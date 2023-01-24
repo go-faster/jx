@@ -150,20 +150,17 @@ func (d *Decoder) Float64() (float64, error) {
 	if err != nil {
 		return 0, err
 	}
-	if floatDigits[c] >= 0 {
+	if c != '-' {
 		d.unread()
-		return d.positiveFloat64()
 	}
-	switch c {
-	case '-':
-		v, err := d.positiveFloat64()
-		if err != nil {
-			return 0, err
-		}
-		return -v, err
-	default:
-		return 0, badToken(c, d.offset())
+	v, err := d.positiveFloat64()
+	if err != nil {
+		return 0, err
 	}
+	if c == '-' {
+		v *= -1
+	}
+	return v, nil
 }
 
 func (d *Decoder) positiveFloat64() (float64, error) {
@@ -289,15 +286,22 @@ func validateFloat(str []byte, offset int) error {
 		// FIXME(tdakkota): use io.ErrUnexpectedEOF?
 		return errors.New("empty")
 	}
-	if str[0] == '-' {
-		err := badToken(str[0], offset)
+
+	switch c := str[0]; floatDigits[c] {
+	case dotInNumber, plusInNumber, expInNumber:
+		err := badToken(c, offset)
+		return errors.Wrapf(err, "leading %q", c)
+	case minusInNumber: // minus handled by caller
+		err := badToken(c, offset)
 		return errors.Wrap(err, "double minus")
-	}
-	if len(str) >= 2 && str[0] == '0' {
-		switch str[1] {
-		case 'e', 'E', '.':
-		default:
-			return badToken(str[1], offset+1)
+	case 0:
+		if len(str) >= 2 {
+			switch str[1] {
+			case 'e', 'E', '.':
+			default:
+				err := badToken(str[1], offset+1)
+				return errors.Wrap(err, "leading zero")
+			}
 		}
 	}
 
