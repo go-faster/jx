@@ -201,7 +201,7 @@ func BenchmarkNum(b *testing.B) {
 			b.Run("AsInt", func(b *testing.B) {
 				b.ReportAllocs()
 				for i := 0; i < b.N; i++ {
-					if err := v.floatAsInt(); err != nil {
+					if _, err := v.floatAsInt(); err != nil {
 						b.Fatal(err)
 					}
 				}

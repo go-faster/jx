@@ -36,11 +36,13 @@ var testNumbers = append([]string{
 	"0",                           // valid
 	"-",                           // invalid
 	"--",                          // invalid
+	"-a",                          // invalid
 	"+",                           // invalid
 	".",                           // invalid
 	"e",                           // invalid
 	"E",                           // invalid
 	"-.",                          // invalid
+	"-0",                          // valid
 	"-1",                          // valid
 	"--1",                         // invalid
 	"+1",                          // invalid
@@ -49,6 +51,8 @@ var testNumbers = append([]string{
 	"-0",                          // valid
 	"00",                          // invalid
 	"01",                          // invalid
+	"-00",                         // invalid
+	"-01",                         // invalid
 	".00",                         // invalid
 	"00.1",                        // invalid
 	"-00",                         // invalid
@@ -100,6 +104,7 @@ var testNumbers = append([]string{
 	"0..1",                        // invalid, more dot
 	"0.1.",                        // invalid, more dot
 	"1..",                         // invalid, more dot
+	"1.0a",                        // invalid
 	"1e+1",                        // valid
 	"1+1",                         // invalid
 	"1E1",                         // valid, e or E

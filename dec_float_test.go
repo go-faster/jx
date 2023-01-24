@@ -7,7 +7,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/go-faster/errors"
 )
 
 func decodeStr(t *testing.T, s string, f func(t *testing.T, d *Decoder)) {
@@ -130,6 +133,87 @@ func TestDecoder_Float64(t *testing.T) {
 					require.InEpsilonf(t, tc.Value, v, epsilon, "%v != %v", tc.Value, v)
 				})
 			})
+		})
+	}
+}
+
+func TestDecoderFloatUnexpectedChar(t *testing.T) {
+	type floatFunc struct {
+		name    string
+		bitSize int
+		fn      func(*Decoder) error
+	}
+	floatFuncs := []floatFunc{
+		{"Float32", 32, decoderOnlyError((*Decoder).Float32)},
+		{"Float64", 64, decoderOnlyError((*Decoder).Float64)},
+	}
+
+	tests := []struct {
+		input       string
+		size        int // 0 for any
+		errContains string
+	}{
+		// Leading space.
+		{" 10", 0, ""},
+		{"   10", 0, ""},
+		{" -10", 0, ""},
+
+		// Digit after leading zero.
+		{"00", 0, "leading zero: unexpected byte 48 '0' at 1"},
+		{"01", 0, "leading zero: unexpected byte 49 '1' at 1"},
+		{"-00", 0, "leading zero: unexpected byte 48 '0' at 2"},
+		{"-01", 0, "leading zero: unexpected byte 49 '1' at 2"},
+
+		// Double minus.
+		{"--10", 0, "unexpected byte 45 '-' at 1"},
+
+		// Leading dot.
+		{".0", 0, "unexpected byte 46 '.' at 0"},
+		// Leading exponent.
+		{"e0", 0, "unexpected byte 101 'e' at 0"},
+		{"E0", 0, "unexpected byte 69 'E' at 0"},
+
+		// Non-digit after minus.
+		{"-.0", 0, "unexpected byte 46 '.' at 1"},
+		{"-e0", 0, "unexpected byte 101 'e' at 1"},
+		{"-E0", 0, "unexpected byte 69 'E' at 1"},
+
+		// Unexpected character.
+		{"-a", 0, "unexpected byte 97 'a' at 1"},
+		{"0a", 0, "unexpected byte 97 'a' at 1"},
+		{"0.a", 0, "unexpected byte 97 'a' at 2"},
+	}
+
+	for i, tt := range tests {
+		tt := tt
+		t.Run(fmt.Sprintf("Test%d", i+1), func(t *testing.T) {
+			check := func(fns []floatFunc) {
+				for _, intFn := range fns {
+					intFn := intFn
+					if tt.size != 0 && tt.size > intFn.bitSize {
+						continue
+					}
+					t.Run(intFn.name, func(t *testing.T) {
+						decodeStr(t, tt.input, func(t *testing.T, d *Decoder) {
+							a := assert.New(t)
+
+							err := intFn.fn(d)
+							if e := tt.errContains; e != "" {
+								a.ErrorContains(err, e)
+								v, ok := errors.Into[*badTokenErr](err)
+								if !ok {
+									return
+								}
+								a.Equal(v.Token, tt.input[v.Offset])
+								return
+							}
+							a.NoError(err)
+						})
+					})
+				}
+			}
+
+			check(floatFuncs)
 		})
 	}
 }

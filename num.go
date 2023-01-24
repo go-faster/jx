@@ -22,13 +22,15 @@ type Num []byte
 
 func (n Num) dec() Decoder {
 	head := 0
+	tail := len(n)
 	if n.Str() {
 		head = 1
+		tail--
 	}
 	return Decoder{
 		buf:  n,
-		tail: len(n),
 		head: head,
+		tail: tail,
 	}
 }
 
@@ -37,33 +39,37 @@ func (n Num) Str() bool {
 	return len(n) > 0 && n[0] == '"'
 }
 
-func (n Num) floatAsInt() error {
+func (n Num) floatAsInt() (dotIdx int, _ error) {
 	// Allow decoding floats with zero fractional, like 1.0 as 1.
-	var dot bool
+	dotIdx = -1
 	for i, c := range n {
 		if c == '.' {
-			dot = true
+			dotIdx = i
 			continue
 		}
-		if !dot {
+		if dotIdx == -1 {
 			continue
 		}
 		switch c {
 		case '0', '"': // ok
 		default:
-			return errors.Errorf("non-zero fractional part %q at %d", c, i)
+			return dotIdx, errors.Errorf("non-zero fractional part %q at %d", c, i)
 		}
 	}
-	return nil
+	return dotIdx, nil
 }
 
 // Int64 decodes number as a signed 64-bit integer.
 // Works on floats with zero fractional part.
 func (n Num) Int64() (int64, error) {
-	if err := n.floatAsInt(); err != nil {
+	dotIdx, err := n.floatAsInt()
+	if err != nil {
 		return 0, errors.Wrap(err, "float as int")
 	}
 	d := n.dec()
+	if dotIdx != -1 {
+		d.tail = dotIdx
+	}
 	return d.Int64()
 }
 
@@ -92,10 +98,14 @@ func (n Num) IsInt() bool {
 // Uint64 decodes number as an unsigned 64-bit integer.
 // Works on floats with zero fractional part.
 func (n Num) Uint64() (uint64, error) {
-	if err := n.floatAsInt(); err != nil {
+	dotIdx, err := n.floatAsInt()
+	if err != nil {
 		return 0, errors.Wrap(err, "float as int")
 	}
 	d := n.dec()
+	if dotIdx != -1 {
+		d.tail = dotIdx
+	}
 	return d.UInt64()
 }
 
