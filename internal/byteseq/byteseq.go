@@ -1,7 +1,9 @@
+// Package byteseq provides a Byteseq type that can be used to represent a sequence of bytes.
 package byteseq
 
 import "unicode/utf8"
 
+// Byteseq is common interface for byte slices and strings.
 type Byteseq interface {
 	string | []byte
 }
