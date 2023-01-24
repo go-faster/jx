@@ -1,11 +1,11 @@
-package jx
+package byteseq
 
 import (
 	"testing"
 	"unicode/utf8"
 )
 
-func Benchmark_decodeRuneInByteseq(b *testing.B) {
+func BenchmarkDecodeRuneInByteseq(b *testing.B) {
 	var (
 		buf    [4]byte
 		result rune
@@ -16,7 +16,7 @@ func Benchmark_decodeRuneInByteseq(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		result, _ = decodeRuneInByteseq(buf[:])
+		result, _ = DecodeRuneInByteseq(buf[:])
 	}
 
 	if result != 'ж' {

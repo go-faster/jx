@@ -1,6 +1,10 @@
 package jx
 
-import "unicode/utf8"
+import (
+	"unicode/utf8"
+
+	"github.com/go-faster/jx/internal/byteseq"
+)
 
 // Str encodes string without html escaping.
 //
@@ -18,7 +22,7 @@ func (w *Writer) ByteStr(v []byte) {
 	writeStr(w, v)
 }
 
-func writeStr[T byteseq](w *Writer, v T) {
+func writeStr[T byteseq.Byteseq](w *Writer, v T) {
 	w.Buf = append(w.Buf, '"')
 
 	// Fast path, without utf8 and escape support.
@@ -42,7 +46,7 @@ slow:
 	strSlow[T](w, v[i:])
 }
 
-func strSlow[T byteseq](w *Writer, v T) {
+func strSlow[T byteseq.Byteseq](w *Writer, v T) {
 	var i, start int
 	// for the remaining parts, we process them char by char
 	for i < len(v) {
@@ -92,7 +96,7 @@ func (w *Writer) ByteStrEscape(v []byte) {
 	strEscape(w, v)
 }
 
-func strEscape[T byteseq](w *Writer, v T) {
+func strEscape[T byteseq.Byteseq](w *Writer, v T) {
 	length := len(v)
 	w.Buf = append(w.Buf, '"')
 	// Fast path, probably does not require escaping.
@@ -111,7 +115,7 @@ func strEscape[T byteseq](w *Writer, v T) {
 	strEscapeSlow[T](w, i, v, length)
 }
 
-func strEscapeSlow[T byteseq](w *Writer, i int, v T, valLen int) {
+func strEscapeSlow[T byteseq.Byteseq](w *Writer, i int, v T, valLen int) {
 	start := i
 	// for the remaining parts, we process them char by char
 	for i < valLen {
@@ -145,7 +149,7 @@ func strEscapeSlow[T byteseq](w *Writer, i int, v T, valLen int) {
 			start = i
 			continue
 		}
-		c, size := decodeRuneInByteseq(v[i:])
+		c, size := byteseq.DecodeRuneInByteseq(v[i:])
 		if c == utf8.RuneError && size == 1 {
 			if start < i {
 				w.Buf = append(w.Buf, v[start:i]...)
