@@ -23,13 +23,15 @@ type Encoder[W io.Writer] struct {
 	first []bool
 }
 
+const defaultBufferSize = 512
+
 // NewEncoder returns new Encoder that writes to given writer.
 func NewEncoder[W io.Writer](w W) *Encoder[W] {
 	return &Encoder[W]{
 		w: writer[W]{
 			writer: w,
 			// TODO(tdakkota): add option to set buffer/size.
-			buf: make([]byte, 0, 512),
+			buf: make([]byte, 0, defaultBufferSize),
 		},
 	}
 }

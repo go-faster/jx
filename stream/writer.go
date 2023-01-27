@@ -18,6 +18,13 @@ func (w *writer[W]) Reset(writer W) {
 	w.flushErr = nil
 }
 
+func (w *writer[W]) checkErr(err error) bool {
+	if w.flushErr == nil {
+		w.flushErr = err
+	}
+	return err != nil
+}
+
 func (w *writer[W]) flush() bool {
 	if w.flushErr != nil {
 		return true
@@ -26,11 +33,9 @@ func (w *writer[W]) flush() bool {
 	n, err := w.writer.Write(w.buf)
 	switch {
 	case err != nil:
-		w.flushErr = err
-		return true
+		return w.checkErr(err)
 	case n != len(w.buf):
-		w.flushErr = io.ErrShortWrite
-		return true
+		return w.checkErr(io.ErrShortWrite)
 	default:
 		w.buf = w.buf[:0]
 		return false
