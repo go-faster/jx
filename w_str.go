@@ -38,10 +38,8 @@ func (w *Writer) ByteStr(v []byte) bool {
 	return writeStr(w, v)
 }
 
-func writeStr[S byteseq.Byteseq](w *Writer, v S) bool {
-	if w.byte('"') {
-		return true
-	}
+func writeStr[S byteseq.Byteseq](w *Writer, v S) (fail bool) {
+	fail = w.byte('"')
 
 	// Fast path, without utf8 and escape support.
 	var (
@@ -58,54 +56,45 @@ func writeStr[S byteseq.Byteseq](w *Writer, v S) bool {
 		return writeStreamByteseq(w, v) || w.byte('"')
 	}
 slow:
-	w.Buf = append(w.Buf, v[:i]...)
-	return strSlow[S](w, v[i:])
+	return writeStreamByteseq(w, v[:i]) || strSlow[S](w, v[i:])
 }
 
-func strSlow[S byteseq.Byteseq](w *Writer, v S) bool {
+func strSlow[S byteseq.Byteseq](w *Writer, v S) (fail bool) {
 	var i, start int
 	// for the remaining parts, we process them char by char
-	for i < len(v) {
+	for i < len(v) && !fail {
 		b := v[i]
 		if safeSet[b] == 0 {
 			i++
 			continue
 		}
 		if start < i {
-			if writeStreamByteseq(w, v[start:i]) {
-				return true
-			}
+			fail = fail || writeStreamByteseq(w, v[start:i])
 		}
 
-		var fail bool
 		switch b {
 		case '\\', '"':
-			fail = w.twoBytes('\\', b)
+			fail = fail || w.twoBytes('\\', b)
 		case '\n':
-			fail = w.twoBytes('\\', 'n')
+			fail = fail || w.twoBytes('\\', 'n')
 		case '\r':
-			fail = w.twoBytes('\\', 'r')
+			fail = fail || w.twoBytes('\\', 'r')
 		case '\t':
-			fail = w.twoBytes('\\', 't')
+			fail = fail || w.twoBytes('\\', 't')
 		default:
 			// This encodes bytes < 0x20 except for \t, \n and \r.
 			// If escapeHTML is set, it also escapes <, >, and &
 			// because they can lead to security holes when
 			// user-controlled strings are rendered into JSON
 			// and served to some browsers.
-			fail = w.rawStr(`\u00`) || w.twoBytes(hexChars[b>>4], hexChars[b&0xF])
-		}
-		if fail {
-			return true
+			fail = fail || w.rawStr(`\u00`) || w.twoBytes(hexChars[b>>4], hexChars[b&0xF])
 		}
 		i++
 		start = i
 		continue
 	}
 	if start < len(v) {
-		if writeStreamByteseq(w, v[start:]) {
-			return true
-		}
+		fail = fail || writeStreamByteseq(w, v[start:])
 	}
-	return w.byte('"')
+	return fail || w.byte('"')
 }

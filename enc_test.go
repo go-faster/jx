@@ -1,11 +1,36 @@
 package jx
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
+
+func testEncoderModes(t *testing.T, cb func(*Encoder), expected string) {
+	t.Run("Buffer", func(t *testing.T) {
+		e := GetEncoder()
+		cb(e)
+		require.Equal(t, expected, e.String())
+	})
+	t.Run("Writer", func(t *testing.T) {
+		var sb strings.Builder
+		e := NewStreamingEncoder(&sb, -1)
+		cb(e)
+		require.NoError(t, e.Close())
+		require.Equal(t, expected, sb.String())
+	})
+}
+
+// requireCompat fails if `encoding/json` will encode v differently than exp.
+func requireCompat(t *testing.T, cb func(*Encoder), v any) {
+	t.Helper()
+	buf, err := json.Marshal(v)
+	require.NoError(t, err, "json.Marshal(%#v)", v)
+	testEncoderModes(t, cb, string(buf))
+}
 
 func TestEncoderByteShouldGrowBuffer(t *testing.T) {
 	should := require.New(t)
@@ -56,46 +81,46 @@ func TestEncoderStrShouldGrowBuffer(t *testing.T) {
 }
 
 func TestEncoder_ArrEmpty(t *testing.T) {
-	e := GetEncoder()
-	e.ArrEmpty()
-	require.Equal(t, "[]", string(e.Bytes()))
+	testEncoderModes(t, func(e *Encoder) {
+		e.ArrEmpty()
+	}, "[]")
 }
 
 func TestEncoder_ObjEmpty(t *testing.T) {
-	e := GetEncoder()
-	e.ObjEmpty()
-	require.Equal(t, "{}", string(e.Bytes()))
+	testEncoderModes(t, func(e *Encoder) {
+		e.ObjEmpty()
+	}, "{}")
 }
 
 func TestEncoder_Obj(t *testing.T) {
-	t.Run("FieldStart", func(t *testing.T) {
-		var e Encoder
-		e.Obj(func(e *Encoder) {
-			e.Field("hello", func(e *Encoder) {
-				e.Str("world")
+	t.Run("Field", func(t *testing.T) {
+		testEncoderModes(t, func(e *Encoder) {
+			e.Obj(func(e *Encoder) {
+				e.Field("hello", func(e *Encoder) {
+					e.Str("world")
+				})
 			})
-		})
-		require.Equal(t, `{"hello":"world"}`, e.String())
+		}, `{"hello":"world"}`)
 	})
 	t.Run("Nil", func(t *testing.T) {
-		var e Encoder
-		e.Obj(nil)
-		require.Equal(t, `{}`, e.String())
+		testEncoderModes(t, func(e *Encoder) {
+			e.Obj(nil)
+		}, `{}`)
 	})
 }
 
 func TestEncoder_Arr(t *testing.T) {
 	t.Run("Elem", func(t *testing.T) {
-		var e Encoder
-		e.Arr(func(e *Encoder) {
-			e.Str("world")
-		})
-		require.Equal(t, `["world"]`, e.String())
+		testEncoderModes(t, func(e *Encoder) {
+			e.Arr(func(e *Encoder) {
+				e.Str("world")
+			})
+		}, `["world"]`)
 	})
 	t.Run("Nil", func(t *testing.T) {
-		var e Encoder
-		e.Arr(nil)
-		require.Equal(t, `[]`, e.String())
+		testEncoderModes(t, func(e *Encoder) {
+			e.Arr(nil)
+		}, `[]`)
 	})
 }
 

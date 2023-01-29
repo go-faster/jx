@@ -123,12 +123,9 @@ func TestWriteFloat32(t *testing.T) {
 	}
 	for _, val := range vals {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
-			should := require.New(t)
-			w := GetEncoder()
-			w.Float32(val)
-			output, err := json.Marshal(val)
-			should.Nil(err)
-			should.Equal(output, w.Bytes())
+			requireCompat(t, func(e *Encoder) {
+				e.Float32(val)
+			}, val)
 		})
 	}
 	should := require.New(t)
@@ -144,11 +141,9 @@ func TestWriteFloat64(t *testing.T) {
 	}
 	for _, val := range vals {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
-			should := require.New(t)
-			e := GetEncoder()
-			e.Float64(val)
-			s := strconv.FormatFloat(val, 'f', -1, 64)
-			should.Equal(s, string(e.Bytes()))
+			requireCompat(t, func(e *Encoder) {
+				e.Float64(val)
+			}, val)
 		})
 	}
 	should := require.New(t)

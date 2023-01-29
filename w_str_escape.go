@@ -122,63 +122,55 @@ func (w *Writer) ByteStrEscape(v []byte) bool {
 	return strEscape(w, v)
 }
 
-func strEscape[S byteseq.Byteseq](w *Writer, v S) bool {
-	length := len(v)
-	if w.byte('"') {
-		return true
-	}
+func strEscape[S byteseq.Byteseq](w *Writer, v S) (fail bool) {
+	fail = w.byte('"')
 	// Fast path, probably does not require escaping.
-	i := 0
+	var (
+		i      = 0
+		length = len(v)
+	)
 	for ; i < length; i++ {
 		c := v[i]
 		if c >= utf8.RuneSelf || !(htmlSafeSet[c]) {
 			break
 		}
 	}
-	if writeStreamByteseq(w, v[:i]) {
-		return true
-	}
+	fail = fail || writeStreamByteseq(w, v[:i])
 	if i == length {
-		return w.byte('"')
+		return fail || w.byte('"')
 	}
-	return strEscapeSlow[S](w, i, v, length)
+	return fail || strEscapeSlow[S](w, i, v, length)
 }
 
-func strEscapeSlow[S byteseq.Byteseq](w *Writer, i int, v S, valLen int) bool {
+func strEscapeSlow[S byteseq.Byteseq](w *Writer, i int, v S, valLen int) (fail bool) {
 	start := i
 	// for the remaining parts, we process them char by char
-	for i < valLen {
+	for i < valLen && !fail {
 		if b := v[i]; b < utf8.RuneSelf {
 			if htmlSafeSet[b] {
 				i++
 				continue
 			}
 			if start < i {
-				if writeStreamByteseq(w, v[start:i]) {
-					return true
-				}
+				fail = fail || writeStreamByteseq(w, v[start:i])
 			}
 
-			var fail bool
 			switch b {
 			case '\\', '"':
-				fail = w.twoBytes('\\', b)
+				fail = fail || w.twoBytes('\\', b)
 			case '\n':
-				fail = w.twoBytes('\\', 'n')
+				fail = fail || w.twoBytes('\\', 'n')
 			case '\r':
-				fail = w.twoBytes('\\', 'r')
+				fail = fail || w.twoBytes('\\', 'r')
 			case '\t':
-				fail = w.twoBytes('\\', 't')
+				fail = fail || w.twoBytes('\\', 't')
 			default:
 				// This encodes bytes < 0x20 except for \t, \n and \r.
 				// If escapeHTML is set, it also escapes <, >, and &
 				// because they can lead to security holes when
 				// user-controlled strings are rendered into JSON
 				// and served to some browsers.
-				fail = w.rawStr(`\u00`) || w.twoBytes(hexChars[b>>4], hexChars[b&0xF])
-			}
-			if fail {
-				return true
+				fail = fail || w.rawStr(`\u00`) || w.twoBytes(hexChars[b>>4], hexChars[b&0xF])
 			}
 			i++
 			start = i
@@ -187,13 +179,9 @@ func strEscapeSlow[S byteseq.Byteseq](w *Writer, i int, v S, valLen int) bool {
 		c, size := byteseq.DecodeRuneInByteseq(v[i:])
 		if c == utf8.RuneError && size == 1 {
 			if start < i {
-				if writeStreamByteseq(w, v[start:i]) {
-					return true
-				}
+				fail = fail || writeStreamByteseq(w, v[start:i])
 			}
-			if w.rawStr(`\ufffd`) {
-				return true
-			}
+			fail = fail || w.rawStr(`\ufffd`)
 			i++
 			start = i
 			continue
@@ -207,13 +195,9 @@ func strEscapeSlow[S byteseq.Byteseq](w *Writer, i int, v S, valLen int) bool {
 		// See http://timelessrepo.com/json-isnt-a-javascript-subset for discussion.
 		if c == '\u2028' || c == '\u2029' {
 			if start < i {
-				if writeStreamByteseq(w, v[start:i]) {
-					return true
-				}
+				fail = fail || writeStreamByteseq(w, v[start:i])
 			}
-			if w.rawStr(`\u202`) || w.byte(hexChars[c&0xF]) {
-				return true
-			}
+			fail = fail || w.rawStr(`\u202`) || w.byte(hexChars[c&0xF])
 			i += size
 			start = i
 			continue
@@ -221,9 +205,7 @@ func strEscapeSlow[S byteseq.Byteseq](w *Writer, i int, v S, valLen int) bool {
 		i += size
 	}
 	if start < len(v) {
-		if writeStreamByteseq(w, v[start:]) {
-			return true
-		}
+		fail = fail || writeStreamByteseq(w, v[start:])
 	}
-	return w.byte('"')
+	return fail || w.byte('"')
 }

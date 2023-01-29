@@ -475,10 +475,9 @@ func TestWriteUint32(t *testing.T) {
 	vals := []uint32{0, 1, 11, 111, 255, 999999, 0xfff, 0xffff, 0xfffff, 0xffffff, 0xfffffff, 0xffffffff}
 	for _, val := range vals {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
-			should := require.New(t)
-			e := GetEncoder()
-			e.UInt32(val)
-			should.Equal(strconv.FormatUint(uint64(val), 10), e.String())
+			requireCompat(t, func(e *Encoder) {
+				e.UInt32(val)
+			}, val)
 		})
 	}
 	should := require.New(t)
@@ -492,10 +491,9 @@ func TestWriteInt32(t *testing.T) {
 	vals := []int32{0, 1, 11, 111, 255, 999999, 0xfff, 0xffff, 0xfffff, 0xffffff, 0xfffffff, 0x7fffffff, -0x80000000}
 	for _, val := range vals {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
-			should := require.New(t)
-			e := GetEncoder()
-			e.Int32(val)
-			should.Equal(strconv.FormatInt(int64(val), 10), e.String())
+			requireCompat(t, func(e *Encoder) {
+				e.Int32(val)
+			}, val)
 		})
 	}
 	should := require.New(t)
@@ -513,10 +511,9 @@ func TestWriteUint64(t *testing.T) {
 	}
 	for _, val := range vals {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
-			should := require.New(t)
-			e := GetEncoder()
-			e.UInt64(val)
-			should.Equal(strconv.FormatUint(val, 10), e.String())
+			requireCompat(t, func(e *Encoder) {
+				e.UInt64(val)
+			}, val)
 		})
 	}
 	should := require.New(t)
@@ -534,10 +531,9 @@ func TestWriteInt64(t *testing.T) {
 	}
 	for _, val := range vals {
 		t.Run(fmt.Sprintf("%v", val), func(t *testing.T) {
-			should := require.New(t)
-			e := GetEncoder()
-			e.Int64(val)
-			should.Equal(strconv.FormatInt(val, 10), e.String())
+			requireCompat(t, func(e *Encoder) {
+				e.Int64(val)
+			}, val)
 		})
 	}
 	should := require.New(t)
