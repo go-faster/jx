@@ -10,17 +10,27 @@ import (
 )
 
 // Float writes float value to buffer.
-func (w *Writer) Float(v float64, bits int) {
+func (w *Writer) Float(v float64, bits int) bool {
 	if math.IsNaN(v) || math.IsInf(v, 0) {
 		// Like in ECMA:
 		// NaN and Infinity regardless of sign are represented
 		// as the String null.
 		//
 		// JSON.stringify({"foo":NaN}) -> {"foo":null}
-		w.Null()
-		return
+		return w.Null()
 	}
 
+	if w.stream == nil {
+		w.Buf = floatAppend(w.Buf, v, bits)
+		return false
+	}
+
+	tmp := make([]byte, 0, 32)
+	tmp = floatAppend(tmp, v, bits)
+	return writeStreamByteseq(w, tmp)
+}
+
+func floatAppend(b []byte, v float64, bits int) []byte {
 	// From go std sources, strconv/ftoa.go:
 
 	// Convert as if by ES6 number to string conversion.
@@ -28,7 +38,6 @@ func (w *Writer) Float(v float64, bits int) {
 	// See golang.org/issue/6384 and golang.org/issue/14135.
 	// Like fmt %g, but the exponent cutoffs are different
 	// and exponents themselves are not padded to two digits.
-	b := w.Buf
 	abs := math.Abs(v)
 	fmt := byte('f')
 	// Note: Must use float32 comparisons for underlying float32 value to get precise cutoffs right.
@@ -46,5 +55,5 @@ func (w *Writer) Float(v float64, bits int) {
 			b = b[:n-1]
 		}
 	}
-	w.Buf = b
+	return b
 }

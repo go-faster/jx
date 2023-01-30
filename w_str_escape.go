@@ -6,99 +6,127 @@ import (
 	"github.com/go-faster/jx/internal/byteseq"
 )
 
-// Str encodes string without html escaping.
+// htmlSafeSet holds the value true if the ASCII character with the given
+// array position can be safely represented inside a JSON string, embedded
+// inside of HTML <script> tags, without any additional escaping.
 //
-// Use StrEscape to escape html, this is default for encoding/json and
-// should be used by default for untrusted strings.
-func (w *Writer) Str(v string) {
-	writeStr(w, v)
-}
-
-// ByteStr encodes string without html escaping.
-//
-// Use ByteStrEscape to escape html, this is default for encoding/json and
-// should be used by default for untrusted strings.
-func (w *Writer) ByteStr(v []byte) {
-	writeStr(w, v)
-}
-
-func writeStr[T byteseq.Byteseq](w *Writer, v T) {
-	w.Buf = append(w.Buf, '"')
-
-	// Fast path, without utf8 and escape support.
-	var (
-		i      = 0
-		length = len(v)
-		c      byte
-	)
-	for i, c = range []byte(v) {
-		if safeSet[c] != 0 {
-			goto slow
-		}
-	}
-	if i == length-1 {
-		w.Buf = append(w.Buf, v...)
-		w.Buf = append(w.Buf, '"')
-		return
-	}
-slow:
-	w.Buf = append(w.Buf, v[:i]...)
-	strSlow[T](w, v[i:])
-}
-
-func strSlow[T byteseq.Byteseq](w *Writer, v T) {
-	var i, start int
-	// for the remaining parts, we process them char by char
-	for i < len(v) {
-		b := v[i]
-		if safeSet[b] == 0 {
-			i++
-			continue
-		}
-		if start < i {
-			w.Buf = append(w.Buf, v[start:i]...)
-		}
-		switch b {
-		case '\\', '"':
-			w.twoBytes('\\', b)
-		case '\n':
-			w.twoBytes('\\', 'n')
-		case '\r':
-			w.twoBytes('\\', 'r')
-		case '\t':
-			w.twoBytes('\\', 't')
-		default:
-			// This encodes bytes < 0x20 except for \t, \n and \r.
-			// If escapeHTML is set, it also escapes <, >, and &
-			// because they can lead to security holes when
-			// user-controlled strings are rendered into JSON
-			// and served to some browsers.
-			w.rawStr(`\u00`)
-			w.twoBytes(hexChars[b>>4], hexChars[b&0xF])
-		}
-		i++
-		start = i
-		continue
-	}
-	if start < len(v) {
-		w.Buf = append(w.Buf, v[start:]...)
-	}
-	w.byte('"')
+// All values are true except for the ASCII control characters (0-31), the
+// double quote ("), the backslash character ("\"), HTML opening and closing
+// tags ("<" and ">"), and the ampersand ("&").
+var htmlSafeSet = [utf8.RuneSelf]bool{
+	' ':      true,
+	'!':      true,
+	'"':      false,
+	'#':      true,
+	'$':      true,
+	'%':      true,
+	'&':      false,
+	'\'':     true,
+	'(':      true,
+	')':      true,
+	'*':      true,
+	'+':      true,
+	',':      true,
+	'-':      true,
+	'.':      true,
+	'/':      true,
+	'0':      true,
+	'1':      true,
+	'2':      true,
+	'3':      true,
+	'4':      true,
+	'5':      true,
+	'6':      true,
+	'7':      true,
+	'8':      true,
+	'9':      true,
+	':':      true,
+	';':      true,
+	'<':      false,
+	'=':      true,
+	'>':      false,
+	'?':      true,
+	'@':      true,
+	'A':      true,
+	'B':      true,
+	'C':      true,
+	'D':      true,
+	'E':      true,
+	'F':      true,
+	'G':      true,
+	'H':      true,
+	'I':      true,
+	'J':      true,
+	'K':      true,
+	'L':      true,
+	'M':      true,
+	'N':      true,
+	'O':      true,
+	'P':      true,
+	'Q':      true,
+	'R':      true,
+	'S':      true,
+	'T':      true,
+	'U':      true,
+	'V':      true,
+	'W':      true,
+	'X':      true,
+	'Y':      true,
+	'Z':      true,
+	'[':      true,
+	'\\':     false,
+	']':      true,
+	'^':      true,
+	'_':      true,
+	'`':      true,
+	'a':      true,
+	'b':      true,
+	'c':      true,
+	'd':      true,
+	'e':      true,
+	'f':      true,
+	'g':      true,
+	'h':      true,
+	'i':      true,
+	'j':      true,
+	'k':      true,
+	'l':      true,
+	'm':      true,
+	'n':      true,
+	'o':      true,
+	'p':      true,
+	'q':      true,
+	'r':      true,
+	's':      true,
+	't':      true,
+	'u':      true,
+	'v':      true,
+	'w':      true,
+	'x':      true,
+	'y':      true,
+	'z':      true,
+	'{':      true,
+	'|':      true,
+	'}':      true,
+	'~':      true,
+	'\u007f': true,
 }
 
 // StrEscape encodes string with html special characters escaping.
-func (w *Writer) StrEscape(v string) {
-	strEscape(w, v)
+func (w *Writer) StrEscape(v string) bool {
+	return strEscape(w, v)
 }
 
 // ByteStrEscape encodes string with html special characters escaping.
-func (w *Writer) ByteStrEscape(v []byte) {
-	strEscape(w, v)
+func (w *Writer) ByteStrEscape(v []byte) bool {
+	return strEscape(w, v)
 }
 
-func strEscape[T byteseq.Byteseq](w *Writer, v T) {
+func strEscape[S byteseq.Byteseq](w *Writer, v S) bool {
 	length := len(v)
-	w.Buf = append(w.Buf, '"')
+	if w.byte('"') {
+		return true
+	}
 	// Fast path, probably does not require escaping.
 	i := 0
 	for ; i < length; i++ {
@@ -107,15 +135,16 @@ func strEscape[T byteseq.Byteseq](w *Writer, v T) {
 			break
 		}
 	}
-	w.Buf = append(w.Buf, v[:i]...)
-	if i == length {
-		w.Buf = append(w.Buf, '"')
-		return
+	if writeStreamByteseq(w, v[:i]) {
+		return true
 	}
-	strEscapeSlow[T](w, i, v, length)
+	if i == length {
+		return w.byte('"')
+	}
+	return strEscapeSlow[S](w, i, v, length)
 }
 
-func strEscapeSlow[T byteseq.Byteseq](w *Writer, i int, v T, valLen int) {
+func strEscapeSlow[S byteseq.Byteseq](w *Writer, i int, v S, valLen int) bool {
 	start := i
 	// for the remaining parts, we process them char by char
 	for i < valLen {
@@ -125,25 +154,31 @@ func strEscapeSlow[T byteseq.Byteseq](w *Writer, i int, v T, valLen int) {
 				continue
 			}
 			if start < i {
-				w.Buf = append(w.Buf, v[start:i]...)
+				if writeStreamByteseq(w, v[start:i]) {
+					return true
+				}
 			}
+
+			var fail bool
 			switch b {
 			case '\\', '"':
-				w.twoBytes('\\', b)
+				fail = w.twoBytes('\\', b)
 			case '\n':
-				w.twoBytes('\\', 'n')
+				fail = w.twoBytes('\\', 'n')
 			case '\r':
-				w.twoBytes('\\', 'r')
+				fail = w.twoBytes('\\', 'r')
 			case '\t':
-				w.twoBytes('\\', 't')
+				fail = w.twoBytes('\\', 't')
 			default:
 				// This encodes bytes < 0x20 except for \t, \n and \r.
 				// If escapeHTML is set, it also escapes <, >, and &
 				// because they can lead to security holes when
 				// user-controlled strings are rendered into JSON
 				// and served to some browsers.
-				w.rawStr(`\u00`)
-				w.twoBytes(hexChars[b>>4], hexChars[b&0xF])
+				fail = w.rawStr(`\u00`) || w.twoBytes(hexChars[b>>4], hexChars[b&0xF])
+			}
+			if fail {
+				return true
 			}
 			i++
 			start = i
@@ -152,9 +187,13 @@ func strEscapeSlow[T byteseq.Byteseq](w *Writer, i int, v T, valLen int) {
 		c, size := byteseq.DecodeRuneInByteseq(v[i:])
 		if c == utf8.RuneError && size == 1 {
 			if start < i {
-				w.Buf = append(w.Buf, v[start:i]...)
+				if writeStreamByteseq(w, v[start:i]) {
+					return true
+				}
 			}
-			w.rawStr(`\ufffd`)
+			if w.rawStr(`\ufffd`) {
+				return true
+			}
 			i++
 			start = i
 			continue
@@ -168,10 +207,13 @@ func strEscapeSlow[T byteseq.Byteseq](w *Writer, i int, v T, valLen int) {
 		// See http://timelessrepo.com/json-isnt-a-javascript-subset for discussion.
 		if c == '\u2028' || c == '\u2029' {
 			if start < i {
-				w.Buf = append(w.Buf, v[start:i]...)
+				if writeStreamByteseq(w, v[start:i]) {
+					return true
+				}
 			}
-			w.rawStr(`\u202`)
-			w.byte(hexChars[c&0xF])
+			if w.rawStr(`\u202`) || w.byte(hexChars[c&0xF]) {
+				return true
+			}
 			i += size
 			start = i
 			continue
@@ -179,7 +221,9 @@ func strEscapeSlow[T byteseq.Byteseq](w *Writer, i int, v T, valLen int) {
 		i += size
 	}
 	if start < len(v) {
-		w.Buf = append(w.Buf, v[start:]...)
+		if writeStreamByteseq(w, v[start:]) {
+			return true
+		}
 	}
-	w.byte('"')
+	return w.byte('"')
 }
