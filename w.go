@@ -45,6 +45,9 @@ func (w *Writer) Reset() {
 // ResetWriter resets underlying buffer and sets output writer.
 func (w *Writer) ResetWriter(out io.Writer) {
 	w.Buf = w.Buf[:0]
+	if w.stream == nil {
+		w.stream = newStreamState(out)
+	}
 	w.stream.Reset(out)
 }
 
