@@ -18,19 +18,20 @@ func init() {
 	}
 }
 
-func writeFirstBuf(space []byte, v uint32) []byte {
+func writeFirstBuf(w *Writer, v uint32) bool {
+	r := make([]byte, 0, 4)
 	start := v >> 24
 	if start == 0 {
-		space = append(space, byte(v>>16), byte(v>>8))
+		r = append(r, byte(v>>16), byte(v>>8))
 	} else if start == 1 {
-		space = append(space, byte(v>>8))
+		r = append(r, byte(v>>8))
 	}
-	space = append(space, byte(v))
-	return space
+	r = append(r, byte(v))
+	return writeStreamBytes(w, r...)
 }
 
-func writeBuf(buf []byte, v uint32) []byte {
-	return append(buf, byte(v>>16), byte(v>>8), byte(v))
+func writeBuf(w *Writer, v uint32) bool {
+	return writeStreamBytes(w, byte(v>>16), byte(v>>8), byte(v))
 }
 
 {{ range $typ := $.Types }}
@@ -43,7 +44,7 @@ func writeBuf(buf []byte, v uint32) []byte {
 {{ define "encode_uint" }}
 {{- /*gotype: github.com/go-faster/jx/tools/mkint.IntType */ -}}
 // U{{ title $.Name }} encodes u{{ $.Name }}.
-func (w *Writer) U{{ title $.Name }}(v u{{ $.Name }}) {
+func (w *Writer) U{{ title $.Name }}(v u{{ $.Name }}) (fail bool) {
 	q0 := v
 	{{- range $i, $_ := times $.EncoderIterations }}
 	// Iteration {{ $i }}.
@@ -52,47 +53,46 @@ func (w *Writer) U{{ title $.Name }}(v u{{ $.Name }}) {
 	{{- end }}
 
 	{{- if eq $i (sub $.EncoderIterations 1) }}
-	w.Buf = writeFirstBuf(w.Buf, digits[q{{$i}}])
+	fail = fail || writeFirstBuf(w, digits[q{{$i}}])
 	{{- range $r, $_ := times $i }}
-	w.Buf = writeBuf(w.Buf, digits[r{{sub $i $r}}])
+	fail = fail || writeBuf(w, digits[r{{sub $i $r}}])
 	{{- end }}
 	{{- else }}
 	q{{add $i 1}} := q{{$i}} / 1000
 	if q{{add $i 1}} == 0 {
-		w.Buf = writeFirstBuf(w.Buf, digits[q{{$i}}])
+		fail = fail || writeFirstBuf(w, digits[q{{$i}}])
 		{{- range $r, $_ := times $i }}
-		w.Buf = writeBuf(w.Buf, digits[r{{sub $i $r}}])
+		fail = fail || writeBuf(w, digits[r{{sub $i $r}}])
 		{{- end }}
-		return
+		return fail
 	}
 	{{- end }}
 	{{- end }}
+	return fail
 }
 
 // U{{ title $.Name }} encodes u{{ $.Name }}.
-func (e *Encoder) U{{ title $.Name }}(v u{{ $.Name }}) {
-    e.comma()
-    e.w.U{{ title $.Name }}(v)
+func (e *Encoder) U{{ title $.Name }}(v u{{ $.Name }}) bool {
+   	return e.comma() || e.w.U{{ title $.Name }}(v)
 }
 {{ end }}
 
 {{ define "encode_int" }}
 {{- /*gotype: github.com/go-faster/jx/tools/mkint.IntType */ -}}
 // {{ title $.Name }} encodes {{ $.Name }}.
-func (w *Writer) {{ title $.Name }}(v {{ $.Name }}) {
+func (w *Writer) {{ title $.Name }}(v {{ $.Name }}) (fail bool) {
 	var val u{{ $.Name }}
 	if v < 0 {
 		val = u{{ $.Name }}(-v)
-		w.Buf = append(w.Buf, '-')
+		fail = w.byte('-')
 	} else {
 		val = u{{ $.Name }}(v)
 	}
-	w.U{{ title $.Name }}(val)
+	return fail || w.U{{ title $.Name }}(val)
 }
 
 // {{ title $.Name }} encodes {{ $.Name }}.
-func (e *Encoder) {{ title $.Name }}(v {{ $.Name }}) {
-	e.comma()
-	e.w.{{ title $.Name }}(v)
+func (e *Encoder) {{ title $.Name }}(v {{ $.Name }}) bool {
+	return e.comma() || e.w.{{ title $.Name }}(v)
 }
 {{ end }}

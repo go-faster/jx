@@ -16,208 +16,206 @@ func init() {
 	}
 }
 
-func writeFirstBuf(space []byte, v uint32) []byte {
+func writeFirstBuf(w *Writer, v uint32) bool {
+	r := make([]byte, 0, 4)
 	start := v >> 24
 	if start == 0 {
-		space = append(space, byte(v>>16), byte(v>>8))
+		r = append(r, byte(v>>16), byte(v>>8))
 	} else if start == 1 {
-		space = append(space, byte(v>>8))
+		r = append(r, byte(v>>8))
 	}
-	space = append(space, byte(v))
-	return space
+	r = append(r, byte(v))
+	return writeStreamBytes(w, r...)
 }
 
-func writeBuf(buf []byte, v uint32) []byte {
-	return append(buf, byte(v>>16), byte(v>>8), byte(v))
+func writeBuf(w *Writer, v uint32) bool {
+	return writeStreamBytes(w, byte(v>>16), byte(v>>8), byte(v))
 }
 
 // UInt16 encodes uint16.
-func (w *Writer) UInt16(v uint16) {
+func (w *Writer) UInt16(v uint16) (fail bool) {
 	q0 := v
 	// Iteration 0.
 	q1 := q0 / 1000
 	if q1 == 0 {
-		w.Buf = writeFirstBuf(w.Buf, digits[q0])
-		return
+		fail = fail || writeFirstBuf(w, digits[q0])
+		return fail
 	}
 	// Iteration 1.
 	r1 := q0 - q1*1000
-	w.Buf = writeFirstBuf(w.Buf, digits[q1])
-	w.Buf = writeBuf(w.Buf, digits[r1])
+	fail = fail || writeFirstBuf(w, digits[q1])
+	fail = fail || writeBuf(w, digits[r1])
+	return fail
 }
 
 // UInt16 encodes uint16.
-func (e *Encoder) UInt16(v uint16) {
-	e.comma()
-	e.w.UInt16(v)
+func (e *Encoder) UInt16(v uint16) bool {
+	return e.comma() || e.w.UInt16(v)
 }
 
 // Int16 encodes int16.
-func (w *Writer) Int16(v int16) {
+func (w *Writer) Int16(v int16) (fail bool) {
 	var val uint16
 	if v < 0 {
 		val = uint16(-v)
-		w.Buf = append(w.Buf, '-')
+		fail = w.byte('-')
 	} else {
 		val = uint16(v)
 	}
-	w.UInt16(val)
+	return fail || w.UInt16(val)
 }
 
 // Int16 encodes int16.
-func (e *Encoder) Int16(v int16) {
-	e.comma()
-	e.w.Int16(v)
+func (e *Encoder) Int16(v int16) bool {
+	return e.comma() || e.w.Int16(v)
 }
 
 // UInt32 encodes uint32.
-func (w *Writer) UInt32(v uint32) {
+func (w *Writer) UInt32(v uint32) (fail bool) {
 	q0 := v
 	// Iteration 0.
 	q1 := q0 / 1000
 	if q1 == 0 {
-		w.Buf = writeFirstBuf(w.Buf, digits[q0])
-		return
+		fail = fail || writeFirstBuf(w, digits[q0])
+		return fail
 	}
 	// Iteration 1.
 	r1 := q0 - q1*1000
 	q2 := q1 / 1000
 	if q2 == 0 {
-		w.Buf = writeFirstBuf(w.Buf, digits[q1])
-		w.Buf = writeBuf(w.Buf, digits[r1])
-		return
+		fail = fail || writeFirstBuf(w, digits[q1])
+		fail = fail || writeBuf(w, digits[r1])
+		return fail
 	}
 	// Iteration 2.
 	r2 := q1 - q2*1000
 	q3 := q2 / 1000
 	if q3 == 0 {
-		w.Buf = writeFirstBuf(w.Buf, digits[q2])
-		w.Buf = writeBuf(w.Buf, digits[r2])
-		w.Buf = writeBuf(w.Buf, digits[r1])
-		return
+		fail = fail || writeFirstBuf(w, digits[q2])
+		fail = fail || writeBuf(w, digits[r2])
+		fail = fail || writeBuf(w, digits[r1])
+		return fail
 	}
 	// Iteration 3.
 	r3 := q2 - q3*1000
-	w.Buf = writeFirstBuf(w.Buf, digits[q3])
-	w.Buf = writeBuf(w.Buf, digits[r3])
-	w.Buf = writeBuf(w.Buf, digits[r2])
-	w.Buf = writeBuf(w.Buf, digits[r1])
+	fail = fail || writeFirstBuf(w, digits[q3])
+	fail = fail || writeBuf(w, digits[r3])
+	fail = fail || writeBuf(w, digits[r2])
+	fail = fail || writeBuf(w, digits[r1])
+	return fail
 }
 
 // UInt32 encodes uint32.
-func (e *Encoder) UInt32(v uint32) {
-	e.comma()
-	e.w.UInt32(v)
+func (e *Encoder) UInt32(v uint32) bool {
+	return e.comma() || e.w.UInt32(v)
 }
 
 // Int32 encodes int32.
-func (w *Writer) Int32(v int32) {
+func (w *Writer) Int32(v int32) (fail bool) {
 	var val uint32
 	if v < 0 {
 		val = uint32(-v)
-		w.Buf = append(w.Buf, '-')
+		fail = w.byte('-')
 	} else {
 		val = uint32(v)
 	}
-	w.UInt32(val)
+	return fail || w.UInt32(val)
 }
 
 // Int32 encodes int32.
-func (e *Encoder) Int32(v int32) {
-	e.comma()
-	e.w.Int32(v)
+func (e *Encoder) Int32(v int32) bool {
+	return e.comma() || e.w.Int32(v)
 }
 
 // UInt64 encodes uint64.
-func (w *Writer) UInt64(v uint64) {
+func (w *Writer) UInt64(v uint64) (fail bool) {
 	q0 := v
 	// Iteration 0.
 	q1 := q0 / 1000
 	if q1 == 0 {
-		w.Buf = writeFirstBuf(w.Buf, digits[q0])
-		return
+		fail = fail || writeFirstBuf(w, digits[q0])
+		return fail
 	}
 	// Iteration 1.
 	r1 := q0 - q1*1000
 	q2 := q1 / 1000
 	if q2 == 0 {
-		w.Buf = writeFirstBuf(w.Buf, digits[q1])
-		w.Buf = writeBuf(w.Buf, digits[r1])
-		return
+		fail = fail || writeFirstBuf(w, digits[q1])
+		fail = fail || writeBuf(w, digits[r1])
+		return fail
 	}
 	// Iteration 2.
 	r2 := q1 - q2*1000
 	q3 := q2 / 1000
 	if q3 == 0 {
-		w.Buf = writeFirstBuf(w.Buf, digits[q2])
-		w.Buf = writeBuf(w.Buf, digits[r2])
-		w.Buf = writeBuf(w.Buf, digits[r1])
-		return
+		fail = fail || writeFirstBuf(w, digits[q2])
+		fail = fail || writeBuf(w, digits[r2])
+		fail = fail || writeBuf(w, digits[r1])
+		return fail
 	}
 	// Iteration 3.
 	r3 := q2 - q3*1000
 	q4 := q3 / 1000
 	if q4 == 0 {
-		w.Buf = writeFirstBuf(w.Buf, digits[q3])
-		w.Buf = writeBuf(w.Buf, digits[r3])
-		w.Buf = writeBuf(w.Buf, digits[r2])
-		w.Buf = writeBuf(w.Buf, digits[r1])
-		return
+		fail = fail || writeFirstBuf(w, digits[q3])
+		fail = fail || writeBuf(w, digits[r3])
+		fail = fail || writeBuf(w, digits[r2])
+		fail = fail || writeBuf(w, digits[r1])
+		return fail
 	}
 	// Iteration 4.
 	r4 := q3 - q4*1000
 	q5 := q4 / 1000
 	if q5 == 0 {
-		w.Buf = writeFirstBuf(w.Buf, digits[q4])
-		w.Buf = writeBuf(w.Buf, digits[r4])
-		w.Buf = writeBuf(w.Buf, digits[r3])
-		w.Buf = writeBuf(w.Buf, digits[r2])
-		w.Buf = writeBuf(w.Buf, digits[r1])
-		return
+		fail = fail || writeFirstBuf(w, digits[q4])
+		fail = fail || writeBuf(w, digits[r4])
+		fail = fail || writeBuf(w, digits[r3])
+		fail = fail || writeBuf(w, digits[r2])
+		fail = fail || writeBuf(w, digits[r1])
+		return fail
 	}
 	// Iteration 5.
 	r5 := q4 - q5*1000
 	q6 := q5 / 1000
 	if q6 == 0 {
-		w.Buf = writeFirstBuf(w.Buf, digits[q5])
-		w.Buf = writeBuf(w.Buf, digits[r5])
-		w.Buf = writeBuf(w.Buf, digits[r4])
-		w.Buf = writeBuf(w.Buf, digits[r3])
-		w.Buf = writeBuf(w.Buf, digits[r2])
-		w.Buf = writeBuf(w.Buf, digits[r1])
-		return
+		fail = fail || writeFirstBuf(w, digits[q5])
+		fail = fail || writeBuf(w, digits[r5])
+		fail = fail || writeBuf(w, digits[r4])
+		fail = fail || writeBuf(w, digits[r3])
+		fail = fail || writeBuf(w, digits[r2])
+		fail = fail || writeBuf(w, digits[r1])
+		return fail
 	}
 	// Iteration 6.
 	r6 := q5 - q6*1000
-	w.Buf = writeFirstBuf(w.Buf, digits[q6])
-	w.Buf = writeBuf(w.Buf, digits[r6])
-	w.Buf = writeBuf(w.Buf, digits[r5])
-	w.Buf = writeBuf(w.Buf, digits[r4])
-	w.Buf = writeBuf(w.Buf, digits[r3])
-	w.Buf = writeBuf(w.Buf, digits[r2])
-	w.Buf = writeBuf(w.Buf, digits[r1])
+	fail = fail || writeFirstBuf(w, digits[q6])
+	fail = fail || writeBuf(w, digits[r6])
+	fail = fail || writeBuf(w, digits[r5])
+	fail = fail || writeBuf(w, digits[r4])
+	fail = fail || writeBuf(w, digits[r3])
+	fail = fail || writeBuf(w, digits[r2])
+	fail = fail || writeBuf(w, digits[r1])
+	return fail
 }
 
 // UInt64 encodes uint64.
-func (e *Encoder) UInt64(v uint64) {
-	e.comma()
-	e.w.UInt64(v)
+func (e *Encoder) UInt64(v uint64) bool {
+	return e.comma() || e.w.UInt64(v)
 }
 
 // Int64 encodes int64.
-func (w *Writer) Int64(v int64) {
+func (w *Writer) Int64(v int64) (fail bool) {
 	var val uint64
 	if v < 0 {
 		val = uint64(-v)
-		w.Buf = append(w.Buf, '-')
+		fail = w.byte('-')
 	} else {
 		val = uint64(v)
 	}
-	w.UInt64(val)
+	return fail || w.UInt64(val)
 }
 
 // Int64 encodes int64.
-func (e *Encoder) Int64(v int64) {
-	e.comma()
-	e.w.Int64(v)
+func (e *Encoder) Int64(v int64) bool {
+	return e.comma() || e.w.Int64(v)
 }

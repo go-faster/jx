@@ -42,12 +42,20 @@ func (e *Encoder) SetIdent(n int) {
 
 // String returns string of underlying buffer.
 func (e Encoder) String() string {
-	return string(e.Bytes())
+	return e.w.String()
 }
 
 // Reset resets underlying buffer.
+//
+// If e is in streaming mode, it is reset to non-streaming mode.
 func (e *Encoder) Reset() {
-	e.w.Buf = e.w.Buf[:0]
+	e.w.Reset()
+	e.first = e.first[:0]
+}
+
+// ResetWriter resets underlying buffer and sets output writer.
+func (e *Encoder) ResetWriter(out io.Writer) {
+	e.w.ResetWriter(out)
 	e.first = e.first[:0]
 }
 
@@ -58,42 +66,41 @@ func (e Encoder) Bytes() []byte { return e.w.Buf }
 func (e *Encoder) SetBytes(buf []byte) { e.w.Buf = buf }
 
 // byte writes a single byte.
-func (e *Encoder) byte(c byte) {
-	e.w.Buf = append(e.w.Buf, c)
+func (e *Encoder) byte(c byte) bool {
+	return e.w.byte(c)
 }
 
 // RawStr writes string as raw json.
-func (e *Encoder) RawStr(v string) {
-	e.comma()
-	e.w.RawStr(v)
+func (e *Encoder) RawStr(v string) bool {
+	return e.comma() ||
+		e.w.RawStr(v)
 }
 
 // Raw writes byte slice as raw json.
-func (e *Encoder) Raw(b []byte) {
-	e.comma()
-	e.w.Raw(b)
+func (e *Encoder) Raw(b []byte) bool {
+	return e.comma() ||
+		e.w.Raw(b)
 }
 
 // Null writes null.
-func (e *Encoder) Null() {
-	e.comma()
-	e.w.Null()
+func (e *Encoder) Null() bool {
+	return e.comma() ||
+		e.w.Null()
 }
 
 // Bool encodes boolean.
-func (e *Encoder) Bool(v bool) {
-	e.comma()
-	e.w.Bool(v)
+func (e *Encoder) Bool(v bool) bool {
+	return e.comma() ||
+		e.w.Bool(v)
 }
 
 // ObjStart writes object start, performing indentation if needed.
 //
 // Use Obj as convenience helper for writing objects.
-func (e *Encoder) ObjStart() {
-	e.comma()
-	e.w.ObjStart()
+func (e *Encoder) ObjStart() (fail bool) {
+	fail = e.comma() || e.w.ObjStart()
 	e.begin()
-	e.writeIndent()
+	return fail || e.writeIndent()
 }
 
 // FieldStart encodes field name and writes colon.
@@ -101,99 +108,100 @@ func (e *Encoder) ObjStart() {
 // For non-zero indentation also writes single space after colon.
 //
 // Use Field as convenience helper for encoding fields.
-func (e *Encoder) FieldStart(field string) {
-	e.comma()
-	e.w.FieldStart(field)
+func (e *Encoder) FieldStart(field string) (fail bool) {
+	fail = e.comma() || e.w.FieldStart(field)
 	if e.indent > 0 {
-		e.byte(' ')
+		fail = fail || e.byte(' ')
 	}
 	if len(e.first) > 0 {
 		e.first[e.current()] = true
 	}
+	return fail
 }
 
 // Field encodes field start and then invokes callback.
 //
 // Has ~5ns overhead over FieldStart.
-func (e *Encoder) Field(name string, f func(e *Encoder)) {
-	e.FieldStart(name)
+func (e *Encoder) Field(name string, f func(e *Encoder)) (fail bool) {
+	fail = e.FieldStart(name)
+	// TODO(tdakkota): return bool from f?
 	f(e)
+	return fail
 }
 
 // ObjEnd writes end of object token, performing indentation if needed.
 //
 // Use Obj as convenience helper for writing objects.
-func (e *Encoder) ObjEnd() {
+func (e *Encoder) ObjEnd() bool {
 	e.end()
-	e.writeIndent()
-	e.w.ObjEnd()
+	return e.writeIndent() || e.w.ObjEnd()
 }
 
 // ObjEmpty writes empty object.
-func (e *Encoder) ObjEmpty() {
-	e.comma()
-	e.w.ObjStart()
-	e.w.ObjEnd()
+func (e *Encoder) ObjEmpty() bool {
+	return e.comma() ||
+		e.w.ObjStart() ||
+		e.w.ObjEnd()
 }
 
 // Obj writes start of object, invokes callback and writes end of object.
 //
 // If callback is nil, writes empty object.
-func (e *Encoder) Obj(f func(e *Encoder)) {
+func (e *Encoder) Obj(f func(e *Encoder)) (fail bool) {
 	if f == nil {
-		e.ObjEmpty()
-		return
+		return e.ObjEmpty()
 	}
-	e.ObjStart()
+	fail = e.ObjStart()
+	// TODO(tdakkota): return bool from f?
 	f(e)
-	e.ObjEnd()
+	return fail || e.ObjEnd()
 }
 
 // ArrStart writes start of array, performing indentation if needed.
 //
 // Use Arr as convenience helper for writing arrays.
-func (e *Encoder) ArrStart() {
-	e.comma()
-	e.w.ArrStart()
+func (e *Encoder) ArrStart() (fail bool) {
+	fail = e.comma() || e.w.ArrStart()
 	e.begin()
-	e.writeIndent()
+	return fail || e.writeIndent()
 }
 
 // ArrEmpty writes empty array.
-func (e *Encoder) ArrEmpty() {
-	e.comma()
-	e.w.ArrStart()
-	e.w.ArrEnd()
+func (e *Encoder) ArrEmpty() bool {
+	return e.comma() ||
+		e.w.ArrStart() ||
+		e.w.ArrEnd()
 }
 
 // ArrEnd writes end of array, performing indentation if needed.
 //
 // Use Arr as convenience helper for writing arrays.
-func (e *Encoder) ArrEnd() {
+func (e *Encoder) ArrEnd() bool {
 	e.end()
-	e.writeIndent()
-	e.w.ArrEnd()
+	return e.writeIndent() ||
+		e.w.ArrEnd()
 }
 
 // Arr writes start of array, invokes callback and writes end of array.
 //
 // If callback is nil, writes empty array.
-func (e *Encoder) Arr(f func(e *Encoder)) {
+func (e *Encoder) Arr(f func(e *Encoder)) (fail bool) {
 	if f == nil {
-		e.ArrEmpty()
-		return
+		return e.ArrEmpty()
 	}
-	e.ArrStart()
+	fail = e.ArrStart()
+	// TODO(tdakkota): return bool from f?
 	f(e)
-	e.ArrEnd()
+	return fail || e.ArrEnd()
 }
 
-func (e *Encoder) writeIndent() {
+func (e *Encoder) writeIndent() (fail bool) {
 	if e.indent == 0 {
-		return
+		return false
 	}
-	e.byte('\n')
-	for i := 0; i < len(e.first)*e.indent; i++ {
-		e.w.Buf = append(e.w.Buf, ' ')
+	fail = e.byte('\n')
+	for i := 0; i < len(e.first)*e.indent && !fail; i++ {
+		fail = fail || e.byte(' ')
 	}
+	return fail
 }

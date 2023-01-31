@@ -2,21 +2,11 @@ package jx
 
 import (
 	"bytes"
-	"encoding/json"
 	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
-
-// requireCompat fails if `encoding/json` will encode v differently than exp.
-func requireCompat(t testing.TB, got []byte, v interface{}) {
-	t.Helper()
-	buf, err := json.Marshal(v)
-	require.NoError(t, err)
-	require.Equal(t, string(buf), string(got))
-}
 
 func TestPutEncoder(t *testing.T) {
 	var wg sync.WaitGroup

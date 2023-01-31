@@ -16,19 +16,19 @@ func (e *Encoder) end() {
 func (e *Encoder) current() int { return len(e.first) - 1 }
 
 // comma should be called before any new value.
-func (e *Encoder) comma() {
+func (e *Encoder) comma() bool {
 	// Writing commas.
 	// 1. Before every field expect first.
 	// 2. Before every array element except first.
 	if len(e.first) == 0 {
-		return
+		return false
 	}
 	current := e.current()
 	_ = e.first[current]
 	if e.first[current] {
 		e.first[current] = false
-		return
+		return false
 	}
-	e.byte(',')
-	e.writeIndent()
+	return e.byte(',') ||
+		e.writeIndent()
 }

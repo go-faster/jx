@@ -3,6 +3,7 @@ package jx
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,25 +22,31 @@ func TestEncoder_Str(t *testing.T) {
 		{"\x00"},
 		{"\x00 "},
 		{`"hello, world!"`},
+
+		{strings.Repeat("a", encoderBufSize)},
 	}
 	for i, tt := range testCases {
 		tt := tt
 		t.Run(fmt.Sprintf("Test%d", i+1), func(t *testing.T) {
 			for _, enc := range []struct {
 				name string
-				enc  func(e *Encoder, input string)
+				enc  func(e *Encoder, input string) bool
 			}{
 				{"Str", (*Encoder).Str},
-				{"Bytes", func(e *Encoder, input string) {
-					e.ByteStr([]byte(tt.input))
+				{"Bytes", func(e *Encoder, input string) bool {
+					return e.ByteStr([]byte(tt.input))
 				}},
 			} {
 				enc := enc
 				t.Run(enc.name, func(t *testing.T) {
-					e := GetEncoder()
-					enc.enc(e, tt.input)
-					requireCompat(t, e.Bytes(), tt.input)
+					requireCompat(t, func(e *Encoder) {
+						enc.enc(e, tt.input)
+					}, tt.input)
+
 					t.Run("Decode", func(t *testing.T) {
+						e := GetEncoder()
+						enc.enc(e, tt.input)
+
 						i := GetDecoder()
 						i.ResetBytes(e.Bytes())
 						s, err := i.Str()
@@ -54,9 +61,9 @@ func TestEncoder_Str(t *testing.T) {
 		const (
 			v = "\"/\""
 		)
-		var e Encoder
-		e.Str(v)
-		requireCompat(t, e.Bytes(), v)
+		requireCompat(t, func(e *Encoder) {
+			e.StrEscape(v)
+		}, v)
 	})
 	t.Run("QuotesObj", func(t *testing.T) {
 		const (
@@ -64,17 +71,21 @@ func TestEncoder_Str(t *testing.T) {
 			v = "\"/\""
 		)
 
+		cb := func(e *Encoder) {
+			e.ObjStart()
+			e.FieldStart(k)
+			e.Str(v)
+			e.ObjEnd()
+			t.Log(e)
+		}
+
 		var e Encoder
-		e.ObjStart()
-		e.FieldStart(k)
-		e.Str(v)
-		e.ObjEnd()
-		t.Log(e)
+		cb(&e)
 
 		var target map[string]string
 		require.NoError(t, json.Unmarshal(e.Bytes(), &target))
 		assert.Equal(t, v, target[k])
-		requireCompat(t, e.Bytes(), map[string]string{k: v})
+		requireCompat(t, cb, map[string]string{k: v})
 	})
 }
 
@@ -96,19 +107,18 @@ func TestEncoder_StrEscape(t *testing.T) {
 		t.Run(fmt.Sprintf("Test%d", i+1), func(t *testing.T) {
 			for _, enc := range []struct {
 				name string
-				enc  func(e *Encoder, input string)
+				enc  func(e *Encoder, input string) bool
 			}{
 				{"Str", (*Encoder).StrEscape},
-				{"Bytes", func(e *Encoder, input string) {
-					e.ByteStrEscape([]byte(tt.input))
+				{"Bytes", func(e *Encoder, input string) bool {
+					return e.ByteStrEscape([]byte(tt.input))
 				}},
 			} {
 				enc := enc
 				t.Run(enc.name, func(t *testing.T) {
-					e := GetEncoder()
-					enc.enc(e, tt.input)
-					require.Equal(t, tt.expect, string(e.Bytes()))
-					requireCompat(t, e.Bytes(), tt.input)
+					requireCompat(t, func(e *Encoder) {
+						enc.enc(e, tt.input)
+					}, tt.input)
 				})
 			}
 		})
@@ -117,8 +127,8 @@ func TestEncoder_StrEscape(t *testing.T) {
 		const (
 			v = "\"/\""
 		)
-		var e Encoder
-		e.StrEscape(v)
-		requireCompat(t, e.Bytes(), v)
+		requireCompat(t, func(e *Encoder) {
+			e.StrEscape(v)
+		}, v)
 	})
 }

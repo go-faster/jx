@@ -1,10 +1,9 @@
 package jx
 
 // Num encodes number.
-func (w *Writer) Num(v Num) {
+func (w *Writer) Num(v Num) bool {
 	if len(v) == 0 {
-		w.Null()
-		return
+		return w.Null()
 	}
-	w.Raw(v)
+	return w.Raw(v)
 }

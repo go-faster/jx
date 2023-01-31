@@ -7,10 +7,9 @@ import (
 )
 
 func TestWriteNull(t *testing.T) {
-	should := require.New(t)
-	e := GetEncoder()
-	e.Null()
-	should.Equal("null", e.String())
+	testEncoderModes(t, func(e *Encoder) {
+		e.Null()
+	}, "null")
 }
 
 func TestDecodeNullArrayElement(t *testing.T) {
