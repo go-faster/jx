@@ -124,12 +124,13 @@ func (w *Writer) ByteStrEscape(v []byte) bool {
 
 func strEscape[S byteseq.Byteseq](w *Writer, v S) (fail bool) {
 	fail = w.byte('"')
+
 	// Fast path, probably does not require escaping.
 	var (
 		i      = 0
 		length = len(v)
 	)
-	for ; i < length; i++ {
+	for ; i < length && !fail; i++ {
 		c := v[i]
 		if c >= utf8.RuneSelf || !(htmlSafeSet[c]) {
 			break
