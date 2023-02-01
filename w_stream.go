@@ -44,18 +44,26 @@ func (s *streamState) Reset(w io.Writer) {
 	s.writeErr = nil
 }
 
+func (s *streamState) setError(err error) {
+	s.writeErr = err
+}
+
+func (s *streamState) fail() bool {
+	return s.writeErr != nil
+}
+
 func (s *streamState) flush(buf []byte) ([]byte, bool) {
-	if s.writeErr != nil {
+	if s.fail() {
 		return nil, true
 	}
 
-	var n int
-	n, s.writeErr = s.writer.Write(buf)
+	n, err := s.writer.Write(buf)
 	switch {
-	case s.writeErr != nil:
+	case err != nil:
+		s.setError(err)
 		return nil, true
 	case n != len(buf):
-		s.writeErr = io.ErrShortWrite
+		s.setError(io.ErrShortWrite)
 		return nil, true
 	default:
 		buf = buf[:0]
@@ -73,7 +81,7 @@ func writeStreamByteseq[S byteseq.Byteseq](w *Writer, s S) bool {
 		return false
 	}
 
-	if w.stream.writeErr != nil {
+	if w.stream.fail() {
 		return true
 	}
 

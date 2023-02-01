@@ -34,11 +34,11 @@ func (w *Writer) Base64(data []byte) bool {
 		}
 		e := stdbase64.NewEncoder(stdbase64.StdEncoding, s.writer)
 		if _, err := e.Write(data); err != nil {
-			s.writeErr = err
+			s.setError(err)
 			return true
 		}
 		if err := e.Close(); err != nil {
-			s.writeErr = err
+			s.setError(err)
 			return true
 		}
 	}

@@ -105,7 +105,7 @@ func TestEncoder_ResetWriter(t *testing.T) {
 // This benchmark is used to measure the overhead of ignoring errors.
 func BenchmarkSkipError(b *testing.B) {
 	e := NewStreamingEncoder(io.Discard, 32)
-	e.w.stream.writeErr = errors.New("test")
+	e.w.stream.setError(errors.New("test"))
 
 	b.ResetTimer()
 	b.ReportAllocs()
