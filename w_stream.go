@@ -73,6 +73,10 @@ func writeStreamByteseq[S byteseq.Byteseq](w *Writer, s S) bool {
 		return false
 	}
 
+	if w.stream.writeErr != nil {
+		return true
+	}
+
 	for len(w.Buf)+len(s) > cap(w.Buf) {
 		var fail bool
 		w.Buf, fail = w.stream.flush(w.Buf)
