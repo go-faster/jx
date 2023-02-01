@@ -45,18 +45,18 @@ func writeStr[S byteseq.Byteseq](w *Writer, v S) (fail bool) {
 	var (
 		i      = 0
 		length = len(v)
-		c      byte
 	)
-	for i, c = range []byte(v) {
+	for ; i < length && !fail; i++ {
+		c := v[i]
 		if safeSet[c] != 0 {
-			goto slow
+			break
 		}
 	}
-	if i == length-1 {
-		return writeStreamByteseq(w, v) || w.byte('"')
+	fail = fail || writeStreamByteseq(w, v[:i])
+	if i == length {
+		return fail || w.byte('"')
 	}
-slow:
-	return writeStreamByteseq(w, v[:i]) || strSlow[S](w, v[i:])
+	return fail || strSlow[S](w, v[i:])
 }
 
 func strSlow[S byteseq.Byteseq](w *Writer, v S) (fail bool) {

@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/go-faster/errors"
 )
 
 // epsilon to compare floats.
@@ -150,6 +152,15 @@ func TestWriteFloat64(t *testing.T) {
 	e := GetEncoder()
 	e.Float64(0.0000001)
 	should.Equal("1e-7", e.String())
+}
+
+func TestEncoder_FloatError(t *testing.T) {
+	e := NewStreamingEncoder(io.Discard, -1)
+	e.w.stream.setError(errors.New("foo"))
+
+	require.True(t, e.Float32(10))
+	require.True(t, e.Float64(10))
+	require.Error(t, e.Close())
 }
 
 func TestDecoder_FloatEOF(t *testing.T) {
