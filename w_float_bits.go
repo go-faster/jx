@@ -20,14 +20,17 @@ func (w *Writer) Float(v float64, bits int) bool {
 		return w.Null()
 	}
 
-	if w.stream == nil {
+	switch s := w.stream; {
+	case s == nil:
 		w.Buf = floatAppend(w.Buf, v, bits)
 		return false
+	case s.fail():
+		return true
+	default:
+		tmp := make([]byte, 0, 32)
+		tmp = floatAppend(tmp, v, bits)
+		return writeStreamByteseq(w, tmp)
 	}
-
-	tmp := make([]byte, 0, 32)
-	tmp = floatAppend(tmp, v, bits)
-	return writeStreamByteseq(w, tmp)
 }
 
 func floatAppend(b []byte, v float64, bits int) []byte {
