@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/go-faster/errors"
@@ -13,7 +14,7 @@ import (
 func TestEncoderStreamingCheck(t *testing.T) {
 	a := require.New(t)
 
-	e := NewStreamingEncoder(io.Discard, 512)
+	e := NewStreamingEncoder(io.Discard, -1)
 
 	_, err := e.Write([]byte("hello"))
 	a.ErrorIs(err, errStreaming)
@@ -51,9 +52,9 @@ func TestEncoder_Close(t *testing.T) {
 	})
 	t.Run("WriteErr", func(t *testing.T) {
 		ew := &errWriter{err: errTest}
-		e := NewStreamingEncoder(ew, 32)
+		e := NewStreamingEncoder(ew, minEncoderBufSize)
 		e.Obj(func(e *Encoder) {
-			e.FieldStart(strings.Repeat("a", 32))
+			e.FieldStart(strings.Repeat("a", minEncoderBufSize))
 			e.Null()
 		})
 
@@ -83,7 +84,7 @@ func TestEncoder_Close(t *testing.T) {
 func TestEncoder_ResetWriter(t *testing.T) {
 	do := func(e *Encoder) {
 		e.ObjStart()
-		e.FieldStart(strings.Repeat("a", 32))
+		e.FieldStart(strings.Repeat("a", minEncoderBufSize))
 		e.Null()
 		e.ObjEnd()
 
@@ -104,7 +105,7 @@ func TestEncoder_ResetWriter(t *testing.T) {
 
 // This benchmark is used to measure the overhead of ignoring errors.
 func BenchmarkSkipError(b *testing.B) {
-	e := NewStreamingEncoder(io.Discard, 32)
+	e := NewStreamingEncoder(io.Discard, minEncoderBufSize)
 	e.w.stream.setError(errors.New("test"))
 
 	b.ResetTimer()
@@ -113,4 +114,11 @@ func BenchmarkSkipError(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		encodeObject(e)
 	}
+}
+
+func TestStreamingEncoderBufferSize(t *testing.T) {
+	e := NewStreamingEncoder(io.Discard, -1)
+	assert.Equal(t, encoderBufSize, cap(e.w.Buf))
+	e = NewStreamingEncoder(io.Discard, minEncoderBufSize-1)
+	assert.Equal(t, minEncoderBufSize, cap(e.w.Buf))
 }

@@ -3,14 +3,17 @@ package jx
 import "io"
 
 const (
-	minEncoderBufSize = 32
 	encoderBufSize    = 512
+	minEncoderBufSize = 32
 )
 
 // NewStreamingEncoder creates new streaming encoder.
 func NewStreamingEncoder(w io.Writer, bufSize int) *Encoder {
-	if bufSize < minEncoderBufSize {
+	switch {
+	case bufSize < 0:
 		bufSize = encoderBufSize
+	case bufSize < minEncoderBufSize:
+		bufSize = minEncoderBufSize
 	}
 	return &Encoder{
 		w: Writer{

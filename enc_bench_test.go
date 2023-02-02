@@ -130,7 +130,7 @@ func BenchmarkEncodeFloats(b *testing.B) {
 	b.Run("Stream", func(b *testing.B) {
 		b.SetBytes(size)
 		b.RunParallel(func(pb *testing.PB) {
-			enc := NewStreamingEncoder(io.Discard, 512)
+			enc := NewStreamingEncoder(io.Discard, -1)
 			for pb.Next() {
 				enc.ResetWriter(io.Discard)
 				encodeFloats(enc, arr)
