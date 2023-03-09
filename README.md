@@ -19,7 +19,7 @@ go get github.com/go-faster/jx
 * Validation
 
 See [usage](#Usage) for examples. Mostly suitable for fast low-level json manipulation
-with high control, for dynamic parsing and encoding unstructured data. Used in [ogen](https://github.com/ogen-go/ogen) project for
+with high control, for dynamic parsing and encoding of unstructured data. Used in [ogen](https://github.com/ogen-go/ogen) project for
 json (un)marshaling code generation based on json and OpenAPI schemas.
 
 For example, we have following OpenTelemetry log entry:
