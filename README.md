@@ -1,4 +1,4 @@
-# jx [![](https://img.shields.io/badge/go-pkg-00ADD8)](https://pkg.go.dev/github.com/go-faster/jx#section-documentation) [![](https://img.shields.io/codecov/c/github/go-faster/jx?label=cover)](https://codecov.io/gh/go-faster/jx) [![experimental](https://img.shields.io/badge/-experimental-blueviolet)](https://go-faster.org/docs/projects/status#experimental)
+# jx [![](https://img.shields.io/badge/go-pkg-00ADD8)](https://pkg.go.dev/github.com/go-faster/jx#section-documentation) [![](https://img.shields.io/codecov/c/github/go-faster/jx?label=cover)](https://codecov.io/gh/go-faster/jx) [![stable](https://img.shields.io/badge/-stable-brightgreen)](https://go-faster.org/docs/projects/status#stable)
 
 Package jx implements encoding and decoding of json [[RFC 7159](https://www.rfc-editor.org/rfc/rfc7159.html)].
 Lightweight fork of [jsoniter](https://github.com/json-iterator/go).
@@ -19,7 +19,7 @@ go get github.com/go-faster/jx
 * Validation
 
 See [usage](#Usage) for examples. Mostly suitable for fast low-level json manipulation
-with high control. Used in [ogen](https://github.com/ogen-go/ogen) project for
+with high control, for dynamic parsing and encoding unstructured data. Used in [ogen](https://github.com/ogen-go/ogen) project for
 json (un)marshaling code generation based on json and OpenAPI schemas.
 
 For example, we have following OpenTelemetry log entry:
