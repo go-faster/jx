@@ -12,6 +12,7 @@ go get github.com/go-faster/jx
 * [Non-goals](#non-goals)
 
 ## Features
+* Mostly zero-allocation and highly optimized
 * Directly encode and decode json values
 * No reflect or `interface{}`
 * Pools and direct buffer access for less (or none) allocations
