@@ -161,6 +161,6 @@ func (errReader) Err() error {
 	return io.ErrNoProgress
 }
 
-func (e errReader) Read(p []byte) (n int, err error) {
+func (e errReader) Read([]byte) (int, error) {
 	return 0, e.Err()
 }
