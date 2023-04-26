@@ -12,6 +12,8 @@ const (
 	JX = "jx"
 	// Std is name for benchmarks related to encoding/json.
 	Std = "std"
+	// Sonnet for sugawarayuuta/sonnet.
+	Sonnet = "sonnet"
 	// Sonic is name for benchmarks related to bytedance/sonic package.
 	Sonic = "sonic"
 	// JSONIter for json-iterator/go.

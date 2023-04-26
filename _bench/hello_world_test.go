@@ -9,6 +9,7 @@ import (
 	"github.com/mailru/easyjson/jwriter"
 	fflib "github.com/pquerna/ffjson/fflib/v1"
 	"github.com/romshark/jscan"
+	"github.com/sugawarayuuta/sonnet"
 
 	"github.com/go-faster/jx"
 )
@@ -44,6 +45,17 @@ func BenchmarkHelloWorld(b *testing.B) {
 		b.Run(Std, func(b *testing.B) {
 			w := new(bytes.Buffer)
 			e := json.NewEncoder(w)
+			setupHelloWorld(b)
+			for i := 0; i < b.N; i++ {
+				w.Reset()
+				if err := e.Encode(v); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+		b.Run(Sonnet, func(b *testing.B) {
+			w := new(bytes.Buffer)
+			e := sonnet.NewEncoder(w)
 			setupHelloWorld(b)
 			for i := 0; i < b.N; i++ {
 				w.Reset()

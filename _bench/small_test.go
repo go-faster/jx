@@ -8,6 +8,7 @@ import (
 	"github.com/mailru/easyjson/jlexer"
 	"github.com/mailru/easyjson/jwriter"
 	"github.com/romshark/jscan"
+	"github.com/sugawarayuuta/sonnet"
 
 	"github.com/go-faster/jx"
 )
@@ -77,6 +78,17 @@ func BenchmarkSmall(b *testing.B) {
 				}
 			}
 		})
+		b.Run(Sonnet, func(b *testing.B) {
+			w := new(bytes.Buffer)
+			e := sonnet.NewEncoder(w)
+			setupSmall(b)
+			for i := 0; i < b.N; i++ {
+				w.Reset()
+				if err := e.Encode(v); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
 		b.Run(Sonic, sonicSmall)
 		b.Run(EasyJSON, func(b *testing.B) {
 			jw := jwriter.Writer{}
@@ -92,6 +104,7 @@ func BenchmarkSmall(b *testing.B) {
 			data := setupSmall(b)
 			var d Small
 			for i := 0; i < b.N; i++ {
+				d.Reset()
 				l := jlexer.Lexer{Data: data}
 				d.UnmarshalEasyJSON(&l)
 				if err := l.Error(); err != nil {
@@ -104,7 +117,30 @@ func BenchmarkSmall(b *testing.B) {
 			data := setupSmall(b)
 			var d Small
 			for i := 0; i < b.N; i++ {
+				d.Reset()
 				if err := json.Unmarshal(data, &d); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+		b.Run(Sonnet, func(b *testing.B) {
+			data := setupSmall(b)
+			var d Small
+			for i := 0; i < b.N; i++ {
+				d.Reset()
+				if err := sonnet.Unmarshal(data, &d); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+		b.Run(JX, func(b *testing.B) {
+			data := setupSmall(b)
+			var s Small
+			d := jx.DecodeBytes(data)
+			for i := 0; i < b.N; i++ {
+				s.Reset()
+				d.ResetBytes(data)
+				if err := s.Decode(d); err != nil {
 					b.Fatal(err)
 				}
 			}

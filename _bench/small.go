@@ -17,6 +17,8 @@
 package bench
 
 import (
+	"github.com/go-faster/errors"
+
 	"github.com/go-faster/jx"
 )
 
@@ -36,6 +38,148 @@ type Small struct {
 	Author  SmallAuthor   `json:"author"`
 	Authors []SmallAuthor `json:"authors"`
 	Weights []int         `json:"weights"`
+}
+
+func (s *Small) Reset() {
+	*s = Small{}
+}
+
+func (s *Small) Decode(d *jx.Decoder) error {
+	return d.ObjBytes(func(d *jx.Decoder, key []byte) error {
+		switch string(key) {
+		case "id":
+			v, err := d.Int()
+			if err != nil {
+				return errors.Wrap(err, "id")
+			}
+			s.BookId = v
+			return nil
+		case "ids":
+			if d.Next() == jx.Null {
+				s.BookIds = nil
+				return d.Skip()
+			}
+			if err := d.Arr(func(d *jx.Decoder) error {
+				v, err := d.Int()
+				if err != nil {
+					return err
+				}
+				s.BookIds = append(s.BookIds, v)
+				return nil
+			}); err != nil {
+				return errors.Wrap(err, "ids")
+			}
+			return nil
+		case "title":
+			v, err := d.Str()
+			if err != nil {
+				return errors.Wrap(err, "title")
+			}
+			s.Title = v
+			return nil
+		case "titles":
+			if d.Next() == jx.Null {
+				s.Titles = nil
+				return d.Skip()
+			}
+			if err := d.Arr(func(d *jx.Decoder) error {
+				v, err := d.Str()
+				if err != nil {
+					return errors.Wrap(err, "str")
+				}
+				s.Titles = append(s.Titles, v)
+				return nil
+			}); err != nil {
+				return errors.Wrap(err, "titles")
+			}
+			return nil
+		case "price":
+			v, err := d.Float64()
+			if err != nil {
+				return errors.Wrap(err, "price")
+			}
+			s.Price = v
+			return nil
+		case "prices":
+			if d.Next() == jx.Null {
+				s.Prices = nil
+				return d.Skip()
+			}
+			if err := d.Arr(func(d *jx.Decoder) error {
+				v, err := d.Float64()
+				if err != nil {
+					return err
+				}
+				s.Prices = append(s.Prices, v)
+				return nil
+			}); err != nil {
+				return errors.Wrap(err, "prices")
+			}
+			return nil
+		case "hot":
+			v, err := d.Bool()
+			if err != nil {
+				return err
+			}
+			s.Hot = v
+			return nil
+		case "hots":
+			if d.Next() == jx.Null {
+				s.Hots = nil
+				return d.Skip()
+			}
+			if err := d.Arr(func(d *jx.Decoder) error {
+				v, err := d.Bool()
+				if err != nil {
+					return err
+				}
+				s.Hots = append(s.Hots, v)
+				return nil
+			}); err != nil {
+				return errors.Wrap(err, "hots")
+			}
+			return nil
+		case "weights":
+			if d.Next() == jx.Null {
+				s.Weights = nil
+				return d.Skip()
+			}
+			if err := d.Arr(func(d *jx.Decoder) error {
+				v, err := d.Int()
+				if err != nil {
+					return err
+				}
+				s.Weights = append(s.Weights, v)
+				return nil
+			}); err != nil {
+				return errors.Wrap(err, "weights")
+			}
+			return nil
+		case "author":
+			if err := s.Author.Decode(d); err != nil {
+				return errors.Wrap(err, "author")
+			}
+			return nil
+		case "authors":
+			if d.Next() == jx.Null {
+				s.Authors = nil
+				return d.Skip()
+			}
+			if err := d.Arr(func(d *jx.Decoder) error {
+				var a SmallAuthor
+				if err := a.Decode(d); err != nil {
+					return err
+				}
+				s.Authors = append(s.Authors, a)
+				return nil
+			}); err != nil {
+				return errors.Wrap(err, "authors")
+			}
+			return nil
+		default:
+			return d.Skip()
+		}
+	})
 }
 
 func (s Small) Encode(e *jx.Encoder) {
@@ -190,6 +334,36 @@ type SmallAuthor struct {
 	Name string `json:"name"`
 	Age  int    `json:"age"`
 	Male bool   `json:"male"`
+}
+
+func (a *SmallAuthor) Decode(d *jx.Decoder) error {
+	return d.ObjBytes(func(d *jx.Decoder, key []byte) error {
+		switch string(key) {
+		case "name":
+			v, err := d.Str()
+			if err != nil {
+				return err
+			}
+			a.Name = v
+			return nil
+		case "age":
+			v, err := d.Int()
+			if err != nil {
+				return err
+			}
+			a.Age = v
+			return nil
+		case "male":
+			v, err := d.Bool()
+			if err != nil {
+				return err
+			}
+			a.Male = v
+			return nil
+		default:
+			return d.Skip()
+		}
+	})
 }
 
 func (a SmallAuthor) Encode(e *jx.Encoder) {
