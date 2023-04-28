@@ -80,7 +80,10 @@ func writeStreamByteseq[S byteseq.Byteseq](w *Writer, s S) bool {
 		w.Buf = append(w.Buf, s...)
 		return false
 	}
+	return writeStreamByteseqSlow(w, s)
+}
 
+func writeStreamByteseqSlow[S byteseq.Byteseq](w *Writer, s S) bool {
 	if w.stream.fail() {
 		return true
 	}

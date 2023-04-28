@@ -53,10 +53,18 @@ func (w *Writer) ResetWriter(out io.Writer) {
 
 // byte writes a single byte.
 func (w *Writer) byte(c byte) (fail bool) {
+	if w.stream == nil {
+		w.Buf = append(w.Buf, c)
+		return false
+	}
 	return writeStreamBytes(w, c)
 }
 
 func (w *Writer) twoBytes(c1, c2 byte) bool {
+	if w.stream == nil {
+		w.Buf = append(w.Buf, c1, c2)
+		return false
+	}
 	return writeStreamBytes(w, c1, c2)
 }
 
