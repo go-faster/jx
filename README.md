@@ -51,10 +51,12 @@ e.g. using `[16]byte` for `TraceId` with zero-allocation `hex` encoding in json:
 
 | Name     | Speed     | Allocations |
 |----------|-----------|-------------|
-| Decode   | 970 MB/s  | 0 allocs/op |
-| Validate | 1535 MB/s | 0 allocs/op |
-| Encode   | 1104 MB/s | 0 allocs/op |
-| Write    | 2146 MB/s | 0 allocs/op |
+| Decode   | 1279 MB/s | 0 allocs/op |
+| Validate | 1914 MB/s | 0 allocs/op |
+| Encode   | 1202 MB/s | 0 allocs/op |
+| Write    | 2055 MB/s | 0 allocs/op |
+
+`cpu: AMD Ryzen 9 7950X`
 
 See [otel_test.go](./otel_test.go) for example.
 
