@@ -2,6 +2,11 @@ package jx
 
 import "io"
 
+// NewEncoder returns Encoder instance.
+func NewEncoder() *Encoder {
+	return &Encoder{}
+}
+
 // Encoder encodes json to underlying buffer.
 //
 // Zero value is valid.

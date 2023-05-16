@@ -71,6 +71,11 @@ func init() {
 	types['{'] = Object
 }
 
+// NewDecoder returns Decoder instance.
+func NewDecoder() *Decoder {
+	return &Decoder{}
+}
+
 // Decoder decodes json.
 //
 // Can decode from io.Reader or byte slice directly.
