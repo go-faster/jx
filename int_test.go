@@ -434,12 +434,13 @@ func TestReadInt64(t *testing.T) {
 		`12345678901`,
 		`9223372036854775807`,
 		`-9223372036854775808`,
+		"-9223372036854775808\r",
 	}
 	for i, input := range inputs {
 		input := input
 		t.Run(fmt.Sprintf("Test%d", i+1), createTestCase(input, func(t *testing.T, d *Decoder) error {
 			should := require.New(t)
-			expected, err := strconv.ParseInt(input, 10, 64)
+			expected, err := strconv.ParseInt(strings.Trim(input, "\r"), 10, 64)
 			should.NoError(err)
 			v, err := d.Int64()
 			should.NoError(err)
@@ -455,7 +456,7 @@ func TestReadInt64(t *testing.T) {
 			i := 0
 
 			return d.Arr(func(d *Decoder) error {
-				expected, err := strconv.ParseInt(inputs[i], 10, 64)
+				expected, err := strconv.ParseInt(strings.Trim(inputs[i], "\r"), 10, 64)
 				should.NoError(err)
 
 				v, err := d.Int64()
