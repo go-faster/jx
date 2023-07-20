@@ -30,10 +30,11 @@ func init() {
 	floatDigits[','] = endOfNumber
 	floatDigits[']'] = endOfNumber
 	floatDigits['}'] = endOfNumber
-	floatDigits[' '] = endOfNumber
-	floatDigits['\t'] = endOfNumber
-	floatDigits['\n'] = endOfNumber
-
+	for ch, isSpace := range spaceSet {
+		if isSpace == 1 {
+			floatDigits[ch] = endOfNumber
+		}
+	}
 	for i := int8('0'); i <= int8('9'); i++ {
 		floatDigits[i] = i - int8('0')
 	}
