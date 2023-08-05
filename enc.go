@@ -59,6 +59,11 @@ func (e *Encoder) ResetWriter(out io.Writer) {
 	e.first = e.first[:0]
 }
 
+// Grow grows the underlying buffer
+func (e *Encoder) Grow(n int) {
+	e.w.Grow(n)
+}
+
 // Bytes returns underlying buffer.
 func (e Encoder) Bytes() []byte { return e.w.Buf }
 
