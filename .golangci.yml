@@ -37,7 +37,6 @@ linters-settings:
 linters:
   disable-all: true
   enable:
-    - deadcode
     - dogsled
     - errcheck
     - goconst
@@ -50,10 +49,8 @@ linters:
     - ineffassign
     - misspell
     - nakedret
-    - structcheck
     - typecheck
     - unconvert
-    - varcheck
     - whitespace
 
     # Breaks with buildssa error for some reason.
