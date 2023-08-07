@@ -55,11 +55,12 @@ func (w *Writer) ResetWriter(out io.Writer) {
 }
 
 // Grow grows the underlying buffer.
-// It calls (*bytes.Buffer).Grow(n int) on b.Buf
-func (b *Writer) Grow(n int) {
-	buf := bytes.NewBuffer(b.Buf)
+//
+// Calls (*bytes.Buffer).Grow(n int) on w.Buf.
+func (w *Writer) Grow(n int) {
+	buf := bytes.NewBuffer(w.Buf)
 	buf.Grow(n)
-	b.Buf = buf.Bytes()
+	w.Buf = buf.Bytes()
 }
 
 // byte writes a single byte.
