@@ -23,3 +23,19 @@ func TestWriter_String(t *testing.T) {
 	w.True()
 	require.Equal(t, "true", w.String())
 }
+
+func TestWriter_Grow(t *testing.T) {
+	should := require.New(t)
+	e := &Writer{}
+	should.Equal(0, len(e.Buf))
+	should.Equal(0, cap(e.Buf))
+	e.Grow(1024)
+	should.Equal(0, len(e.Buf))
+	should.Equal(1024, cap(e.Buf))
+	e.Grow(512)
+	should.Equal(0, len(e.Buf))
+	should.Equal(1024, cap(e.Buf))
+	e.Grow(4096)
+	should.Equal(0, len(e.Buf))
+	should.Equal(4096, cap(e.Buf))
+}

@@ -32,6 +32,22 @@ func requireCompat(t *testing.T, cb func(*Encoder), v any) {
 	testEncoderModes(t, cb, string(buf))
 }
 
+func TestEncoderGrow(t *testing.T) {
+	should := require.New(t)
+	e := &Encoder{}
+	should.Equal(0, len(e.Bytes()))
+	should.Equal(0, cap(e.Bytes()))
+	e.Grow(1024)
+	should.Equal(0, len(e.Bytes()))
+	should.Equal(1024, cap(e.Bytes()))
+	e.Grow(512)
+	should.Equal(0, len(e.Bytes()))
+	should.Equal(1024, cap(e.Bytes()))
+	e.Grow(4096)
+	should.Equal(0, len(e.Bytes()))
+	should.Equal(4096, cap(e.Bytes()))
+}
+
 func TestEncoderByteShouldGrowBuffer(t *testing.T) {
 	should := require.New(t)
 	e := GetEncoder()
