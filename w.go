@@ -68,7 +68,7 @@ func (w *Writer) Grow(n int) {
 	w.Buf = buf.Bytes()
 }
 
-// flush flushes the stream
+// Flush flushes the stream. It does nothing if not in streaming mode
 func (w *Writer) Flush() (fail bool) {
 	if w.stream != nil {
 		w.Buf, fail = w.stream.flush(w.Buf)
