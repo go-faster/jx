@@ -16,7 +16,10 @@ type Writer struct {
 // Write implements io.Writer.
 func (w *Writer) Write(p []byte) (n int, err error) {
 	if w.stream != nil {
-		return 0, errStreaming
+		if len(w.Buf) > 0 {
+			w.Flush()
+		}
+		return w.stream.writer.Write(p)
 	}
 	w.Buf = append(w.Buf, p...)
 	return len(p), nil
@@ -61,6 +64,17 @@ func (w *Writer) Grow(n int) {
 	buf := bytes.NewBuffer(w.Buf)
 	buf.Grow(n)
 	w.Buf = buf.Bytes()
+}
+
+// flush flushes the stream
+func (w *Writer) Flush() (fail bool) {
+	if w.stream != nil {
+		w.Buf, fail = w.stream.flush(w.Buf)
+		if fail {
+			return true
+		}
+	}
+	return false
 }
 
 // byte writes a single byte.
