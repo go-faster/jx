@@ -17,7 +17,9 @@ type Writer struct {
 func (w *Writer) Write(p []byte) (n int, err error) {
 	if w.stream != nil {
 		if len(w.Buf) > 0 {
-			w.Flush()
+			if w.Flush() {
+				return 0, w.stream.writeErr
+			}
 		}
 		return w.stream.writer.Write(p)
 	}
