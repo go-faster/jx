@@ -1,6 +1,4 @@
 linters-settings:
-  govet:
-    check-shadowing: true
   gocyclo:
     min-complexity: 15
   maligned:
@@ -16,6 +14,10 @@ linters-settings:
     line-length: 140
   goimports:
     local-prefixes: github.com/go-faster/
+  revive:
+    rules:
+      - disabled: true
+        name: unused-parameter
   gocritic:
     enabled-tags:
       - diagnostic
@@ -101,3 +103,7 @@ issues:
     # Ignore linters in main packages.
     - path: main\.go
       linters: [goconst, funlen, gocognit, gocyclo]
+
+    # Too much false-positives.
+    - linters: [gosec]
+      text: G115

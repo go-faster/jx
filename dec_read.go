@@ -120,16 +120,16 @@ func (d *Decoder) read() error {
 	return nil
 }
 
-func (d *Decoder) readAtLeast(min int) error {
+func (d *Decoder) readAtLeast(n int) error {
 	if d.reader == nil {
 		d.head = d.tail
 		return io.ErrUnexpectedEOF
 	}
 
-	if need := min - len(d.buf); need > 0 {
+	if need := n - len(d.buf); need > 0 {
 		d.buf = append(d.buf, make([]byte, need)...)
 	}
-	n, err := io.ReadAtLeast(d.reader, d.buf, min)
+	n, err := io.ReadAtLeast(d.reader, d.buf, n)
 	if err != nil {
 		if err == io.EOF && n == 0 {
 			return io.ErrUnexpectedEOF
