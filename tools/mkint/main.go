@@ -23,8 +23,8 @@ type IntType struct {
 	DecoderIterations int // ceil(log10 (max value))
 }
 
-func defineIntType(name string, max uint64) IntType {
-	formattedLen := len(strconv.FormatUint(max, 10))
+func defineIntType(name string, maxN uint64) IntType {
+	formattedLen := len(strconv.FormatUint(maxN, 10))
 	decoderIters := formattedLen
 
 	const decoderItersLimit = 10 - 1

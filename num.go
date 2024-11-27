@@ -135,7 +135,7 @@ func (n Num) Format(f fmt.State, verb rune) {
 	case 'd':
 		d, err := n.Int64()
 		if err != nil {
-			fmt.Fprintf(f, "%%!invalid(Num=%s)", n.String())
+			_, _ = fmt.Fprintf(f, "%%!invalid(Num=%s)", n.String())
 			return
 		}
 		v := big.NewInt(d)
@@ -143,7 +143,7 @@ func (n Num) Format(f fmt.State, verb rune) {
 	case 'f':
 		d, err := n.Float64()
 		if err != nil {
-			fmt.Fprintf(f, "%%!invalid(Num=%s)", n.String())
+			_, _ = fmt.Fprintf(f, "%%!invalid(Num=%s)", n.String())
 			return
 		}
 		v := big.NewFloat(d)
