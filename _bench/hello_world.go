@@ -1,9 +1,10 @@
 package bench
 
 import (
-	jsoniter "github.com/json-iterator/go"
-
+	"github.com/go-faster/errors"
 	"github.com/go-faster/jx"
+	jsoniter "github.com/json-iterator/go"
+	"github.com/minio/simdjson-go"
 )
 
 // HelloWorld case.
@@ -34,6 +35,47 @@ func (w HelloWorld) Write(wr *jx.Writer) {
 	wr.RawStr(`"message":`)
 	wr.Str(w.Message)
 	wr.ObjEnd()
+}
+
+func (w *HelloWorld) Decode(d *jx.Decoder) error {
+	return d.ObjBytes(func(d *jx.Decoder, key []byte) error {
+		switch string(key) {
+		case helloWorldField:
+			v, err := d.Str()
+			if err != nil {
+				return err
+			}
+			w.Message = v
+			return nil
+		default:
+			return d.Skip()
+		}
+	})
+}
+
+func (w *HelloWorld) DecodeSIMD(data []byte, reuse *simdjson.ParsedJson) (*simdjson.ParsedJson, error) {
+	pj, err := simdjson.Parse(data, reuse, simdjson.WithCopyStrings(false))
+	if err != nil {
+		return nil, err
+	}
+	if err := pj.ForEach(func(i simdjson.Iter) error {
+		typ := i.Advance()
+		switch typ {
+		case simdjson.TypeString:
+			v, err := i.String()
+			if err != nil {
+				return err
+			}
+			w.Message = v
+			return nil
+		default:
+			return errors.New("unexpected type")
+		}
+	}); err != nil {
+		return nil, err
+	}
+
+	return pj, nil
 }
 
 func (w HelloWorld) EncodeIter(s *jsoniter.Stream) {

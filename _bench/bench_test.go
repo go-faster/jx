@@ -24,6 +24,8 @@ const (
 	FFJSON = "ffjson"
 	// JScan for romshark/jscan.
 	JScan = "jscan"
+	// SIMD for minio/simdjson-go.
+	SIMD = "simdjson"
 	// Baseline directly writes string to buffer, no encoding.
 	Baseline = "Baseline"
 )

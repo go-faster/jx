@@ -18,7 +18,6 @@ package bench
 
 import (
 	"github.com/go-faster/errors"
-
 	"github.com/go-faster/jx"
 )
 
