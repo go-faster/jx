@@ -7,6 +7,7 @@ import (
 
 	"github.com/mailru/easyjson/jlexer"
 	"github.com/mailru/easyjson/jwriter"
+	"github.com/minio/simdjson-go"
 	"github.com/romshark/jscan"
 	"github.com/sugawarayuuta/sonnet"
 
@@ -168,6 +169,19 @@ func BenchmarkSmall(b *testing.B) {
 				)
 				if r.IsErr() {
 					b.Fatal("err")
+				}
+			}
+		})
+		b.Run(SIMD, func(b *testing.B) {
+			if !simdjson.SupportedCPU() {
+				b.SkipNow()
+			}
+			pj := new(simdjson.ParsedJson)
+			data := setupSmall(b)
+			for i := 0; i < b.N; i++ {
+				var err error
+				if pj, err = simdjson.Parse(data, pj, simdjson.WithCopyStrings(false)); err != nil {
+					b.Fatal(err)
 				}
 			}
 		})

@@ -7,6 +7,7 @@ import (
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/mailru/easyjson/jwriter"
+	"github.com/minio/simdjson-go"
 	fflib "github.com/pquerna/ffjson/fflib/v1"
 	"github.com/romshark/jscan"
 	"github.com/sugawarayuuta/sonnet"
@@ -15,10 +16,12 @@ import (
 )
 
 // setupHelloWorld should be called on each "HelloWorld" benchmark.
-func setupHelloWorld(b *testing.B) {
+func setupHelloWorld(b *testing.B) []byte {
 	b.Helper()
 	b.ReportAllocs()
-	b.SetBytes(int64(len(helloWorld)))
+	data := []byte(helloWorld)
+	b.SetBytes(int64(len(data)))
+	return data
 }
 
 func BenchmarkHelloWorld(b *testing.B) {
@@ -92,6 +95,7 @@ func BenchmarkHelloWorld(b *testing.B) {
 				}
 			}
 		})
+
 		b.Run(Baseline, func(b *testing.B) {
 			setupHelloWorld(b)
 			buf := new(bytes.Buffer)
@@ -123,6 +127,56 @@ func BenchmarkHelloWorld(b *testing.B) {
 				)
 				if r.IsErr() {
 					b.Fatal("err")
+				}
+			}
+		})
+		b.Run(SIMD, func(b *testing.B) {
+			if !simdjson.SupportedCPU() {
+				b.SkipNow()
+			}
+			setupHelloWorld(b)
+			pj := new(simdjson.ParsedJson)
+			data := setupHelloWorld(b)
+			for i := 0; i < b.N; i++ {
+				var err error
+				if pj, err = simdjson.Parse(data, pj, simdjson.WithCopyStrings(false)); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+	})
+	b.Run(Decode, func(b *testing.B) {
+		b.Run(JX, func(b *testing.B) {
+			d := new(jx.Decoder)
+			data := setupHelloWorld(b)
+			var v HelloWorld
+			for i := 0; i < b.N; i++ {
+				d.ResetBytes(data)
+				if err := v.Decode(d); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+		b.Run(SIMD, func(b *testing.B) {
+			if !simdjson.SupportedCPU() {
+				b.SkipNow()
+			}
+			pj := new(simdjson.ParsedJson)
+			data := setupHelloWorld(b)
+			var v HelloWorld
+			for i := 0; i < b.N; i++ {
+				var err error
+				if pj, err = v.DecodeSIMD(data, pj); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+		b.Run(Std, func(b *testing.B) {
+			data := setupHelloWorld(b)
+			var v HelloWorld
+			for i := 0; i < b.N; i++ {
+				if err := json.Unmarshal(data, &v); err != nil {
+					b.Fatal(err)
 				}
 			}
 		})
