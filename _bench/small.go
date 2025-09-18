@@ -17,6 +17,8 @@
 package bench
 
 import (
+	"github.com/valyala/fastjson"
+
 	"github.com/go-faster/errors"
 	"github.com/go-faster/jx"
 )
@@ -41,6 +43,97 @@ type Small struct {
 
 func (s *Small) Reset() {
 	*s = Small{}
+}
+
+func (s *Small) DecodeFastJSON(p *fastjson.Parser, data []byte) error {
+	v, err := p.ParseBytes(data)
+	if err != nil {
+		return errors.Wrap(err, "parse")
+	}
+
+	obj, err := v.Object()
+	if err != nil {
+		return errors.Wrap(err, "object")
+	}
+
+	obj.Visit(func(key []byte, v *fastjson.Value) {
+		switch string(key) {
+		case "id":
+			s.BookId = v.GetInt()
+		case "ids":
+			arr, err := v.Array()
+			if err != nil {
+				return
+			}
+			s.BookIds = make([]int, 0, len(arr))
+			for _, item := range arr {
+				s.BookIds = append(s.BookIds, item.GetInt())
+			}
+		case "title":
+			s.Title = string(v.GetStringBytes())
+		case "titles":
+			arr, err := v.Array()
+			if err != nil {
+				return
+			}
+			s.Titles = make([]string, 0, len(arr))
+			for _, item := range arr {
+				s.Titles = append(s.Titles, string(item.GetStringBytes()))
+			}
+		case "price":
+			s.Price = v.GetFloat64()
+		case "prices":
+			arr, err := v.Array()
+			if err != nil {
+				return
+			}
+			s.Prices = make([]float64, 0, len(arr))
+			for _, item := range arr {
+				s.Prices = append(s.Prices, item.GetFloat64())
+			}
+		case "hot":
+			s.Hot = v.GetBool()
+		case "hots":
+			arr, err := v.Array()
+			if err != nil {
+				return
+			}
+			s.Hots = make([]bool, 0, len(arr))
+			for _, item := range arr {
+				s.Hots = append(s.Hots, item.GetBool())
+			}
+		case "weights":
+			arr, err := v.Array()
+			if err != nil {
+				return
+			}
+			s.Weights = make([]int, 0, len(arr))
+			for _, item := range arr {
+				s.Weights = append(s.Weights, item.GetInt())
+			}
+		case "author":
+			if err := s.Author.DecodeFastJSONValue(v); err != nil {
+				return
+			}
+		case "authors":
+			arr, err := v.Array()
+			if err != nil {
+				return
+			}
+			s.Authors = make([]SmallAuthor, 0, len(arr))
+			for _, item := range arr {
+				var a SmallAuthor
+				if err := a.DecodeFastJSONValue(item); err != nil {
+					return
+				}
+				s.Authors = append(s.Authors, a)
+			}
+		default:
+			// skip
+		}
+	})
+
+	return nil
 }
 
 func (s *Small) Decode(d *jx.Decoder) error {
@@ -385,4 +478,26 @@ func (a SmallAuthor) Write(w *jx.Writer) {
 	w.RawStr(`,"male":`)
 	w.Bool(a.Male)
 	w.ObjEnd()
+}
+
+func (a *SmallAuthor) DecodeFastJSONValue(v *fastjson.Value) error {
+	obj, err := v.Object()
+	if err != nil {
+		return errors.Wrap(err, "object")
+	}
+
+	obj.Visit(func(key []byte, v *fastjson.Value) {
+		switch string(key) {
+		case "name":
+			a.Name = string(v.GetStringBytes())
+		case "age":
+			a.Age = v.GetInt()
+		case "male":
+			a.Male = v.GetBool()
+		default:
+			// skip
+		}
+	})
+
+	return nil
 }

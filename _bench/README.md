@@ -2,30 +2,49 @@
 
 * jx
 * jsoniter (should same as jx in most cases)
+* fastjson
 * encoding/json
 * bytedance/sonic
 * mailru/easyjson
 * pquerna/ffjson
+* simdjson-go
 
-| name                            | ns/op | MB/s    | B/op | allocs/op |
-|---------------------------------|-------|---------|------|-----------|
-| HelloWorld/Encode/Baseline      | 3.75  | 7466.65 | 0    | 0         |
-| HelloWorld/Encode/easyjson      | 21.46 | 1304.66 | 0    | 0         |
-| HelloWorld/Encode/ffjson        | 105.8 | 264.53  | 16   | 1         |
-| HelloWorld/Encode/json-iterator | 35.11 | 797.52  | 0    | 0         |
-| HelloWorld/Encode/jx/Encoder    | 30.49 | 918.33  | 0    | 0         |
-| HelloWorld/Encode/jx/Writer     | 14.27 | 1962.1  | 0    | 0         |
-| HelloWorld/Encode/sonic         | 105.5 | 265.44  | 21   | 1         |
-| HelloWorld/Encode/std           | 85.99 | 325.63  | 0    | 0         |
-| HelloWorld/Scan/jscan           | 43.47 | 644.09  | 0    | 0         |
-| HelloWorld/Scan/jx              | 45.93 | 609.63  | 0    | 0         |
-| Small/Decode/easyjson           | 1381  | 245.46  | 32   | 7         |
-| Small/Decode/sonic              | 743   | 456.27  | 1    | 0         |
-| Small/Decode/std                | 7836  | 43.26   | 400  | 24        |
-| Small/Encode/easyjson           | 455.2 | 744.76  | 0    | 0         |
-| Small/Encode/jx/Encoder         | 626.9 | 540.75  | 0    | 0         |
-| Small/Encode/jx/Writer          | 310.4 | 1092.08 | 0    | 0         |
-| Small/Encode/sonic              | 454.6 | 745.74  | 18   | 1         |
-| Small/Encode/std                | 871.4 | 389.03  | 0    | 0         |
-| Small/Scan/jscan                | 631.2 | 537.04  | 0    | 0         |
-| Small/Scan/jx                   | 849   | 399.29  | 0    | 0         |
+```
+go test -bench .
+goos: linux
+goarch: amd64
+pkg: bench
+cpu: AMD Ryzen 9 5950X 16-Core Processor
+BenchmarkHelloWorld/Encode/jx/Encoder-32                29534337                38.32 ns/op      730.73 MB/s           0 B/op          0 allocs/op
+BenchmarkHelloWorld/Encode/jx/Writer-32                 57847146                19.71 ns/op     1420.67 MB/s           0 B/op          0 allocs/op
+BenchmarkHelloWorld/Encode/std-32                       14543918                77.42 ns/op      361.64 MB/s           0 B/op          0 allocs/op
+BenchmarkHelloWorld/Encode/sonnet-32                     3656274               321.0 ns/op        87.22 MB/s         288 B/op          4 allocs/op
+BenchmarkHelloWorld/Encode/json-iterator-32             36615604                31.75 ns/op      881.92 MB/s           0 B/op          0 allocs/op
+BenchmarkHelloWorld/Encode/easyjson-32                  62660282                19.26 ns/op     1454.01 MB/s           0 B/op          0 allocs/op
+BenchmarkHelloWorld/Encode/ffjson-32                    22818333                51.58 ns/op      542.86 MB/s          16 B/op          1 allocs/op
+BenchmarkHelloWorld/Encode/Baseline-32                  326291570                3.484 ns/op    8036.64 MB/s           0 B/op          0 allocs/op
+BenchmarkHelloWorld/Scan/jx-32                          43161399                26.95 ns/op     1038.82 MB/s           0 B/op          0 allocs/op
+BenchmarkHelloWorld/Scan/jscan-32                       30240622                40.31 ns/op      694.70 MB/s           0 B/op          0 allocs/op
+BenchmarkHelloWorld/Scan/simdjson-32                     6840558               176.4 ns/op       158.70 MB/s          16 B/op          1 allocs/op
+BenchmarkHelloWorld/Scan/fastjson-32                    40265343                29.52 ns/op      948.42 MB/s           0 B/op          0 allocs/op
+BenchmarkHelloWorld/Decode/jx-32                        24218804                46.91 ns/op      596.82 MB/s          16 B/op          1 allocs/op
+BenchmarkHelloWorld/Decode/simdjson-32                   5015164               238.4 ns/op       117.44 MB/s          24 B/op          2 allocs/op
+BenchmarkHelloWorld/Decode/std-32                        2747335               443.0 ns/op        63.20 MB/s         232 B/op          5 allocs/op
+BenchmarkHelloWorld/Decode/fastjson-32                  13771676                86.02 ns/op      325.52 MB/s          24 B/op          2 allocs/op
+BenchmarkSmall/Encode/jx/Encoder-32                      1314556               898.5 ns/op       380.64 MB/s           0 B/op          0 allocs/op
+BenchmarkSmall/Encode/jx/Writer-32                       2332848               510.3 ns/op       670.22 MB/s           0 B/op          0 allocs/op
+BenchmarkSmall/Encode/std-32                             1428535               835.0 ns/op       409.57 MB/s           0 B/op          0 allocs/op
+BenchmarkSmall/Encode/sonnet-32                          1239702              1002 ns/op         341.32 MB/s         288 B/op          4 allocs/op
+BenchmarkSmall/Encode/easyjson-32                        2621916               454.7 ns/op       752.08 MB/s           0 B/op          0 allocs/op
+BenchmarkSmall/Decode/easyjson-32                         718976              1596 ns/op         214.27 MB/s         544 B/op         14 allocs/op
+BenchmarkSmall/Decode/std-32                              206193              5187 ns/op          65.94 MB/s         712 B/op         27 allocs/op
+BenchmarkSmall/Decode/sonnet-32                           590230              1822 ns/op         187.67 MB/s         476 B/op         20 allocs/op
+BenchmarkSmall/Decode/jx-32                               915477              1236 ns/op         276.81 MB/s         416 B/op         20 allocs/op
+BenchmarkSmall/Decode/fastjson-32                         885486              1139 ns/op         300.18 MB/s         216 B/op         13 allocs/op
+BenchmarkSmall/Scan/jx-32                                2142826               555.2 ns/op       615.96 MB/s           0 B/op          0 allocs/op
+BenchmarkSmall/Scan/jscan-32                             2065302               582.9 ns/op       586.71 MB/s           0 B/op          0 allocs/op
+BenchmarkSmall/Scan/simdjson-32                          1000000              1040 ns/op         328.71 MB/s          16 B/op          1 allocs/op
+BenchmarkSmall/Scan/fastjson-32                          2203672               541.7 ns/op       631.40 MB/s           0 B/op          0 allocs/op
+PASS
+ok      bench   43.505s
+```

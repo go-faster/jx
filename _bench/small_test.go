@@ -9,7 +9,9 @@ import (
 	"github.com/mailru/easyjson/jwriter"
 	"github.com/minio/simdjson-go"
 	"github.com/romshark/jscan"
+	"github.com/stretchr/testify/require"
 	"github.com/sugawarayuuta/sonnet"
+	"github.com/valyala/fastjson"
 
 	"github.com/go-faster/jx"
 )
@@ -43,9 +45,33 @@ var (
 		Hots:    []bool{true, true, true},
 		Author:  author,
 		Authors: []SmallAuthor{author, author, author},
-		Weights: nil,
+		Weights: []int{1, 2, 3},
 	}
 )
+
+func TestSmall(t *testing.T) {
+	data, err := json.Marshal(small)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Run(JX, func(t *testing.T) {
+		var s Small
+		d := jx.DecodeBytes(data)
+		d.ResetBytes(data)
+		if err := s.Decode(d); err != nil {
+			t.Fatal(err)
+		}
+		require.Equal(t, small, &s)
+	})
+	t.Run(FastJSON, func(t *testing.T) {
+		var s Small
+		var p fastjson.Parser
+		if err := s.DecodeFastJSON(&p, data); err != nil {
+			t.Fatal(err)
+		}
+		require.Equal(t, small, &s)
+	})
+}
 
 func BenchmarkSmall(b *testing.B) {
 	v := small
@@ -146,6 +172,17 @@ func BenchmarkSmall(b *testing.B) {
 				}
 			}
 		})
+		b.Run(FastJSON, func(b *testing.B) {
+			data := setupSmall(b)
+			var p fastjson.Parser
+			var s Small
+			for i := 0; i < b.N; i++ {
+				s.Reset()
+				if err := s.DecodeFastJSON(&p, data); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
 	})
 	b.Run(Scan, func(b *testing.B) {
 		b.Run(JX, func(b *testing.B) {
@@ -181,6 +218,15 @@ func BenchmarkSmall(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				var err error
 				if pj, err = simdjson.Parse(data, pj, simdjson.WithCopyStrings(false)); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+		b.Run(FastJSON, func(b *testing.B) {
+			p := new(fastjson.Parser)
+			data := setupSmall(b)
+			for i := 0; i < b.N; i++ {
+				if _, err := p.ParseBytes(data); err != nil {
 					b.Fatal(err)
 				}
 			}

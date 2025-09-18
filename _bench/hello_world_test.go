@@ -11,6 +11,7 @@ import (
 	fflib "github.com/pquerna/ffjson/fflib/v1"
 	"github.com/romshark/jscan"
 	"github.com/sugawarayuuta/sonnet"
+	"github.com/valyala/fastjson"
 
 	"github.com/go-faster/jx"
 )
@@ -144,6 +145,15 @@ func BenchmarkHelloWorld(b *testing.B) {
 				}
 			}
 		})
+		b.Run(FastJSON, func(b *testing.B) {
+			p := new(fastjson.Parser)
+			data := setupHelloWorld(b)
+			for i := 0; i < b.N; i++ {
+				if _, err := p.ParseBytes(data); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
 	})
 	b.Run(Decode, func(b *testing.B) {
 		b.Run(JX, func(b *testing.B) {
@@ -176,6 +186,16 @@ func BenchmarkHelloWorld(b *testing.B) {
 			var v HelloWorld
 			for i := 0; i < b.N; i++ {
 				if err := json.Unmarshal(data, &v); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+		b.Run(FastJSON, func(b *testing.B) {
+			p := new(fastjson.Parser)
+			data := setupHelloWorld(b)
+			var v HelloWorld
+			for i := 0; i < b.N; i++ {
+				if err := v.DecodeFastJSON(p, data); err != nil {
 					b.Fatal(err)
 				}
 			}

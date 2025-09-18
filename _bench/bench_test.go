@@ -28,4 +28,5 @@ const (
 	SIMD = "simdjson"
 	// Baseline directly writes string to buffer, no encoding.
 	Baseline = "Baseline"
+	FastJSON = "fastjson"
 )
