@@ -65,7 +65,6 @@ func (s *Small) DecodeFastJSON(p *fastjson.Parser, data []byte) error {
 			if err != nil {
 				return
 			}
-			s.BookIds = make([]int, 0, len(arr))
 			for _, item := range arr {
 				s.BookIds = append(s.BookIds, item.GetInt())
 			}
@@ -76,7 +75,6 @@ func (s *Small) DecodeFastJSON(p *fastjson.Parser, data []byte) error {
 			if err != nil {
 				return
 			}
-			s.Titles = make([]string, 0, len(arr))
 			for _, item := range arr {
 				s.Titles = append(s.Titles, string(item.GetStringBytes()))
 			}
@@ -87,7 +85,6 @@ func (s *Small) DecodeFastJSON(p *fastjson.Parser, data []byte) error {
 			if err != nil {
 				return
 			}
-			s.Prices = make([]float64, 0, len(arr))
 			for _, item := range arr {
 				s.Prices = append(s.Prices, item.GetFloat64())
 			}
@@ -98,7 +95,6 @@ func (s *Small) DecodeFastJSON(p *fastjson.Parser, data []byte) error {
 			if err != nil {
 				return
 			}
-			s.Hots = make([]bool, 0, len(arr))
 			for _, item := range arr {
 				s.Hots = append(s.Hots, item.GetBool())
 			}
@@ -107,7 +103,6 @@ func (s *Small) DecodeFastJSON(p *fastjson.Parser, data []byte) error {
 			if err != nil {
 				return
 			}
-			s.Weights = make([]int, 0, len(arr))
 			for _, item := range arr {
 				s.Weights = append(s.Weights, item.GetInt())
 			}
@@ -120,7 +115,6 @@ func (s *Small) DecodeFastJSON(p *fastjson.Parser, data []byte) error {
 			if err != nil {
 				return
 			}
-			s.Authors = make([]SmallAuthor, 0, len(arr))
 			for _, item := range arr {
 				var a SmallAuthor
 				if err := a.DecodeFastJSONValue(item); err != nil {

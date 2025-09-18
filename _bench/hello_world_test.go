@@ -3,6 +3,7 @@ package bench
 import (
 	"bytes"
 	"encoding/json"
+	stdv2 "encoding/json/v2"
 	"testing"
 
 	jsoniter "github.com/json-iterator/go"
@@ -96,7 +97,16 @@ func BenchmarkHelloWorld(b *testing.B) {
 				}
 			}
 		})
-
+		b.Run(StdV2, func(b *testing.B) {
+			buf := new(bytes.Buffer)
+			setupHelloWorld(b)
+			for i := 0; i < b.N; i++ {
+				buf.Reset()
+				if err := stdv2.MarshalWrite(buf, v); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
 		b.Run(Baseline, func(b *testing.B) {
 			setupHelloWorld(b)
 			buf := new(bytes.Buffer)
@@ -196,6 +206,15 @@ func BenchmarkHelloWorld(b *testing.B) {
 			var v HelloWorld
 			for i := 0; i < b.N; i++ {
 				if err := v.DecodeFastJSON(p, data); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+		b.Run(StdV2, func(b *testing.B) {
+			data := setupHelloWorld(b)
+			var v HelloWorld
+			for i := 0; i < b.N; i++ {
+				if err := stdv2.Unmarshal(data, &v); err != nil {
 					b.Fatal(err)
 				}
 			}

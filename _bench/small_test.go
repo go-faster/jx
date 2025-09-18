@@ -3,6 +3,7 @@ package bench
 import (
 	"bytes"
 	"encoding/json"
+	stdv2 "encoding/json/v2"
 	"testing"
 
 	"github.com/mailru/easyjson/jlexer"
@@ -179,6 +180,16 @@ func BenchmarkSmall(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				s.Reset()
 				if err := s.DecodeFastJSON(&p, data); err != nil {
+					b.Fatal(err)
+				}
+			}
+		})
+		b.Run(StdV2, func(b *testing.B) {
+			data := setupSmall(b)
+			var s Small
+			for i := 0; i < b.N; i++ {
+				s.Reset()
+				if err := stdv2.Unmarshal(data, &s); err != nil {
 					b.Fatal(err)
 				}
 			}

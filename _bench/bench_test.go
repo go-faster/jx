@@ -29,4 +29,5 @@ const (
 	// Baseline directly writes string to buffer, no encoding.
 	Baseline = "Baseline"
 	FastJSON = "fastjson"
+	StdV2    = "stdv2"
 )
