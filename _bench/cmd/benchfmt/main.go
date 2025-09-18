@@ -9,6 +9,7 @@ import (
 )
 
 var benchRe = regexp.MustCompile(`^(Benchmark\S+)\s+(\d+)\s+([\d.]+ ns/op)\s+([\d.]+ MB/s)\s+(\d+ B/op)\s+(\d+ allocs/op)`)
+var coreNumRe = regexp.MustCompile(`-\d+$`)
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
@@ -41,6 +42,8 @@ func main() {
 		} else {
 			group = name
 		}
+		// Remove trailing "-<digits>" from benchname
+		benchname = coreNumRe.ReplaceAllString(benchname, "")
 		rows = append(rows, row{
 			group:    group,
 			subgroup: subgroup,
