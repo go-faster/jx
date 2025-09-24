@@ -1,6 +1,7 @@
 fail_on_severity: "low"
 allow_licenses:
   - "MIT"
+  - "MIT-0"
   - "ISC"
   - "MPL-2.0"
   - "BSD-2-Clause"
