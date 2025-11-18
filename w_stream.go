@@ -94,7 +94,6 @@ func writeStreamByteseqSlow[S byteseq.Byteseq](w *Writer, s S) bool {
 		if fail {
 			return true
 		}
-
 		n := copy(w.Buf[len(w.Buf):cap(w.Buf)], s)
 		s = s[n:]
 		w.Buf = w.Buf[:len(w.Buf)+n]
