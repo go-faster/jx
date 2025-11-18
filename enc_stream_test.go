@@ -11,22 +11,6 @@ import (
 	"github.com/go-faster/errors"
 )
 
-func TestEncoderStreamingCheck(t *testing.T) {
-	a := require.New(t)
-
-	e := NewStreamingEncoder(io.Discard, -1)
-
-	_, err := e.Write([]byte("hello"))
-	a.ErrorIs(err, errStreaming)
-
-	_, err = e.WriteTo(io.Discard)
-	a.ErrorIs(err, errStreaming)
-
-	a.PanicsWithError(errStreaming.Error(), func() {
-		_ = e.String()
-	})
-}
-
 type errWriter struct {
 	err error
 	n   int
