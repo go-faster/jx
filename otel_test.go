@@ -220,11 +220,11 @@ func (o *OTEL) Decode(d *Decoder) error {
 			o.Body = v
 			return nil
 		case "SeverityNumber":
-			v, err := d.Int32()
+			v, err := d.UInt8()
 			if err != nil {
 				return errors.Wrap(err, "severity number")
 			}
-			o.Severity = byte(v)
+			o.Severity = v
 			return nil
 		case "SeverityText":
 			return d.Skip()
