@@ -1,7 +1,6 @@
 package jx
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"strings"
@@ -45,7 +44,7 @@ func TestWriter_Base64(t *testing.T) {
 		73, // Write tail of base64
 	}
 
-	data := bytes.Repeat([]byte{0}, bufSize)
+	data := make([]byte, bufSize)
 	for _, n := range limits {
 		// Write '"' error.
 		e := NewStreamingEncoder(&limitWriter{w: io.Discard, n: n}, bufSize)
