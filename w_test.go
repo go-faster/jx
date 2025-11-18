@@ -146,3 +146,98 @@ func (e *errorWriter) Write(p []byte) (int, error) {
 	}
 	return len(p), nil
 }
+
+func TestWriter_WriteTo(t *testing.T) {
+	t.Run("NonStreaming_Success", func(t *testing.T) {
+		// Test WriteTo in non-streaming mode with data in buffer.
+		w := &Writer{}
+		data := []byte("test data for WriteTo")
+		w.Buf = append(w.Buf, data...)
+
+		var buf bytes.Buffer
+		n, err := w.WriteTo(&buf)
+
+		require.NoError(t, err)
+		require.Equal(t, int64(len(data)), n)
+		require.Equal(t, string(data), buf.String())
+	})
+
+	t.Run("NonStreaming_EmptyBuffer", func(t *testing.T) {
+		// Test WriteTo with empty buffer.
+		w := &Writer{}
+
+		var buf bytes.Buffer
+		n, err := w.WriteTo(&buf)
+
+		require.NoError(t, err)
+		require.Equal(t, int64(0), n)
+		require.Equal(t, "", buf.String())
+	})
+
+	t.Run("NonStreaming_LargeBuffer", func(t *testing.T) {
+		// Test WriteTo with larger data to ensure all bytes are written.
+		w := &Writer{}
+		data := make([]byte, 10000)
+		for i := range data {
+			data[i] = byte(i % 256)
+		}
+		w.Buf = append(w.Buf, data...)
+
+		var buf bytes.Buffer
+		n, err := w.WriteTo(&buf)
+
+		require.NoError(t, err)
+		require.Equal(t, int64(len(data)), n)
+		require.Equal(t, data, buf.Bytes())
+	})
+
+	t.Run("NonStreaming_WriteError", func(t *testing.T) {
+		// Test WriteTo when the underlying writer returns an error.
+		w := &Writer{}
+		w.Buf = append(w.Buf, []byte("some data")...)
+
+		errWriter := &errorWriter{err: io.ErrShortWrite}
+		n, err := w.WriteTo(errWriter)
+
+		require.Error(t, err)
+		require.Equal(t, io.ErrShortWrite, err)
+		require.Equal(t, int64(0), n)
+	})
+
+	t.Run("Streaming_ReturnsError", func(t *testing.T) {
+		// Test WriteTo in streaming mode - should return errStreaming.
+		var buf bytes.Buffer
+		w := &Writer{}
+		w.ResetWriter(&buf)
+
+		// Add some data to buffer
+		w.Buf = append(w.Buf, []byte("data")...)
+
+		var outBuf bytes.Buffer
+		n, err := w.WriteTo(&outBuf)
+
+		require.Error(t, err)
+		require.Equal(t, errStreaming, err)
+		require.Equal(t, int64(0), n)
+		require.Empty(t, outBuf.String())
+	})
+
+	t.Run("NonStreaming_JSONData", func(t *testing.T) {
+		// Test WriteTo with actual JSON data built using Writer methods.
+		w := &Writer{}
+		w.ObjStart()
+		w.FieldStart("name")
+		w.Str("test")
+		w.Comma()
+		w.FieldStart("value")
+		w.Int(42)
+		w.ObjEnd()
+
+		var buf bytes.Buffer
+		n, err := w.WriteTo(&buf)
+
+		require.NoError(t, err)
+		require.Greater(t, n, int64(0))
+		require.Equal(t, `{"name":"test","value":42}`, buf.String())
+	})
+}
