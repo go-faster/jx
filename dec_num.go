@@ -1,6 +1,8 @@
 package jx
 
 import (
+	"io"
+
 	"github.com/go-faster/errors"
 )
 
@@ -43,6 +45,9 @@ func (d *Decoder) num(v Num, forceAppend bool) (Num, error) {
 
 				if err := d.skipNumber(); err != nil {
 					return Num{}, errors.Wrap(err, "skip number")
+				}
+				if _, err := d.next(); err != io.EOF {
+					return Num{}, errors.New("trailing data in number string")
 				}
 			default:
 				return nil, badToken(c, offset)
