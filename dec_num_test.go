@@ -50,6 +50,11 @@ func testDecoderNum(t *testing.T, num func(*Decoder) (Num, error)) {
 		`-100`,
 		`"-100"`,
 		`"-100.0"`,
+		`"0"`,
+		`"-0"`,
+		`"1e+2"`,
+		`"-1.25e-2"`,
+		`" 1 "`,
 	}, func(input string, t *testing.T, d *Decoder) {
 		v, err := num(d)
 		require.NoErrorf(t, err, "input: %q", input)
@@ -62,6 +67,20 @@ func testDecoderNum(t *testing.T, num func(*Decoder) (Num, error)) {
 		`"-100.0.0"`,
 		"false",
 		`"false"`,
+		`"1,2"`,
+		`"1]"`,
+		`"1}"`,
+		`"1 2"`,
+		`"1 true"`,
+		`"-2}"`,
+		`"0,1"`,
+		`"0]"`,
+		`"1.5,2"`,
+		`"1e2]"`,
+		`"1\u002c2"`,
+		`"1\u00202"`,
+		`"1\t2"`,
+		`"1\r\n2"`,
 	}, func(input string, t *testing.T, d *Decoder) {
 		_, err := num(d)
 		require.Errorf(t, err, "input: %q", input)
