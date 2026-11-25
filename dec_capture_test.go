@@ -2,6 +2,7 @@ package jx
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -136,6 +137,37 @@ func TestDecoder_Capture(t *testing.T) {
 		buf:    make([]byte, 8),
 	}
 	t.Run("Reader", test(&decoder))
+}
+
+func TestDecoder_CaptureReaderWithBufferedData(t *testing.T) {
+	want := strings.Repeat("b", 30)
+	input := `["a","` + want + `"]`
+	d := Decode(strings.NewReader(input), 8)
+
+	ok, err := d.Elem()
+	require.NoError(t, err)
+	require.True(t, ok)
+	first, err := d.Str()
+	require.NoError(t, err)
+	require.Equal(t, "a", first)
+	ok, err = d.Elem()
+	require.NoError(t, err)
+	require.True(t, ok)
+
+	var captured string
+	require.NoError(t, d.Capture(func(d *Decoder) error {
+		var err error
+		captured, err = d.Str()
+		return err
+	}))
+	require.Equal(t, want, captured)
+
+	got, err := d.Str()
+	require.NoError(t, err)
+	require.Equal(t, want, got)
+	ok, err = d.Elem()
+	require.NoError(t, err)
+	require.False(t, ok)
 }
 
 func TestDoubleCapture(t *testing.T) {

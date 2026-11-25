@@ -12,17 +12,16 @@ func (d *Decoder) Capture(f func(d *Decoder) error) error {
 	}
 
 	if d.reader != nil {
-		// TODO(tdakkota): May it be more efficient?
-		var (
-			buf          bytes.Buffer
-			streamOffset = d.streamOffset
-		)
-		reader := io.TeeReader(d.reader, &buf)
+		var captured bytes.Buffer
+		original := d.reader
+		savedBuf := append([]byte(nil), d.buf...)
+		streamOffset := d.streamOffset
+		d.reader = io.TeeReader(original, &captured)
 		defer func() {
-			d.reader = io.MultiReader(&buf, d.reader)
+			d.reader = io.MultiReader(&captured, original)
+			d.buf = savedBuf
 			d.streamOffset = streamOffset
 		}()
-		d.reader = reader
 	}
 	head, tail, depth := d.head, d.tail, d.depth
 	err := f(d)
